@@ -1,0 +1,14 @@
+Execute:
+  mode: local
+  sigmond_batch: /home/ahanlon/.bin/sigmond
+  max_simultaneous: 7
+
+averaged_corrs:
+  task_type: average_corrs
+  write_operators: true
+  file_mode: overwrite
+  off_diagonal: true
+  use_irrep_info: true
+  hermitian: true
+  plot_info:
+    timestep: 1

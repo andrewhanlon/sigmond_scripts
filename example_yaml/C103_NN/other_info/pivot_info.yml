@@ -1,0 +1,41 @@
+x-pivot_info_10_12: &PIVOT_INFO_10_12
+  pivot_type: single_pivot
+  norm_time: 10
+  metric_time: 10
+  diagonalize_time: 12
+  max_condition_number: 50
+
+x-pivot_info_6_12: &PIVOT_INFO_6_12
+  pivot_type: single_pivot
+  norm_time: 6
+  metric_time: 6
+  diagonalize_time: 12
+  max_condition_number: 50
+
+x-pivot_info_8_14: &PIVOT_INFO_8_14
+  pivot_type: single_pivot
+  norm_time: 8
+  metric_time: 8
+  diagonalize_time: 14
+  max_condition_number: 50
+
+x-pivot_info_5_10: &PIVOT_INFO_5_10
+  pivot_type: single_pivot
+  norm_time: 5
+  metric_time: 5
+  diagonalize_time: 10
+  max_condition_number: 50
+
+x-pivot_info_12_24: &PIVOT_INFO_12_24
+  pivot_type: single_pivot
+  norm_time: 12
+  metric_time: 12
+  diagonalize_time: 24
+  max_condition_number: 50
+
+x-pivot_info: &PIVOT_INFO
+  pivot_type: single_pivot
+  norm_time: 8
+  metric_time: 8
+  diagonalize_time: 12
+  max_condition_number: 50
