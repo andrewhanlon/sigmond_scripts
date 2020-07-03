@@ -1,0 +1,43 @@
+<KnownEnsembles>
+
+ <!-- Information about ensembles for SigMonD.  First tag <Infos>
+      contains the information.  Second tag <Weights> contains the
+      weights needed for CLS ensembles.   -->
+
+  <Infos>
+
+     <EnsembleInfo>
+        <Id>cls21_d200_r000</Id>
+        <NStreams>1</NStreams>
+        <NMeas>2001</NMeas>
+        <NSpace>64</NSpace>
+        <NTime>128</NTime>
+     </EnsembleInfo>
+
+     <EnsembleInfo>
+        <Id>cls21_n203_r000</Id>
+        <NStreams>1</NStreams>
+        <NMeas>756</NMeas>
+        <NSpace>48</NSpace>
+        <NTime>128</NTime>
+     </EnsembleInfo>
+
+     <EnsembleInfo>
+        <Id>cls21_n203_r001</Id>
+        <NStreams>1</NStreams>
+        <NMeas>787</NMeas>
+        <NSpace>48</NSpace>
+        <NTime>128</NTime>
+     </EnsembleInfo>
+
+     <EnsembleInfo>
+        <Id>cls21_n203</Id>
+        <NStreams>2</NStreams>
+        <NMeas>1543</NMeas>
+        <NSpace>48</NSpace>
+        <NTime>128</NTime>
+     </EnsembleInfo>
+
+  </Infos>
+
+</KnownEnsembles>

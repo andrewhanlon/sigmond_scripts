@@ -1,0 +1,23 @@
+<KnownEnsembles>
+
+  <Infos>
+
+     <EnsembleInfo>
+        <Id>cls21_c103_r005</Id>
+        <NStreams>1</NStreams>
+        <NMeas>401</NMeas>
+        <NSpace>48</NSpace>
+        <NTime>96</NTime>
+     </EnsembleInfo>
+
+     <EnsembleInfo>
+        <Id>cls21_c103</Id>
+        <NStreams>1</NStreams>
+        <NMeas>401</NMeas>
+        <NSpace>48</NSpace>
+        <NTime>96</NTime>
+     </EnsembleInfo>
+
+  </Infos>
+
+</KnownEnsembles>

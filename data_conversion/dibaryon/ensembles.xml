@@ -1,0 +1,83 @@
+<KnownEnsembles>
+
+ <!-- Information about ensembles for SigMonD.  First tag <Infos>
+      contains the information.  Second tag <Weights> contains the
+      weights needed for CLS ensembles.   -->
+
+  <Infos>
+
+     <EnsembleInfo>
+        <Id>cls_A653</Id>
+        <NStreams>1</NStreams>
+        <NMeas>5050</NMeas>
+        <NSpace>24</NSpace>
+        <NTime>48</NTime>
+     </EnsembleInfo>
+
+     <EnsembleInfo>
+        <Id>cls_N300</Id>
+        <NStreams>2</NStreams>
+        <NMeas>2047</NMeas>
+        <NSpace>48</NSpace>
+        <NTime>128</NTime>
+     </EnsembleInfo>
+
+     <EnsembleInfo>
+        <Id>cls_B450</Id>
+        <NStreams>1</NStreams>
+        <NMeas>1612</NMeas>
+        <NSpace>32</NSpace>
+        <NTime>64</NTime>
+     </EnsembleInfo>
+
+     <EnsembleInfo>
+        <Id>cls_H101</Id>
+        <NStreams>2</NStreams>
+        <NMeas>2016</NMeas>
+        <NSpace>32</NSpace>
+        <NTime>96</NTime>
+     </EnsembleInfo>
+
+     <EnsembleInfo>
+        <Id>cls_H200</Id>
+        <NStreams>2</NStreams>
+        <NMeas>2000</NMeas>
+        <NSpace>32</NSpace>
+        <NTime>96</NTime>
+     </EnsembleInfo>
+
+     <EnsembleInfo>
+        <Id>cls_U103</Id>
+        <NStreams>3</NStreams>
+        <NMeas>5721</NMeas>
+        <NSpace>24</NSpace>
+        <NTime>128</NTime>
+     </EnsembleInfo>
+
+     <EnsembleInfo>
+        <Id>cls_U102</Id>
+        <NStreams>2</NStreams>
+        <NMeas>4861</NMeas>
+        <NSpace>24</NSpace>
+        <NTime>128</NTime>
+     </EnsembleInfo>
+
+     <EnsembleInfo>
+        <Id>cls_E1</Id>
+        <NStreams>1</NStreams>
+        <NMeas>168</NMeas>
+        <NSpace>32</NSpace>
+        <NTime>64</NTime>
+     </EnsembleInfo>
+
+     <EnsembleInfo>
+        <Id>cls_E5</Id>
+        <NStreams>2</NStreams>
+        <NMeas>2000</NMeas>
+        <NSpace>32</NSpace>
+        <NTime>64</NTime>
+     </EnsembleInfo>
+
+  </Infos>
+
+</KnownEnsembles>
