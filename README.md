@@ -14,6 +14,12 @@ The analysis scripts use YAML configuration files to specify what you want to do
 - example_yamls - contains some example yaml files that can be passed to run_sigmond.py
 - doc - contains documenation for how to use the analysis scripts (not up to date at all)
 
+### What software requirements are there? ###
+
+- Python 3.8 is required
+- pybind11
+- Lots of python libaries. I don't know all of them off-hand, but trying runing `run_sigmond.py`. If you are missing a library, you will get a `ModuleNotFoundError`. Then you can use pip or your package manager to install it. It would be nice to have a comprehensive list of all packages required..
+
 ### How do I get started? ###
 
 - You first need data in a format that sigmond can read (either LapH-binary or sigmond-bins).
@@ -28,3 +34,31 @@ Note that you can pass various yaml files using the -c option in run_sigmond.py.
 These will be combined to form one yaml file that actually gets run.
 Be careful about identical sections, because the last section encountered is the one that actually gets run.
 Using multiple yaml files allows for aliases and anchors between these files.
+
+### C103 Example ###
+
+- You first need the data in a format that sigmond can read.
+It can read the raw LapH data files produced from `last_laph`.
+However, the keys are identical in the files for each source time, so sigmond cannot distinguish these.
+We must first average all sources that have the same keys, then put the result in a separate file.
+Either these files will be provided for you, or you can generate them using the script `data_conversion/C103/to_sigmond.py`.
+Make sure to update the `base_data_dir` in `data_conversion/C103/defs.py`. `base_data_dir` should contain the following
+  r005/src0, r005/src1, r005/src2, r005/src3
+where the raw correlator files are located in each of the `src` directories.
+Note that these scripts take 4.5 hours on my local computer to run.
+- `cd example_yaml/C103_NN/`
+- edit `ensemble_info/C103_all.yml`:
+  Initialize:
+    ensembles_file: <location of ensembles.xml file>  # can be left blank to use default
+    project_directory: <location on local machine where you want all project files to be created>
+    raw_data_directories:
+      - <location of converted data from first step above>
+    precompute: true   # doesn't really matter
+- edit `tasks/averaged_data.yml`. Change `sigmond_batch` to the location of the `sigmond` binary produced when you install sigmond.
+- Next run
+  run_sigmond.py -d -c ensemble_info/C103_all.yml tasks/averaged_data.yml
+
+This run will average over all equivalent momentum frames and irrep rows, then produce a PDF showing the averaged data.
+Note that reading the large data files can take some time (not more than 5 minutes on my computer)
+One this task has been completed, subsequent tasks will be much easier.
+
