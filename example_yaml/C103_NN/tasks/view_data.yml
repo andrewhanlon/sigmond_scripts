@@ -1,0 +1,16 @@
+Execute:
+  mode: local
+  sigmond_batch: /home/ahanlon/.bin/sigmond
+  max_simultaneous: 7
+
+view_data:
+  task_type: view_data
+  write_operators: true
+  subtractvev: false
+  hermitian: true
+  off_diagonal: true
+
+  plot_info:
+    timestep: 1
+
+  auto_add: true

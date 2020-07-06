@@ -1,0 +1,6 @@
+x-minimizer_info: &MINIMIZER_INFO
+  minimizer: lmder
+  parameter_rel_tol: 1e-7
+  chisquare_rel_tol: 1e-7
+  max_iterations: 1000
+  verbosity: high

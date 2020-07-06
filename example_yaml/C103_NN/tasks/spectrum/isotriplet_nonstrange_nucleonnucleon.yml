@@ -1,0 +1,1989 @@
+Execute:
+  mode: local
+  sigmond_batch: /home/ahanlon/.bin/sigmond
+  max_simultaneous: 1
+
+I1_S0_NN:
+  task_type: spectrum
+
+  minimizer_info:
+    <<: *MINIMIZER_INFO
+
+  tmin_plot_info:
+    obsname: standard
+    symbol_type: circle
+    goodfit_color: blue
+    badfit_color: red
+    correlatedfit_hollow: true
+    uncorrelatedfit_hollow: false
+    quality_threshold: 0.1
+    correlated_threshold: 1.0
+
+  fit_plot_info:
+    timestep: 1
+    show_approach: true
+    goodness: chisq
+    corrname: standard
+    symbol_color: blue
+    symbol_type: circle
+
+  rotate_labels: true
+  plot_width_factor: 2.0
+
+  reference_fit_info:
+    operator: isodoublet S=0 PSQ=0 G1g N-SS_0 0
+    model: 1-exp
+    tmin: 14
+    tmax: 25
+
+  scattering_particles:
+    - name: N
+      fits:
+        - operator: isodoublet S=0 PSQ=0 G1g N-SS_0 0
+          model: 1-exp
+          tmin: 14
+          tmax: 25
+          tmin_info:
+            - model: 1-exp
+              tmin_min: 7
+              tmin_max: 22
+            - model: 2-exp
+              tmin_min: 2
+              tmin_max: 12
+        - operator: isodoublet S=0 PSQ=1 G1 N-SS_0 0
+          model: 1-exp
+          tmin: 17
+          tmax: 25
+          tmin_info:
+            - model: 1-exp
+              tmin_min: 7
+              tmin_max: 22
+            - model: 2-exp
+              tmin_min: 2
+              tmin_max: 16
+        - operator: isodoublet S=0 PSQ=2 G N-SS_0 0
+          model: 1-exp
+          tmin: 16
+          tmax: 25
+          tmin_info:
+            - model: 1-exp
+              tmin_min: 7
+              tmin_max: 22
+            - model: 2-exp
+              tmin_min: 2
+              tmin_max: 20
+        - operator: isodoublet S=0 PSQ=3 G N-SS_0 0
+          model: 1-exp
+          tmin: 17
+          tmax: 25
+          tmin_info:
+            - model: 1-exp
+              tmin_min: 7
+              tmin_max: 22
+            - model: 2-exp
+              tmin_min: 2
+              tmin_max: 20
+        - operator: isodoublet S=0 PSQ=4 G1 N-SS_0 0
+          model: 1-exp
+          tmin: 13
+          tmax: 25
+          tmin_info:
+            - model: 1-exp
+              tmin_min: 7
+              tmin_max: 22
+            - model: 1-exp
+              tmin_min: 6
+              tmin_max: 20
+
+  thresholds:
+    - [N, N]
+
+  latex_map:
+    ref: N
+    N: N
+    A1g: 'A_{1g}'
+    A1u: 'A_{1u}'
+    Eg: 'E_g'
+    Eu: 'E_u'
+    T1u: 'T_{1u}'
+    T2g: 'T_{2g}'
+    T2u: 'T_{2u}'
+    A1: 'A_1'
+    A2: 'A_2'
+    E: 'E'
+    B1: 'B_1'
+    B2: 'B_2'
+
+  spectrum:
+    - name: isotriplet_S0_A1g_P0
+      pivot_info:
+        <<: *PIVOT_INFO
+      non_interacting_levels:
+        *ISOTRIPLET_S0_A1g_P0
+
+      levels:
+        - model: 1-exp
+          tmin: 7
+          tmax: 18
+          ratio: true
+
+        - model: 1-exp
+          tmin: 7
+          tmax: 18
+          ratio: true
+
+        - model: 1-exp
+          tmin: 8
+          tmax: 16
+          ratio: true
+
+        - model: 1-exp
+          tmin: 7
+          tmax: 14
+          ratio: true
+
+      tmin_info:
+        - fit_infos:
+          - model: 1-exp
+            tmin_min: 5
+            tmin_max: 16
+          - model: 1-exp
+            tmin_min: 1
+            tmin_max: 12
+            ratio: True
+          - model: 2-exp
+            tmin_min: 2
+            tmin_max: 10
+            
+        - fit_infos:
+          - model: 1-exp
+            tmin_min: 5
+            tmin_max: 16
+          - model: 1-exp
+            tmin_min: 1
+            tmin_max: 12
+            ratio: True
+          - model: 2-exp
+            tmin_min: 2
+            tmin_max: 10
+            
+        - fit_infos:
+          - model: 1-exp
+            tmin_min: 5
+            tmin_max: 16
+          - model: 1-exp
+            tmin_min: 1
+            tmin_max: 12
+            ratio: True
+          - model: 2-exp
+            tmin_min: 2
+            tmin_max: 10
+
+        - fit_infos:
+          - model: 1-exp
+            tmin_min: 5
+            tmin_max: 16
+          - model: 1-exp
+            tmin_min: 1
+            tmin_max: 16
+            ratio: True
+          - model: 2-exp
+            tmin_min: 2
+            tmin_max: 10
+
+    - name: isotriplet_S0_A1u_P0
+      pivot_info:
+        <<: *PIVOT_INFO
+      non_interacting_levels:
+        *ISOTRIPLET_S0_A1u_P0
+
+      levels:
+        - model: 1-exp
+          tmin: 8
+          tmax: 17
+          ratio: true
+
+        - model: 1-exp
+          tmin: 10
+          tmax: 16
+          ratio: true
+
+        - model: 1-exp
+          tmin: 10
+          tmax: 17
+          ratio: true
+
+      tmin_info:
+        - fit_infos:
+          - model: 1-exp
+            tmin_min: 5
+            tmin_max: 16
+          - model: 1-exp
+            tmin_min: 1
+            tmin_max: 16
+            ratio: True
+          - model: 2-exp
+            tmin_min: 2
+            tmin_max: 10
+            
+        - fit_infos:
+          - model: 1-exp
+            tmin_min: 5
+            tmin_max: 16
+          - model: 1-exp
+            tmin_min: 1
+            tmin_max: 16
+            ratio: True
+          - model: 2-exp
+            tmin_min: 2
+            tmin_max: 10
+
+        - fit_infos:
+          - model: 1-exp
+            tmin_min: 5
+            tmin_max: 16
+          - model: 1-exp
+            tmin_min: 1
+            tmin_max: 16
+            ratio: True
+          - model: 2-exp
+            tmin_min: 2
+            tmin_max: 10
+
+    - name: isotriplet_S0_Eg_P0
+      pivot_info:
+        <<: *PIVOT_INFO
+      non_interacting_levels:
+        *ISOTRIPLET_S0_Eg_P0
+
+      levels:
+        - model: 1-exp
+          tmin: 10
+          tmax: 18
+          ratio: true
+
+        - model: 1-exp
+          tmin: 10
+          tmax: 17
+          ratio: true
+
+      tmin_info:
+        - fit_infos:
+          - model: 1-exp
+            tmin_min: 5
+            tmin_max: 16
+          - model: 1-exp
+            tmin_min: 1
+            tmin_max: 16
+            ratio: True
+          - model: 2-exp
+            tmin_min: 2
+            tmin_max: 10
+
+        - fit_infos:
+          - model: 1-exp
+            tmin_min: 5
+            tmin_max: 16
+          - model: 1-exp
+            tmin_min: 1
+            tmin_max: 16
+            ratio: True
+          - model: 2-exp
+            tmin_min: 2
+            tmin_max: 10
+
+    - name: isotriplet_S0_Eu_P0
+      pivot_info:
+        <<: *PIVOT_INFO
+      non_interacting_levels:
+        *ISOTRIPLET_S0_Eu_P0
+
+      levels:
+        - model: 1-exp
+          tmin: 12
+          tmax: 15
+
+        - model: 1-exp
+          tmin: 8
+          tmax: 19
+          ratio: true
+
+        - model: 1-exp
+          tmin: 10
+          tmax: 20
+          ratio: true
+
+        - model: 1-exp
+          tmin: 10
+          tmax: 15
+          ratio: true
+
+      tmin_info:
+        - fit_infos:
+          - model: 1-exp
+            tmin_min: 5
+            tmin_max: 16
+          - model: 1-exp
+            tmin_min: 1
+            tmin_max: 16
+            ratio: True
+          - model: 2-exp
+            tmin_min: 2
+            tmin_max: 10
+            
+        - fit_infos:
+          - model: 1-exp
+            tmin_min: 5
+            tmin_max: 16
+          - model: 1-exp
+            tmin_min: 1
+            tmin_max: 16
+            ratio: True
+          - model: 2-exp
+            tmin_min: 2
+            tmin_max: 10
+            
+        - fit_infos:
+          - model: 1-exp
+            tmin_min: 5
+            tmin_max: 16
+          - model: 1-exp
+            tmin_min: 1
+            tmin_max: 16
+            ratio: True
+          - model: 2-exp
+            tmin_min: 2
+            tmin_max: 10
+
+        - fit_infos:
+          - model: 1-exp
+            tmin_min: 5
+            tmin_max: 16
+          - model: 1-exp
+            tmin_min: 1
+            tmin_max: 16
+            ratio: True
+          - model: 2-exp
+            tmin_min: 2
+            tmin_max: 10
+
+    - name: isotriplet_S0_T1u_P0
+      pivot_info:
+        <<: *PIVOT_INFO
+      non_interacting_levels:
+        *ISOTRIPLET_S0_T1u_P0
+
+      levels:
+        - model: 1-exp
+          tmin: 12
+          tmax: 19
+
+        - model: 1-exp
+          tmin: 8
+          tmax: 20
+          ratio: true
+
+        - model: 1-exp
+          tmin: 10
+          tmax: 17
+          ratio: true
+
+        - model: 1-exp
+          tmin: 10
+          tmax: 14
+          ratio: true
+
+      tmin_info:
+        - fit_infos:
+          - model: 1-exp
+            tmin_min: 5
+            tmin_max: 16
+          - model: 1-exp
+            tmin_min: 1
+            tmin_max: 16
+            ratio: True
+          - model: 2-exp
+            tmin_min: 2
+            tmin_max: 10
+            
+        - fit_infos:
+          - model: 1-exp
+            tmin_min: 5
+            tmin_max: 16
+          - model: 1-exp
+            tmin_min: 1
+            tmin_max: 16
+            ratio: True
+          - model: 2-exp
+            tmin_min: 2
+            tmin_max: 10
+            
+        - fit_infos:
+          - model: 1-exp
+            tmin_min: 5
+            tmin_max: 16
+          - model: 1-exp
+            tmin_min: 1
+            tmin_max: 16
+            ratio: True
+          - model: 2-exp
+            tmin_min: 2
+            tmin_max: 10
+
+        - fit_infos:
+          - model: 1-exp
+            tmin_min: 5
+            tmin_max: 16
+          - model: 1-exp
+            tmin_min: 1
+            tmin_max: 16
+            ratio: True
+          - model: 2-exp
+            tmin_min: 2
+            tmin_max: 10
+
+    - name: isotriplet_S0_T2g_P0
+      pivot_info:
+        <<: *PIVOT_INFO
+      non_interacting_levels:
+        *ISOTRIPLET_S0_T2g_P0
+      levels:
+        - model: 1-exp
+          tmin: 8
+          tmax: 18
+          ratio: true
+
+        - model: 1-exp
+          tmin: 10
+          tmax: 16
+          ratio: true
+
+      tmin_info:
+        - fit_infos:
+          - model: 1-exp
+            tmin_min: 5
+            tmin_max: 16
+          - model: 1-exp
+            tmin_min: 1
+            tmin_max: 16
+            ratio: True
+          - model: 2-exp
+            tmin_min: 2
+            tmin_max: 10
+
+        - fit_infos:
+          - model: 1-exp
+            tmin_min: 5
+            tmin_max: 16
+          - model: 1-exp
+            tmin_min: 1
+            tmin_max: 16
+            ratio: True
+          - model: 2-exp
+            tmin_min: 2
+            tmin_max: 10
+
+    - name: isotriplet_S0_T2u_P0
+      pivot_info:
+        <<: *PIVOT_INFO
+      non_interacting_levels:
+        *ISOTRIPLET_S0_T2u_P0
+
+      levels:
+        - model: 1-exp
+          tmin: 12
+          tmax: 16
+
+        - model: 1-exp
+          tmin: 12
+          tmax: 19
+
+        - model: 1-exp
+          tmin: 8
+          tmax: 17
+          ratio: true
+
+        - model: 1-exp
+          tmin: 8
+          tmax: 18
+          ratio: true
+
+        - model: 1-exp
+          tmin: 10
+          tmax: 15
+          ratio: true
+
+      tmin_info:
+        - fit_infos:
+          - model: 1-exp
+            tmin_min: 5
+            tmin_max: 16
+          - model: 1-exp
+            tmin_min: 1
+            tmin_max: 16
+            ratio: True
+          - model: 2-exp
+            tmin_min: 2
+            tmin_max: 10
+            
+        - fit_infos:
+          - model: 1-exp
+            tmin_min: 5
+            tmin_max: 16
+          - model: 1-exp
+            tmin_min: 1
+            tmin_max: 16
+            ratio: True
+          - model: 2-exp
+            tmin_min: 2
+            tmin_max: 10
+            
+        - fit_infos:
+          - model: 1-exp
+            tmin_min: 5
+            tmin_max: 16
+          - model: 1-exp
+            tmin_min: 1
+            tmin_max: 16
+            ratio: True
+          - model: 2-exp
+            tmin_min: 2
+            tmin_max: 10
+            
+        - fit_infos:
+          - model: 1-exp
+            tmin_min: 5
+            tmin_max: 16
+          - model: 1-exp
+            tmin_min: 1
+            tmin_max: 16
+            ratio: True
+          - model: 2-exp
+            tmin_min: 2
+            tmin_max: 10
+
+        - fit_infos:
+          - model: 1-exp
+            tmin_min: 5
+            tmin_max: 16
+          - model: 1-exp
+            tmin_min: 1
+            tmin_max: 16
+            ratio: True
+          - model: 2-exp
+            tmin_min: 2
+            tmin_max: 10
+
+    - name: isotriplet_S0_A1_P1
+      pivot_info:
+        <<: *PIVOT_INFO
+      non_interacting_levels:
+        *ISOTRIPLET_S0_A1_P1
+      levels:
+        - model: 1-exp
+          tmin: 7
+          tmax: 18
+          ratio: true
+
+        - model: 1-exp
+          tmin: 8
+          tmax: 18
+          ratio: true
+
+        - model: 1-exp
+          tmin: 7
+          tmax: 20
+          ratio: true
+
+        - model: 1-exp
+          tmin: 8
+          tmax: 18
+          ratio: true
+
+        - model: 1-exp
+          tmin: 10
+          tmax: 19
+          ratio: true
+
+        - model: 1-exp
+          tmin: 10
+          tmax: 17
+          ratio: true
+
+      tmin_info:
+        - fit_infos:
+          - model: 1-exp
+            tmin_min: 5
+            tmin_max: 16
+          - model: 1-exp
+            tmin_min: 1
+            tmin_max: 16
+            ratio: True
+          - model: 2-exp
+            tmin_min: 2
+            tmin_max: 10
+
+        - fit_infos:
+          - model: 1-exp
+            tmin_min: 5
+            tmin_max: 16
+          - model: 1-exp
+            tmin_min: 1
+            tmin_max: 16
+            ratio: True
+          - model: 2-exp
+            tmin_min: 2
+            tmin_max: 10
+            
+        - fit_infos:
+          - model: 1-exp
+            tmin_min: 5
+            tmin_max: 16
+          - model: 1-exp
+            tmin_min: 1
+            tmin_max: 16
+            ratio: True
+          - model: 2-exp
+            tmin_min: 2
+            tmin_max: 10
+
+        - fit_infos:
+          - model: 1-exp
+            tmin_min: 5
+            tmin_max: 16
+          - model: 1-exp
+            tmin_min: 1
+            tmin_max: 16
+            ratio: True
+          - model: 2-exp
+            tmin_min: 2
+            tmin_max: 10
+            
+        - fit_infos:
+          - model: 1-exp
+            tmin_min: 5
+            tmin_max: 16
+          - model: 1-exp
+            tmin_min: 1
+            tmin_max: 16
+            ratio: True
+          - model: 2-exp
+            tmin_min: 2
+            tmin_max: 10
+
+        - fit_infos:
+          - model: 1-exp
+            tmin_min: 5
+            tmin_max: 16
+          - model: 1-exp
+            tmin_min: 1
+            tmin_max: 16
+            ratio: True
+          - model: 2-exp
+            tmin_min: 2
+            tmin_max: 10
+
+    - name: isotriplet_S0_A2_P1
+      pivot_info:
+        <<: *PIVOT_INFO
+      non_interacting_levels:
+        *ISOTRIPLET_S0_A2_P1
+      levels:
+        - model: 1-exp
+          tmin: 7
+          tmax: 19
+          ratio: true
+
+        - model: 1-exp
+          tmin: 8
+          tmax: 19
+          ratio: true
+
+        - model: 1-exp
+          tmin: 7
+          tmax: 18
+          ratio: true
+
+        - model: 1-exp
+          tmin: 8
+          tmax: 17
+          ratio: true
+
+        - model: 1-exp
+          tmin: 10
+          tmax: 19
+          ratio: true
+
+        - model: 1-exp
+          tmin: 10
+          tmax: 16
+          ratio: true
+
+      tmin_info:
+        - fit_infos:
+          - model: 1-exp
+            tmin_min: 5
+            tmin_max: 16
+          - model: 1-exp
+            tmin_min: 1
+            tmin_max: 16
+            ratio: True
+          - model: 2-exp
+            tmin_min: 2
+            tmin_max: 10
+
+        - fit_infos:
+          - model: 1-exp
+            tmin_min: 5
+            tmin_max: 16
+          - model: 1-exp
+            tmin_min: 1
+            tmin_max: 16
+            ratio: True
+          - model: 2-exp
+            tmin_min: 2
+            tmin_max: 10
+            
+        - fit_infos:
+          - model: 1-exp
+            tmin_min: 5
+            tmin_max: 16
+          - model: 1-exp
+            tmin_min: 1
+            tmin_max: 16
+            ratio: True
+          - model: 2-exp
+            tmin_min: 2
+            tmin_max: 10
+
+        - fit_infos:
+          - model: 1-exp
+            tmin_min: 5
+            tmin_max: 16
+          - model: 1-exp
+            tmin_min: 1
+            tmin_max: 16
+            ratio: True
+          - model: 2-exp
+            tmin_min: 2
+            tmin_max: 10
+            
+        - fit_infos:
+          - model: 1-exp
+            tmin_min: 5
+            tmin_max: 16
+          - model: 1-exp
+            tmin_min: 1
+            tmin_max: 16
+            ratio: True
+          - model: 2-exp
+            tmin_min: 2
+            tmin_max: 10
+
+        - fit_infos:
+          - model: 1-exp
+            tmin_min: 5
+            tmin_max: 16
+          - model: 1-exp
+            tmin_min: 1
+            tmin_max: 16
+            ratio: True
+          - model: 2-exp
+            tmin_min: 2
+            tmin_max: 10
+
+    - name: isotriplet_S0_B1_P1
+      pivot_info:
+        <<: *PIVOT_INFO
+      non_interacting_levels:
+        *ISOTRIPLET_S0_B1_P1
+      levels:
+        - model: 1-exp
+          tmin: 7
+          tmax: 19
+          ratio: true
+
+        - model: 1-exp
+          tmin: 8
+          tmax: 18
+          ratio: true
+
+        - model: 1-exp
+          tmin: 10
+          tmax: 19
+          ratio: true
+
+        - model: 1-exp
+          tmin: 10
+          tmax: 19
+          ratio: true
+
+      tmin_info:
+        - fit_infos:
+          - model: 1-exp
+            tmin_min: 5
+            tmin_max: 16
+          - model: 1-exp
+            tmin_min: 1
+            tmin_max: 16
+            ratio: True
+          - model: 2-exp
+            tmin_min: 2
+            tmin_max: 10
+
+        - fit_infos:
+          - model: 1-exp
+            tmin_min: 5
+            tmin_max: 16
+          - model: 1-exp
+            tmin_min: 1
+            tmin_max: 16
+            ratio: True
+          - model: 2-exp
+            tmin_min: 2
+            tmin_max: 10
+            
+        - fit_infos:
+          - model: 1-exp
+            tmin_min: 5
+            tmin_max: 16
+          - model: 1-exp
+            tmin_min: 1
+            tmin_max: 16
+            ratio: True
+          - model: 2-exp
+            tmin_min: 2
+            tmin_max: 10
+
+        - fit_infos:
+          - model: 1-exp
+            tmin_min: 5
+            tmin_max: 16
+          - model: 1-exp
+            tmin_min: 1
+            tmin_max: 16
+            ratio: True
+          - model: 2-exp
+            tmin_min: 2
+            tmin_max: 10
+
+    - name: isotriplet_S0_B2_P1
+      pivot_info:
+        <<: *PIVOT_INFO
+      non_interacting_levels:
+        *ISOTRIPLET_S0_B2_P1
+      levels:
+        - model: 1-exp
+          tmin: 7
+          tmax: 16
+          ratio: true
+
+        - model: 1-exp
+          tmin: 8
+          tmax: 19
+          ratio: true
+
+        - model: 1-exp
+          tmin: 10
+          tmax: 19
+          ratio: true
+
+        - model: 1-exp
+          tmin: 10
+          tmax: 18
+          ratio: true
+
+      tmin_info:
+        - fit_infos:
+          - model: 1-exp
+            tmin_min: 5
+            tmin_max: 16
+          - model: 1-exp
+            tmin_min: 1
+            tmin_max: 16
+            ratio: True
+          - model: 2-exp
+            tmin_min: 2
+            tmin_max: 10
+
+        - fit_infos:
+          - model: 1-exp
+            tmin_min: 5
+            tmin_max: 16
+          - model: 1-exp
+            tmin_min: 1
+            tmin_max: 16
+            ratio: True
+          - model: 2-exp
+            tmin_min: 2
+            tmin_max: 10
+            
+        - fit_infos:
+          - model: 1-exp
+            tmin_min: 5
+            tmin_max: 16
+          - model: 1-exp
+            tmin_min: 1
+            tmin_max: 16
+            ratio: True
+          - model: 2-exp
+            tmin_min: 2
+            tmin_max: 10
+
+        - fit_infos:
+          - model: 1-exp
+            tmin_min: 5
+            tmin_max: 16
+          - model: 1-exp
+            tmin_min: 1
+            tmin_max: 16
+            ratio: True
+          - model: 2-exp
+            tmin_min: 2
+            tmin_max: 10
+
+    - name: isotriplet_S0_E_P1
+      pivot_info:
+        <<: *PIVOT_INFO
+      non_interacting_levels:
+        *ISOTRIPLET_S0_E_P1
+      levels:
+        - model: 1-exp
+          tmin: 7
+          tmax: 21
+          ratio: true
+
+        - model: 1-exp
+          tmin: 8
+          tmax: 19
+          ratio: true
+
+        - model: 1-exp
+          tmin: 7
+          tmax: 18
+          ratio: true
+
+        - model: 1-exp
+          tmin: 8
+          tmax: 19
+          ratio: true
+
+        - model: 1-exp
+          tmin: 7
+          tmax: 19
+          ratio: true
+
+        - model: 1-exp
+          tmin: 8
+          tmax: 18
+          ratio: true
+
+      tmin_info:
+        - fit_infos:
+          - model: 1-exp
+            tmin_min: 5
+            tmin_max: 16
+          - model: 1-exp
+            tmin_min: 1
+            tmin_max: 16
+            ratio: True
+          - model: 2-exp
+            tmin_min: 2
+            tmin_max: 10
+
+        - fit_infos:
+          - model: 1-exp
+            tmin_min: 5
+            tmin_max: 16
+          - model: 1-exp
+            tmin_min: 1
+            tmin_max: 16
+            ratio: True
+          - model: 2-exp
+            tmin_min: 2
+            tmin_max: 10
+
+        - fit_infos:
+          - model: 1-exp
+            tmin_min: 5
+            tmin_max: 16
+          - model: 1-exp
+            tmin_min: 1
+            tmin_max: 16
+            ratio: True
+          - model: 2-exp
+            tmin_min: 2
+            tmin_max: 10
+
+        - fit_infos:
+          - model: 1-exp
+            tmin_min: 5
+            tmin_max: 16
+          - model: 1-exp
+            tmin_min: 1
+            tmin_max: 16
+            ratio: True
+          - model: 2-exp
+            tmin_min: 2
+            tmin_max: 10
+
+        - fit_infos:
+          - model: 1-exp
+            tmin_min: 5
+            tmin_max: 16
+          - model: 1-exp
+            tmin_min: 1
+            tmin_max: 16
+            ratio: True
+          - model: 2-exp
+            tmin_min: 2
+            tmin_max: 10
+
+        - fit_infos:
+          - model: 1-exp
+            tmin_min: 5
+            tmin_max: 16
+          - model: 1-exp
+            tmin_min: 1
+            tmin_max: 16
+            ratio: True
+          - model: 2-exp
+            tmin_min: 2
+            tmin_max: 10
+
+    - name: isotriplet_S0_A1_P2
+      pivot_info:
+        <<: *PIVOT_INFO
+      non_interacting_levels:
+        *ISOTRIPLET_S0_A1_P2
+      levels:
+        - model: 1-exp
+          tmin: 7
+          tmax: 19
+          ratio: true
+
+        - model: 1-exp
+          tmin: 7
+          tmax: 19
+          ratio: true
+
+        - model: 1-exp
+          tmin: 8
+          tmax: 18
+          ratio: true
+
+        - model: 1-exp
+          tmin: 10
+          tmax: 17
+          ratio: true
+
+        - model: 1-exp
+          tmin: 10
+          tmax: 20
+          ratio: true
+
+      tmin_info:
+        - fit_infos:
+          - model: 1-exp
+            tmin_min: 5
+            tmin_max: 16
+          - model: 1-exp
+            tmin_min: 1
+            tmin_max: 16
+            ratio: True
+          - model: 2-exp
+            tmin_min: 2
+            tmin_max: 10
+
+        - fit_infos:
+          - model: 1-exp
+            tmin_min: 5
+            tmin_max: 16
+          - model: 1-exp
+            tmin_min: 1
+            tmin_max: 16
+            ratio: True
+          - model: 2-exp
+            tmin_min: 2
+            tmin_max: 10
+
+        - fit_infos:
+          - model: 1-exp
+            tmin_min: 5
+            tmin_max: 16
+          - model: 1-exp
+            tmin_min: 1
+            tmin_max: 16
+            ratio: True
+          - model: 2-exp
+            tmin_min: 2
+            tmin_max: 10
+            
+        - fit_infos:
+          - model: 1-exp
+            tmin_min: 5
+            tmin_max: 16
+          - model: 1-exp
+            tmin_min: 1
+            tmin_max: 16
+            ratio: True
+          - model: 2-exp
+            tmin_min: 2
+            tmin_max: 10
+
+        - fit_infos:
+          - model: 1-exp
+            tmin_min: 5
+            tmin_max: 16
+          - model: 1-exp
+            tmin_min: 1
+            tmin_max: 16
+            ratio: True
+          - model: 2-exp
+            tmin_min: 2
+            tmin_max: 10
+
+    - name: isotriplet_S0_A2_P2
+      pivot_info:
+        <<: *PIVOT_INFO
+      non_interacting_levels:
+        *ISOTRIPLET_S0_A2_P2
+      levels:
+        - model: 1-exp
+          tmin: 7
+          tmax: 19
+          ratio: true
+
+        - model: 1-exp
+          tmin: 8
+          tmax: 19
+          ratio: true
+
+        - model: 1-exp
+          tmin: 10
+          tmax: 19
+          ratio: true
+
+        - model: 1-exp
+          tmin: 10
+          tmax: 19
+          ratio: true
+
+      tmin_info:
+        - fit_infos:
+          - model: 1-exp
+            tmin_min: 5
+            tmin_max: 16
+          - model: 1-exp
+            tmin_min: 1
+            tmin_max: 16
+            ratio: True
+          - model: 2-exp
+            tmin_min: 2
+            tmin_max: 10
+
+        - fit_infos:
+          - model: 1-exp
+            tmin_min: 5
+            tmin_max: 16
+          - model: 1-exp
+            tmin_min: 1
+            tmin_max: 16
+            ratio: True
+          - model: 2-exp
+            tmin_min: 2
+            tmin_max: 10
+            
+        - fit_infos:
+          - model: 1-exp
+            tmin_min: 5
+            tmin_max: 16
+          - model: 1-exp
+            tmin_min: 1
+            tmin_max: 16
+            ratio: True
+          - model: 2-exp
+            tmin_min: 2
+            tmin_max: 10
+
+        - fit_infos:
+          - model: 1-exp
+            tmin_min: 5
+            tmin_max: 16
+          - model: 1-exp
+            tmin_min: 1
+            tmin_max: 16
+            ratio: True
+          - model: 2-exp
+            tmin_min: 2
+            tmin_max: 10
+
+    - name: isotriplet_S0_B1_P2
+      pivot_info:
+        <<: *PIVOT_INFO
+      non_interacting_levels:
+        *ISOTRIPLET_S0_B1_P2
+      levels:
+        - model: 1-exp
+          tmin: 7
+          tmax: 20
+          ratio: true
+
+        - model: 1-exp
+          tmin: 8
+          tmax: 19
+          ratio: true
+
+        - model: 1-exp
+          tmin: 10
+          tmax: 19
+          ratio: true
+
+        - model: 1-exp
+          tmin: 10
+          tmax: 19
+          ratio: true
+
+      tmin_info:
+        - fit_infos:
+          - model: 1-exp
+            tmin_min: 5
+            tmin_max: 16
+          - model: 1-exp
+            tmin_min: 1
+            tmin_max: 16
+            ratio: True
+          - model: 2-exp
+            tmin_min: 2
+            tmin_max: 10
+
+        - fit_infos:
+          - model: 1-exp
+            tmin_min: 5
+            tmin_max: 16
+          - model: 1-exp
+            tmin_min: 1
+            tmin_max: 16
+            ratio: True
+          - model: 2-exp
+            tmin_min: 2
+            tmin_max: 10
+            
+        - fit_infos:
+          - model: 1-exp
+            tmin_min: 5
+            tmin_max: 16
+          - model: 1-exp
+            tmin_min: 1
+            tmin_max: 16
+            ratio: True
+          - model: 2-exp
+            tmin_min: 2
+            tmin_max: 10
+
+        - fit_infos:
+          - model: 1-exp
+            tmin_min: 5
+            tmin_max: 16
+          - model: 1-exp
+            tmin_min: 1
+            tmin_max: 16
+            ratio: True
+          - model: 2-exp
+            tmin_min: 2
+            tmin_max: 10
+
+    - name: isotriplet_S0_B2_P2
+      pivot_info:
+        <<: *PIVOT_INFO
+      non_interacting_levels:
+        *ISOTRIPLET_S0_B2_P2
+      levels:
+        - model: 1-exp
+          tmin: 7
+          tmax: 18
+          ratio: true
+
+        - model: 1-exp
+          tmin: 8
+          tmax: 17
+          ratio: true
+
+        - model: 1-exp
+          tmin: 7
+          tmax: 18
+          ratio: true
+
+        - model: 1-exp
+          tmin: 8
+          tmax: 18
+          ratio: true
+
+      tmin_info:
+        - fit_infos:
+          - model: 1-exp
+            tmin_min: 5
+            tmin_max: 16
+          - model: 1-exp
+            tmin_min: 1
+            tmin_max: 16
+            ratio: True
+          - model: 2-exp
+            tmin_min: 2
+            tmin_max: 10
+
+        - fit_infos:
+          - model: 1-exp
+            tmin_min: 5
+            tmin_max: 16
+          - model: 1-exp
+            tmin_min: 1
+            tmin_max: 16
+            ratio: True
+          - model: 2-exp
+            tmin_min: 2
+            tmin_max: 10
+            
+        - fit_infos:
+          - model: 1-exp
+            tmin_min: 5
+            tmin_max: 16
+          - model: 1-exp
+            tmin_min: 1
+            tmin_max: 16
+            ratio: True
+          - model: 2-exp
+            tmin_min: 2
+            tmin_max: 10
+
+        - fit_infos:
+          - model: 1-exp
+            tmin_min: 5
+            tmin_max: 16
+          - model: 1-exp
+            tmin_min: 1
+            tmin_max: 16
+            ratio: True
+          - model: 2-exp
+            tmin_min: 2
+            tmin_max: 10
+            
+    - name: isotriplet_S0_A1_P3
+      pivot_info:
+        <<: *PIVOT_INFO
+      non_interacting_levels:
+        *ISOTRIPLET_S0_A1_P3
+      levels:
+        - model: 1-exp
+          tmin: 7
+          tmax: 16
+          ratio: true
+
+        - model: 1-exp
+          tmin: 8
+          tmax: 17
+          ratio: true
+
+        - model: 1-exp
+          tmin: 10
+          tmax: 17
+          ratio: true
+
+        - model: 1-exp
+          tmin: 10
+          tmax: 18
+          ratio: true
+
+        - model: 1-exp
+          tmin: 8
+          tmax: 16
+          ratio: true
+
+      tmin_info:
+        - fit_infos:
+          - model: 1-exp
+            tmin_min: 5
+            tmin_max: 16
+          - model: 1-exp
+            tmin_min: 1
+            tmin_max: 16
+            ratio: True
+          - model: 2-exp
+            tmin_min: 2
+            tmin_max: 10
+
+        - fit_infos:
+          - model: 1-exp
+            tmin_min: 5
+            tmin_max: 16
+          - model: 1-exp
+            tmin_min: 1
+            tmin_max: 16
+            ratio: True
+          - model: 2-exp
+            tmin_min: 2
+            tmin_max: 10
+
+        - fit_infos:
+          - model: 1-exp
+            tmin_min: 5
+            tmin_max: 16
+          - model: 1-exp
+            tmin_min: 1
+            tmin_max: 16
+            ratio: True
+          - model: 2-exp
+            tmin_min: 2
+            tmin_max: 10
+            
+        - fit_infos:
+          - model: 1-exp
+            tmin_min: 5
+            tmin_max: 16
+          - model: 1-exp
+            tmin_min: 1
+            tmin_max: 16
+            ratio: True
+          - model: 2-exp
+            tmin_min: 2
+            tmin_max: 10
+
+        - fit_infos:
+          - model: 1-exp
+            tmin_min: 5
+            tmin_max: 16
+          - model: 1-exp
+            tmin_min: 1
+            tmin_max: 16
+            ratio: True
+          - model: 2-exp
+            tmin_min: 2
+            tmin_max: 10
+
+    - name: isotriplet_S0_A2_P3
+      pivot_info:
+        <<: *PIVOT_INFO
+      non_interacting_levels:
+        *ISOTRIPLET_S0_A2_P3
+      levels:
+        - model: 1-exp
+          tmin: 7
+          tmax: 20
+          ratio: true
+
+        - model: 1-exp
+          tmin: 8
+          tmax: 21
+          ratio: true
+
+        - model: 1-exp
+          tmin: 10
+          tmax: 18
+          ratio: true
+
+        - model: 1-exp
+          tmin: 10
+          tmax: 17
+          ratio: true
+
+        - model: 1-exp
+          tmin: 10
+          tmax: 18
+          ratio: true
+
+      tmin_info:
+        - fit_infos:
+          - model: 1-exp
+            tmin_min: 5
+            tmin_max: 16
+          - model: 1-exp
+            tmin_min: 1
+            tmin_max: 16
+            ratio: True
+          - model: 2-exp
+            tmin_min: 2
+            tmin_max: 10
+
+        - fit_infos:
+          - model: 1-exp
+            tmin_min: 5
+            tmin_max: 16
+          - model: 1-exp
+            tmin_min: 1
+            tmin_max: 16
+            ratio: True
+          - model: 2-exp
+            tmin_min: 2
+            tmin_max: 10
+
+        - fit_infos:
+          - model: 1-exp
+            tmin_min: 5
+            tmin_max: 16
+          - model: 1-exp
+            tmin_min: 1
+            tmin_max: 16
+            ratio: True
+          - model: 2-exp
+            tmin_min: 2
+            tmin_max: 10
+            
+        - fit_infos:
+          - model: 1-exp
+            tmin_min: 5
+            tmin_max: 16
+          - model: 1-exp
+            tmin_min: 1
+            tmin_max: 16
+            ratio: True
+          - model: 2-exp
+            tmin_min: 2
+            tmin_max: 10
+
+        - fit_infos:
+          - model: 1-exp
+            tmin_min: 5
+            tmin_max: 16
+          - model: 1-exp
+            tmin_min: 1
+            tmin_max: 16
+            ratio: True
+          - model: 2-exp
+            tmin_min: 2
+            tmin_max: 10
+
+    - name: isotriplet_S0_E_P3
+      pivot_info:
+        <<: *PIVOT_INFO
+      non_interacting_levels:
+        *ISOTRIPLET_S0_E_P3
+      levels:
+        - model: 1-exp
+          tmin: 7
+          tmax: 19
+          ratio: true
+
+        - model: 1-exp
+          tmin: 7
+          tmax: 18
+          ratio: true
+
+        - model: 1-exp
+          tmin: 7
+          tmax: 19
+          ratio: true
+
+        - model: 1-exp
+          tmin: 7
+          tmax: 18
+          ratio: true
+
+        - model: 1-exp
+          tmin: 7
+          tmax: 17
+          ratio: true
+
+      tmin_info:
+        - fit_infos:
+          - model: 1-exp
+            tmin_min: 5
+            tmin_max: 16
+          - model: 1-exp
+            tmin_min: 1
+            tmin_max: 16
+            ratio: True
+          - model: 2-exp
+            tmin_min: 2
+            tmin_max: 10
+            
+        - fit_infos:
+          - model: 1-exp
+            tmin_min: 5
+            tmin_max: 16
+          - model: 1-exp
+            tmin_min: 1
+            tmin_max: 16
+            ratio: True
+          - model: 2-exp
+            tmin_min: 2
+            tmin_max: 10
+            
+        - fit_infos:
+          - model: 1-exp
+            tmin_min: 5
+            tmin_max: 16
+          - model: 1-exp
+            tmin_min: 1
+            tmin_max: 16
+            ratio: True
+          - model: 2-exp
+            tmin_min: 2
+            tmin_max: 10
+            
+        - fit_infos:
+          - model: 1-exp
+            tmin_min: 5
+            tmin_max: 16
+          - model: 1-exp
+            tmin_min: 1
+            tmin_max: 16
+            ratio: True
+          - model: 2-exp
+            tmin_min: 2
+            tmin_max: 10
+            
+        - fit_infos:
+          - model: 1-exp
+            tmin_min: 5
+            tmin_max: 16
+          - model: 1-exp
+            tmin_min: 1
+            tmin_max: 16
+            ratio: True
+          - model: 2-exp
+            tmin_min: 2
+            tmin_max: 10
+            
+    - name: isotriplet_S0_A1_P4
+      pivot_info:
+        <<: *PIVOT_INFO
+      non_interacting_levels:
+        *ISOTRIPLET_S0_A1_P4
+      levels:
+        - model: 1-exp
+          tmin: 7
+          tmax: 19
+          ratio: true
+
+        - model: 1-exp
+          tmin: 7
+          tmax: 18
+          ratio: true
+
+        - model: 1-exp
+          tmin: 8
+          tmax: 20
+          ratio: true
+
+        - model: 1-exp
+          tmin: 10
+          tmax: 18
+          ratio: true
+
+        - model: 1-exp
+          tmin: 10
+          tmax: 17
+          ratio: true
+
+        - model: 1-exp
+          tmin: 10
+          tmax: 19
+          ratio: true
+
+      tmin_info:
+        - fit_infos:
+          - model: 1-exp
+            tmin_min: 5
+            tmin_max: 16
+          - model: 1-exp
+            tmin_min: 1
+            tmin_max: 16
+            ratio: True
+          - model: 2-exp
+            tmin_min: 2
+            tmin_max: 10
+
+        - fit_infos:
+          - model: 1-exp
+            tmin_min: 5
+            tmin_max: 16
+          - model: 1-exp
+            tmin_min: 1
+            tmin_max: 16
+            ratio: True
+          - model: 2-exp
+            tmin_min: 2
+            tmin_max: 10
+
+        - fit_infos:
+          - model: 1-exp
+            tmin_min: 5
+            tmin_max: 16
+          - model: 1-exp
+            tmin_min: 1
+            tmin_max: 16
+            ratio: True
+          - model: 2-exp
+            tmin_min: 2
+            tmin_max: 10
+
+        - fit_infos:
+          - model: 1-exp
+            tmin_min: 5
+            tmin_max: 16
+          - model: 1-exp
+            tmin_min: 1
+            tmin_max: 16
+            ratio: True
+          - model: 2-exp
+            tmin_min: 2
+            tmin_max: 10
+            
+        - fit_infos:
+          - model: 1-exp
+            tmin_min: 5
+            tmin_max: 16
+          - model: 1-exp
+            tmin_min: 1
+            tmin_max: 16
+            ratio: True
+          - model: 2-exp
+            tmin_min: 2
+            tmin_max: 10
+
+        - fit_infos:
+          - model: 1-exp
+            tmin_min: 5
+            tmin_max: 16
+          - model: 1-exp
+            tmin_min: 1
+            tmin_max: 16
+            ratio: True
+          - model: 2-exp
+            tmin_min: 2
+            tmin_max: 10
+
+
+    - name: isotriplet_S0_A2_P4
+      pivot_info:
+        <<: *PIVOT_INFO
+      non_interacting_levels:
+        *ISOTRIPLET_S0_A2_P4
+      levels:
+        - model: 1-exp
+          tmin: 8
+          tmax: 18
+          ratio: true
+
+        - model: 1-exp
+          tmin: 10
+          tmax: 20
+          ratio: true
+
+        - model: 1-exp
+          tmin: 10
+          tmax: 16
+          ratio: true
+
+      tmin_info:
+        - fit_infos:
+          - model: 1-exp
+            tmin_min: 5
+            tmin_max: 16
+          - model: 1-exp
+            tmin_min: 1
+            tmin_max: 16
+            ratio: True
+          - model: 2-exp
+            tmin_min: 2
+            tmin_max: 10
+
+        - fit_infos:
+          - model: 1-exp
+            tmin_min: 5
+            tmin_max: 16
+          - model: 1-exp
+            tmin_min: 1
+            tmin_max: 16
+            ratio: True
+          - model: 2-exp
+            tmin_min: 2
+            tmin_max: 10
+            
+        - fit_infos:
+          - model: 1-exp
+            tmin_min: 5
+            tmin_max: 16
+          - model: 1-exp
+            tmin_min: 1
+            tmin_max: 16
+            ratio: True
+          - model: 2-exp
+            tmin_min: 2
+            tmin_max: 10
+
+    - name: isotriplet_S0_B1_P4
+      pivot_info:
+        <<: *PIVOT_INFO
+      non_interacting_levels:
+        *ISOTRIPLET_S0_B1_P4
+      levels:
+        - model: 1-exp
+          tmin: 10
+          tmax: 20
+          ratio: true
+
+        - model: 1-exp
+          tmin: 10
+          tmax: 18
+          ratio: true
+
+        - model: 1-exp
+          tmin: 10
+          tmax: 19
+          ratio: true
+
+      tmin_info:
+        - fit_infos:
+          - model: 1-exp
+            tmin_min: 5
+            tmin_max: 16
+          - model: 1-exp
+            tmin_min: 1
+            tmin_max: 16
+            ratio: True
+          - model: 2-exp
+            tmin_min: 2
+            tmin_max: 10
+
+        - fit_infos:
+          - model: 1-exp
+            tmin_min: 5
+            tmin_max: 16
+          - model: 1-exp
+            tmin_min: 1
+            tmin_max: 16
+            ratio: True
+          - model: 2-exp
+            tmin_min: 2
+            tmin_max: 10
+
+        - fit_infos:
+          - model: 1-exp
+            tmin_min: 5
+            tmin_max: 16
+          - model: 1-exp
+            tmin_min: 1
+            tmin_max: 16
+            ratio: True
+          - model: 2-exp
+            tmin_min: 2
+            tmin_max: 10
+
+
+    - name: isotriplet_S0_B2_P4
+      pivot_info:
+        <<: *PIVOT_INFO
+      non_interacting_levels:
+        *ISOTRIPLET_S0_B2_P4
+      levels:
+        - model: 1-exp
+          tmin: 8
+          tmax: 17
+          ratio: true
+
+        - model: 1-exp
+          tmin: 10
+          tmax: 18
+          ratio: true
+
+        - model: 1-exp
+          tmin: 10
+          tmax: 19
+          ratio: true
+
+      tmin_info:
+        - fit_infos:
+          - model: 1-exp
+            tmin_min: 5
+            tmin_max: 16
+          - model: 1-exp
+            tmin_min: 1
+            tmin_max: 16
+            ratio: True
+          - model: 2-exp
+            tmin_min: 2
+            tmin_max: 10
+
+        - fit_infos:
+          - model: 1-exp
+            tmin_min: 5
+            tmin_max: 16
+          - model: 1-exp
+            tmin_min: 1
+            tmin_max: 16
+            ratio: True
+          - model: 2-exp
+            tmin_min: 2
+            tmin_max: 10
+            
+        - fit_infos:
+          - model: 1-exp
+            tmin_min: 5
+            tmin_max: 16
+          - model: 1-exp
+            tmin_min: 1
+            tmin_max: 16
+            ratio: True
+          - model: 2-exp
+            tmin_min: 2
+            tmin_max: 10
+
+
+    - name: isotriplet_S0_E_P4
+      pivot_info:
+        <<: *PIVOT_INFO
+      non_interacting_levels:
+        *ISOTRIPLET_S0_E_P4
+      levels:
+        - model: 1-exp
+          tmin: 7
+          tmax: 20
+          ratio: true
+
+        - model: 1-exp
+          tmin: 7
+          tmax: 20
+          ratio: true
+
+        - model: 1-exp
+          tmin: 7
+          tmax: 17
+          ratio: true
+
+      tmin_info:
+        - fit_infos:
+          - model: 1-exp
+            tmin_min: 5
+            tmin_max: 16
+          - model: 1-exp
+            tmin_min: 1
+            tmin_max: 16
+            ratio: True
+          - model: 2-exp
+            tmin_min: 2
+            tmin_max: 10
+
+        - fit_infos:
+          - model: 1-exp
+            tmin_min: 5
+            tmin_max: 16
+          - model: 1-exp
+            tmin_min: 1
+            tmin_max: 16
+            ratio: True
+          - model: 2-exp
+            tmin_min: 2
+            tmin_max: 10
+
+        - fit_infos:
+          - model: 1-exp
+            tmin_min: 5
+            tmin_max: 16
+          - model: 1-exp
+            tmin_min: 1
+            tmin_max: 16
+            ratio: True
+          - model: 2-exp
+            tmin_min: 2
+            tmin_max: 10

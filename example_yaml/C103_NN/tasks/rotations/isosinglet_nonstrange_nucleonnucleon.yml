@@ -1,0 +1,367 @@
+Execute:
+  mode: local
+  sigmond_batch: /home/ahanlon/.bin/sigmond
+  max_simultaneous: 7
+
+rotate_isosinglet_nonstrange_nucleonnucleon:
+  task_type: rotate_corrs
+
+  show_transformation: true
+  negative_eigenvalue_alarm: -0.10
+
+  subtractvev: false
+
+  plot_info:
+    corrname: standard
+    symbol_color: blue
+    symbol_type: circle
+    eff_energy_type: time_forward
+    timestep: 1
+
+  operator_bases:
+    - name: isosinglet_S0_A2g_P0
+      pivot_info:
+        <<: *PIVOT_INFO
+      operators:
+        - isosinglet S=0 P=(0,0,0) A2g N(2_G)N(2_G) 0
+        - isosinglet S=0 P=(0,0,0) A2g N(3_G)N(3_G) 0
+        - isosinglet S=0 P=(0,0,0) A2g N(5_F1)N(5_F2) 0
+
+    - name: isosinglet_S0_Eg_P0
+      pivot_info:
+        <<: *PIVOT_INFO
+      operators:
+        - isosinglet S=0 P=(0,0,0) Eg N(2_G)N(2_G) 1
+        - isosinglet S=0 P=(0,0,0) Eg N(3_G)N(3_G) 0
+        - isosinglet S=0 P=(0,0,0) Eg N(5_F1)N(5_F2) 0
+        - isosinglet S=0 P=(0,0,0) Eg N(5_F1)N(5_F2) 1
+
+    - name: isosinglet_S0_T1g_P0
+      pivot_info:
+        <<: *PIVOT_INFO
+      operators:
+        - isosinglet S=0 P=(0,0,0) T1g N(0_G1g)N(0_G1g) 0
+        - isosinglet S=0 P=(0,0,0) T1g N(1_G1)N(1_G1) 0
+        - isosinglet S=0 P=(0,0,0) T1g N(1_G1)N(1_G1) 1
+        - isosinglet S=0 P=(0,0,0) T1g N(2_G)N(2_G) 0
+        - isosinglet S=0 P=(0,0,0) T1g N(2_G)N(2_G) 1
+        - isosinglet S=0 P=(0,0,0) T1g N(2_G)N(2_G) 2
+        - isosinglet S=0 P=(0,0,0) T1g N(3_G)N(3_G) 0
+        - isosinglet S=0 P=(0,0,0) T1g N(3_G)N(3_G) 1
+        - isosinglet S=0 P=(0,0,0) T1g N(4_G1)N(4_G1) 0
+        - isosinglet S=0 P=(0,0,0) T1g N(4_G1)N(4_G1) 1
+        - isosinglet S=0 P=(0,0,0) T1g N(5_F1)N(5_F1) 0
+        - isosinglet S=0 P=(0,0,0) T1g N(5_F1)N(5_F1) 1
+        - isosinglet S=0 P=(0,0,0) T1g N(5_F1)N(5_F2) 0
+        - isosinglet S=0 P=(0,0,0) T1g N(5_F2)N(5_F2) 0
+        - isosinglet S=0 P=(0,0,0) T1g N(5_F2)N(5_F2) 1
+
+    - name: isosinglet_S0_T1u_P0
+      pivot_info:
+        <<: *PIVOT_INFO
+      operators:
+        - isosinglet S=0 P=(0,0,0) T1u N(1_G1)N(1_G1) 0
+        - isosinglet S=0 P=(0,0,0) T1u N(2_G)N(2_G) 0
+        - isosinglet S=0 P=(0,0,0) T1u N(3_G)N(3_G) 0
+        - isosinglet S=0 P=(0,0,0) T1u N(4_G1)N(4_G1) 0
+        - isosinglet S=0 P=(0,0,0) T1u N(5_F1)N(5_F2) 0
+        - isosinglet S=0 P=(0,0,0) T1u N(5_F1)N(5_F2) 1
+
+    - name: isosinglet_S0_T2g_P0
+      pivot_info:
+        <<: *PIVOT_INFO
+      operators:
+        - isosinglet S=0 P=(0,0,0) T2g N(1_G1)N(1_G1) 0
+        - isosinglet S=0 P=(0,0,0) T2g N(2_G)N(2_G) 1
+        - isosinglet S=0 P=(0,0,0) T2g N(2_G)N(2_G) 2
+        - isosinglet S=0 P=(0,0,0) T2g N(3_G)N(3_G) 1
+        - isosinglet S=0 P=(0,0,0) T2g N(4_G1)N(4_G1) 0
+        - isosinglet S=0 P=(0,0,0) T2g N(5_F1)N(5_F1) 0
+        - isosinglet S=0 P=(0,0,0) T2g N(5_F1)N(5_F1) 1
+        - isosinglet S=0 P=(0,0,0) T2g N(5_F1)N(5_F2) 0
+        - isosinglet S=0 P=(0,0,0) T2g N(5_F2)N(5_F2) 0
+        - isosinglet S=0 P=(0,0,0) T2g N(5_F2)N(5_F2) 1
+
+    - name: isosinglet_S0_T2u_P0
+      pivot_info:
+        <<: *PIVOT_INFO
+      operators:
+        - isosinglet S=0 P=(0,0,0) T2u N(2_G)N(2_G) 0
+        - isosinglet S=0 P=(0,0,0) T2u N(5_F1)N(5_F2) 0
+        - isosinglet S=0 P=(0,0,0) T2u N(5_F1)N(5_F2) 1
+
+    - name: isosinglet_S0_A1_P1
+      pivot_info:
+        <<: *PIVOT_INFO
+      operators:
+        - isosinglet S=0 PSQ=1 A1 N(0_G1g)N(1_G1) 0
+        - isosinglet S=0 PSQ=1 A1 N(1_G1)N(2_G) 0
+        - isosinglet S=0 PSQ=1 A1 N(1_G1)N(2_G) 1
+        - isosinglet S=0 PSQ=1 A1 N(1_G1)N(4_G1) 0
+        - isosinglet S=0 PSQ=1 A1 N(2_G)N(3_G) 0
+        - isosinglet S=0 PSQ=1 A1 N(2_G)N(3_G) 1
+        - isosinglet S=0 PSQ=1 A1 N(2_G)N(5_F1) 0
+        - isosinglet S=0 PSQ=1 A1 N(2_G)N(5_F2) 0
+        - isosinglet S=0 PSQ=1 A1 N(4_G1)N(5_F1) 0
+        - isosinglet S=0 PSQ=1 A1 N(4_G1)N(5_F2) 0
+
+    - name: isosinglet_S0_A2_P1
+      pivot_info:
+        <<: *PIVOT_INFO
+      operators:
+        - isosinglet S=0 PSQ=1 A2 N(0_G1g)N(1_G1) 0
+        - isosinglet S=0 PSQ=1 A2 N(1_G1)N(2_G) 0
+        - isosinglet S=0 PSQ=1 A2 N(1_G1)N(2_G) 1
+        - isosinglet S=0 PSQ=1 A2 N(1_G1)N(4_G1) 0
+        - isosinglet S=0 PSQ=1 A2 N(2_G)N(3_G) 0
+        - isosinglet S=0 PSQ=1 A2 N(2_G)N(3_G) 1
+        - isosinglet S=0 PSQ=1 A2 N(2_G)N(5_F1) 0
+        - isosinglet S=0 PSQ=1 A2 N(2_G)N(5_F2) 0
+        - isosinglet S=0 PSQ=1 A2 N(4_G1)N(5_F1) 0
+        - isosinglet S=0 PSQ=1 A2 N(4_G1)N(5_F2) 0
+
+    - name: isosinglet_S0_B1_P1
+      pivot_info:
+        <<: *PIVOT_INFO
+      operators:
+        - isosinglet S=0 PSQ=1 B1 N(1_G1)N(2_G) 0
+        - isosinglet S=0 PSQ=1 B1 N(1_G1)N(2_G) 1
+        - isosinglet S=0 PSQ=1 B1 N(2_G)N(3_G) 0
+        - isosinglet S=0 PSQ=1 B1 N(2_G)N(3_G) 1
+        - isosinglet S=0 PSQ=1 B1 N(2_G)N(5_F1) 0
+        - isosinglet S=0 PSQ=1 B1 N(2_G)N(5_F2) 0
+        - isosinglet S=0 PSQ=1 B1 N(4_G1)N(5_F1) 0
+        - isosinglet S=0 PSQ=1 B1 N(4_G1)N(5_F2) 0
+
+    - name: isosinglet_S0_B2_P1
+      pivot_info:
+        <<: *PIVOT_INFO
+      operators:
+        - isosinglet S=0 PSQ=1 B2 N(1_G1)N(2_G) 0
+        - isosinglet S=0 PSQ=1 B2 N(1_G1)N(2_G) 1
+        - isosinglet S=0 PSQ=1 B2 N(2_G)N(3_G) 0
+        - isosinglet S=0 PSQ=1 B2 N(2_G)N(3_G) 1
+        - isosinglet S=0 PSQ=1 B2 N(2_G)N(5_F1) 0
+        - isosinglet S=0 PSQ=1 B2 N(2_G)N(5_F2) 0
+        - isosinglet S=0 PSQ=1 B2 N(4_G1)N(5_F1) 0
+        - isosinglet S=0 PSQ=1 B2 N(4_G1)N(5_F2) 0
+
+    - name: isosinglet_S0_E_P1
+      pivot_info:
+        <<: *PIVOT_INFO
+      operators:
+        - isosinglet S=0 PSQ=1 E N(0_G1g)N(1_G1) 0
+        - isosinglet S=0 PSQ=1 E N(1_G1)N(2_G) 0
+        - isosinglet S=0 PSQ=1 E N(1_G1)N(2_G) 1
+        - isosinglet S=0 PSQ=1 E N(1_G1)N(2_G) 2
+        - isosinglet S=0 PSQ=1 E N(1_G1)N(2_G) 3
+        - isosinglet S=0 PSQ=1 E N(1_G1)N(4_G1) 0
+        - isosinglet S=0 PSQ=1 E N(2_G)N(3_G) 0
+        - isosinglet S=0 PSQ=1 E N(2_G)N(3_G) 1
+        - isosinglet S=0 PSQ=1 E N(2_G)N(3_G) 2
+        - isosinglet S=0 PSQ=1 E N(2_G)N(3_G) 3
+        - isosinglet S=0 PSQ=1 E N(2_G)N(5_F1) 0
+        - isosinglet S=0 PSQ=1 E N(2_G)N(5_F1) 1
+        - isosinglet S=0 PSQ=1 E N(2_G)N(5_F2) 0
+        - isosinglet S=0 PSQ=1 E N(2_G)N(5_F2) 1
+        - isosinglet S=0 PSQ=1 E N(4_G1)N(5_F1) 0
+        - isosinglet S=0 PSQ=1 E N(4_G1)N(5_F1) 1
+        - isosinglet S=0 PSQ=1 E N(4_G1)N(5_F2) 0
+        - isosinglet S=0 PSQ=1 E N(4_G1)N(5_F2) 1
+
+    - name: isosinglet_S0_A1_P2
+      pivot_info:
+        <<: *PIVOT_INFO
+      operators:
+        - isosinglet S=0 PSQ=2 A1 N(0_G1g)N(2_G) 0
+        - isosinglet S=0 PSQ=2 A1 N(1_G1)N(3_G) 0
+        - isosinglet S=0 PSQ=2 A1 N(1_G1)N(3_G) 1
+        - isosinglet S=0 PSQ=2 A1 N(1_G1)N(5_F1) 0
+        - isosinglet S=0 PSQ=2 A1 N(1_G1)N(5_F2) 0
+        - isosinglet S=0 PSQ=2 A1 N(2_G)N(2_G) 1
+        - isosinglet S=0 PSQ=2 A1 N(2_G)N(4_G1) 0
+        - isosinglet S=0 PSQ=2 A1 N(2_G)N(4_G1) 1
+        - isosinglet S=0 PSQ=2 A1 N(3_G)N(5_F1) 0
+        - isosinglet S=0 PSQ=2 A1 N(3_G)N(5_F1) 1
+        - isosinglet S=0 PSQ=2 A1 N(3_G)N(5_F2) 0
+        - isosinglet S=0 PSQ=2 A1 N(3_G)N(5_F2) 1
+        - isosinglet S=0 PSQ=2 A1 N(5_F1)N(5_F2) 0
+
+    - name: isosinglet_S0_A2_P2
+      pivot_info:
+        <<: *PIVOT_INFO
+      operators:
+        - isosinglet S=0 PSQ=2 A2 N(0_G1g)N(2_G) 0
+        - isosinglet S=0 PSQ=2 A2 N(1_G1)N(1_G1) 1
+        - isosinglet S=0 PSQ=2 A2 N(1_G1)N(3_G) 0
+        - isosinglet S=0 PSQ=2 A2 N(1_G1)N(3_G) 1
+        - isosinglet S=0 PSQ=2 A2 N(1_G1)N(5_F1) 0
+        - isosinglet S=0 PSQ=2 A2 N(1_G1)N(5_F2) 0
+        - isosinglet S=0 PSQ=2 A2 N(2_G)N(2_G) 1
+        - isosinglet S=0 PSQ=2 A2 N(2_G)N(4_G1) 0
+        - isosinglet S=0 PSQ=2 A2 N(2_G)N(4_G1) 1
+        - isosinglet S=0 PSQ=2 A2 N(3_G)N(5_F1) 0
+        - isosinglet S=0 PSQ=2 A2 N(3_G)N(5_F1) 1
+        - isosinglet S=0 PSQ=2 A2 N(3_G)N(5_F2) 0
+        - isosinglet S=0 PSQ=2 A2 N(3_G)N(5_F2) 1
+        - isosinglet S=0 PSQ=2 A2 N(5_F1)N(5_F2) 0
+        - isosinglet S=0 PSQ=2 A2 N(5_F1)N(5_F2) 1
+
+    - name: isosinglet_S0_B1_P2
+      pivot_info:
+        <<: *PIVOT_INFO
+      operators:
+        - isosinglet S=0 PSQ=2 B1 N(0_G1g)N(2_G) 0
+        - isosinglet S=0 PSQ=2 B1 N(1_G1)N(1_G1) 0
+        - isosinglet S=0 PSQ=2 B1 N(1_G1)N(3_G) 0
+        - isosinglet S=0 PSQ=2 B1 N(1_G1)N(3_G) 1
+        - isosinglet S=0 PSQ=2 B1 N(1_G1)N(5_F1) 0
+        - isosinglet S=0 PSQ=2 B1 N(1_G1)N(5_F2) 0
+        - isosinglet S=0 PSQ=2 B1 N(2_G)N(2_G) 0
+        - isosinglet S=0 PSQ=2 B1 N(2_G)N(2_G) 1
+        - isosinglet S=0 PSQ=2 B1 N(2_G)N(2_G) 2
+        - isosinglet S=0 PSQ=2 B1 N(2_G)N(2_G) 3
+        - isosinglet S=0 PSQ=2 B1 N(2_G)N(4_G1) 0
+        - isosinglet S=0 PSQ=2 B1 N(2_G)N(4_G1) 1
+        - isosinglet S=0 PSQ=2 B1 N(3_G)N(5_F1) 0
+        - isosinglet S=0 PSQ=2 B1 N(3_G)N(5_F1) 1
+        - isosinglet S=0 PSQ=2 B1 N(3_G)N(5_F2) 0
+        - isosinglet S=0 PSQ=2 B1 N(3_G)N(5_F2) 1
+        - isosinglet S=0 PSQ=2 B1 N(5_F1)N(5_F1) 0
+        - isosinglet S=0 PSQ=2 B1 N(5_F1)N(5_F2) 0
+        - isosinglet S=0 PSQ=2 B1 N(5_F1)N(5_F2) 1
+        - isosinglet S=0 PSQ=2 B1 N(5_F2)N(5_F2) 0
+
+    - name: isosinglet_S0_B2_P2
+      pivot_info:
+        <<: *PIVOT_INFO
+      operators:
+        - isosinglet S=0 PSQ=2 B2 N(0_G1g)N(2_G) 0
+        - isosinglet S=0 PSQ=2 B2 N(1_G1)N(1_G1) 0
+        - isosinglet S=0 PSQ=2 B2 N(1_G1)N(1_G1) 1
+        - isosinglet S=0 PSQ=2 B2 N(1_G1)N(3_G) 0
+        - isosinglet S=0 PSQ=2 B2 N(1_G1)N(3_G) 1
+        - isosinglet S=0 PSQ=2 B2 N(1_G1)N(5_F1) 0
+        - isosinglet S=0 PSQ=2 B2 N(1_G1)N(5_F2) 0
+        - isosinglet S=0 PSQ=2 B2 N(2_G)N(2_G) 0
+        - isosinglet S=0 PSQ=2 B2 N(2_G)N(2_G) 1
+        - isosinglet S=0 PSQ=2 B2 N(2_G)N(2_G) 2
+        - isosinglet S=0 PSQ=2 B2 N(2_G)N(2_G) 3
+        - isosinglet S=0 PSQ=2 B2 N(2_G)N(4_G1) 0
+        - isosinglet S=0 PSQ=2 B2 N(2_G)N(4_G1) 1
+        - isosinglet S=0 PSQ=2 B2 N(3_G)N(5_F1) 0
+        - isosinglet S=0 PSQ=2 B2 N(3_G)N(5_F1) 1
+        - isosinglet S=0 PSQ=2 B2 N(3_G)N(5_F2) 0
+        - isosinglet S=0 PSQ=2 B2 N(3_G)N(5_F2) 1
+        - isosinglet S=0 PSQ=2 B2 N(5_F1)N(5_F1) 0
+        - isosinglet S=0 PSQ=2 B2 N(5_F1)N(5_F1) 1
+        - isosinglet S=0 PSQ=2 B2 N(5_F1)N(5_F2) 0
+        - isosinglet S=0 PSQ=2 B2 N(5_F2)N(5_F2) 0
+        - isosinglet S=0 PSQ=2 B2 N(5_F2)N(5_F2) 1
+
+    - name: isosinglet_S0_A1_P3
+      pivot_info:
+        <<: *PIVOT_INFO
+      operators:
+        - isosinglet S=0 PSQ=3 A1 N(0_G1g)N(3_G) 0
+        - isosinglet S=0 PSQ=3 A1 N(1_G1)N(2_G) 0
+        - isosinglet S=0 PSQ=3 A1 N(1_G1)N(2_G) 1
+        - isosinglet S=0 PSQ=3 A1 N(2_G)N(5_F1) 0
+        - isosinglet S=0 PSQ=3 A1 N(2_G)N(5_F1) 1
+        - isosinglet S=0 PSQ=3 A1 N(2_G)N(5_F2) 0
+        - isosinglet S=0 PSQ=3 A1 N(2_G)N(5_F2) 1
+        - isosinglet S=0 PSQ=3 A1 N(3_G)N(4_G1) 0
+        - isosinglet S=0 PSQ=3 A1 N(3_G)N(4_G1) 1
+
+    - name: isosinglet_S0_A2_P3
+      pivot_info:
+        <<: *PIVOT_INFO
+      operators:
+        - isosinglet S=0 PSQ=3 A2 N(0_G1g)N(3_G) 0
+        - isosinglet S=0 PSQ=3 A2 N(1_G1)N(2_G) 0
+        - isosinglet S=0 PSQ=3 A2 N(1_G1)N(2_G) 1
+        - isosinglet S=0 PSQ=3 A2 N(2_G)N(5_F1) 0
+        - isosinglet S=0 PSQ=3 A2 N(2_G)N(5_F1) 1
+        - isosinglet S=0 PSQ=3 A2 N(2_G)N(5_F2) 0
+        - isosinglet S=0 PSQ=3 A2 N(2_G)N(5_F2) 1
+        - isosinglet S=0 PSQ=3 A2 N(3_G)N(4_G1) 0
+        - isosinglet S=0 PSQ=3 A2 N(3_G)N(4_G1) 1
+
+    - name: isosinglet_S0_E_P3
+      pivot_info:
+        <<: *PIVOT_INFO
+      operators:
+        - isosinglet S=0 PSQ=3 E N(0_G1g)N(3_G) 0
+        - isosinglet S=0 PSQ=3 E N(1_G1)N(2_G) 0
+        - isosinglet S=0 PSQ=3 E N(1_G1)N(2_G) 1
+        - isosinglet S=0 PSQ=3 E N(1_G1)N(2_G) 2
+        - isosinglet S=0 PSQ=3 E N(1_G1)N(2_G) 3
+        - isosinglet S=0 PSQ=3 E N(2_G)N(5_F1) 0
+        - isosinglet S=0 PSQ=3 E N(2_G)N(5_F1) 1
+        - isosinglet S=0 PSQ=3 E N(2_G)N(5_F1) 2
+        - isosinglet S=0 PSQ=3 E N(2_G)N(5_F1) 3
+        - isosinglet S=0 PSQ=3 E N(2_G)N(5_F2) 0
+        - isosinglet S=0 PSQ=3 E N(2_G)N(5_F2) 1
+        - isosinglet S=0 PSQ=3 E N(2_G)N(5_F2) 2
+        - isosinglet S=0 PSQ=3 E N(2_G)N(5_F2) 3
+        - isosinglet S=0 PSQ=3 E N(3_G)N(4_G1) 0
+        - isosinglet S=0 PSQ=3 E N(3_G)N(4_G1) 1
+        - isosinglet S=0 PSQ=3 E N(3_G)N(4_G1) 2
+        - isosinglet S=0 PSQ=3 E N(3_G)N(4_G1) 3
+
+    - name: isosinglet_S0_A1_P4
+      pivot_info:
+        <<: *PIVOT_INFO
+      operators:
+        - isosinglet S=0 PSQ=4 A1 N(0_G1g)N(4_G1) 0
+        - isosinglet S=0 PSQ=4 A1 N(1_G1)N(5_F1) 0
+        - isosinglet S=0 PSQ=4 A1 N(1_G1)N(5_F2) 0
+
+    - name: isosinglet_S0_A2_P4
+      pivot_info:
+        <<: *PIVOT_INFO
+      operators:
+        - isosinglet S=0 PSQ=4 A2 N(0_G1g)N(4_G1) 0
+        - isosinglet S=0 PSQ=4 A2 N(1_G1)N(1_G1) 0
+        - isosinglet S=0 PSQ=4 A2 N(1_G1)N(5_F1) 0
+        - isosinglet S=0 PSQ=4 A2 N(1_G1)N(5_F2) 0
+        - isosinglet S=0 PSQ=4 A2 N(2_G)N(2_G) 1
+        - isosinglet S=0 PSQ=4 A2 N(3_G)N(3_G) 1
+        - isosinglet S=0 PSQ=4 A2 N(5_F1)N(5_F2) 0
+
+    - name: isosinglet_S0_B1_P4
+      pivot_info:
+        <<: *PIVOT_INFO
+      operators:
+        - isosinglet S=0 PSQ=4 B1 N(1_G1)N(5_F1) 0
+        - isosinglet S=0 PSQ=4 B1 N(1_G1)N(5_F2) 0
+        - isosinglet S=0 PSQ=4 B1 N(3_G)N(3_G) 1
+
+    - name: isosinglet_S0_B2_P4
+      pivot_info:
+        <<: *PIVOT_INFO
+      operators:
+        - isosinglet S=0 PSQ=4 B2 N(1_G1)N(5_F1) 0
+        - isosinglet S=0 PSQ=4 B2 N(1_G1)N(5_F2) 0
+        - isosinglet S=0 PSQ=4 B2 N(2_G)N(2_G) 1
+        - isosinglet S=0 PSQ=4 B2 N(5_F1)N(5_F2) 0
+
+    - name: isosinglet_S0_E_P4
+      pivot_info:
+        <<: *PIVOT_INFO
+      operators:
+        - isosinglet S=0 PSQ=4 E N(0_G1g)N(4_G1) 0
+        - isosinglet S=0 PSQ=4 E N(1_G1)N(1_G1) 0
+        - isosinglet S=0 PSQ=4 E N(1_G1)N(5_F1) 0
+        - isosinglet S=0 PSQ=4 E N(1_G1)N(5_F1) 1
+        - isosinglet S=0 PSQ=4 E N(1_G1)N(5_F2) 0
+        - isosinglet S=0 PSQ=4 E N(1_G1)N(5_F2) 1
+        - isosinglet S=0 PSQ=4 E N(2_G)N(2_G) 0
+        - isosinglet S=0 PSQ=4 E N(2_G)N(2_G) 1
+        - isosinglet S=0 PSQ=4 E N(2_G)N(2_G) 2
+        - isosinglet S=0 PSQ=4 E N(3_G)N(3_G) 0
+        - isosinglet S=0 PSQ=4 E N(3_G)N(3_G) 1
+        - isosinglet S=0 PSQ=4 E N(3_G)N(3_G) 2
+        - isosinglet S=0 PSQ=4 E N(5_F1)N(5_F1) 0
+        - isosinglet S=0 PSQ=4 E N(5_F1)N(5_F2) 0
+        - isosinglet S=0 PSQ=4 E N(5_F2)N(5_F2) 0

@@ -1,0 +1,156 @@
+x-scattering_particles: &SCATTERING_PARTICLES
+  - name: N
+    operators:
+      - isodoublet S=0 PSQ=0 G1g N-SS_0 0
+      - isodoublet S=0 PSQ=1 G1 N-SS_0 0
+      - isodoublet S=0 PSQ=2 G N-SS_0 0
+      - isodoublet S=0 PSQ=3 G N-SS_0 0
+      - isodoublet S=0 PSQ=4 G1 N-SS_0 0
+
+x-isotriplet_S0_A1g_P0: &ISOTRIPLET_S0_A1g_P0
+  - [N(2), N(2)]
+  - [N(0), N(0)]
+  - [N(3), N(3)]
+  - [N(1), N(1)]
+
+x-isotriplet_S0_A1u_P0: &ISOTRIPLET_S0_A1u_P0
+  - [N(1), N(1)]
+  - [N(2), N(2)]
+  - [N(3), N(3)]
+
+x-isotriplet_S0_Eg_P0: &ISOTRIPLET_S0_Eg_P0
+  - [N(1), N(1)]
+  - [N(2), N(2)]
+
+x-isotriplet_S0_Eu_P0: &ISOTRIPLET_S0_Eu_P0
+  - [N(1), N(1)]
+  - [N(2), N(2)]
+  - [N(2), N(2)]
+  - [N(3), N(3)]
+
+x-isotriplet_S0_T1u_P0: &ISOTRIPLET_S0_T1u_P0
+  - [N(1), N(1)]
+  - [N(2), N(2)]
+  - [N(2), N(2)]
+  - [N(3), N(3)]
+
+x-isotriplet_S0_T2g_P0: &ISOTRIPLET_S0_T2g_P0
+  - [N(2), N(2)]
+  - [N(3), N(3)]
+
+x-isotriplet_S0_T2u_P0: &ISOTRIPLET_S0_T2u_P0
+  - [N(1), N(1)]
+  - [N(2), N(2)]
+  - [N(2), N(2)]
+  - [N(3), N(3)]
+  - [N(3), N(3)]
+
+x-isotriplet_S0_A1_P1: &ISOTRIPLET_S0_A1_P1
+  - [N(0), N(1)]
+  - [N(1), N(2)]
+  - [N(1), N(2)]
+  - [N(1), N(4)]
+  - [N(2), N(3)]
+  - [N(2), N(3)]
+
+x-isotriplet_S0_A2_P1: &ISOTRIPLET_S0_A2_P1
+  - [N(0), N(1)]
+  - [N(1), N(2)]
+  - [N(1), N(2)]
+  - [N(1), N(4)]
+  - [N(2), N(3)]
+  - [N(2), N(3)]
+
+x-isotriplet_S0_B1_P1: &ISOTRIPLET_S0_B1_P1
+  - [N(1), N(2)]
+  - [N(1), N(2)]
+  - [N(2), N(3)]
+  - [N(2), N(3)]
+
+x-isotriplet_S0_B2_P1: &ISOTRIPLET_S0_B2_P1
+  - [N(1), N(2)]
+  - [N(1), N(2)]
+  - [N(2), N(3)]
+  - [N(2), N(3)]
+
+x-isotriplet_S0_E_P1: &ISOTRIPLET_S0_E_P1
+  - [N(0), N(1)]
+  - [N(1), N(2)]
+  - [N(1), N(2)]
+  - [N(1), N(2)]
+  - [N(1), N(2)]
+  - [N(1), N(4)]
+
+x-isotriplet_S0_A1_P2: &ISOTRIPLET_S0_A1_P2
+  - [N(0), N(2)]
+  - [N(1), N(1)]
+  - [N(1), N(1)]
+  - [N(1), N(3)]
+  - [N(1), N(3)]
+
+x-isotriplet_S0_A2_P2: &ISOTRIPLET_S0_A2_P2
+  - [N(0), N(2)]
+  - [N(1), N(1)]
+  - [N(1), N(3)]
+  - [N(1), N(3)]
+
+x-isotriplet_S0_B1_P2: &ISOTRIPLET_S0_B1_P2
+  - [N(0), N(2)]
+  - [N(1), N(1)]
+  - [N(1), N(3)]
+  - [N(1), N(3)]
+
+x-isotriplet_S0_B2_P2: &ISOTRIPLET_S0_B2_P2
+  - [N(0), N(2)]
+  - [N(1), N(3)]
+  - [N(1), N(3)]
+  - [N(2), N(2)]
+
+x-isotriplet_S0_A1_P3: &ISOTRIPLET_S0_A1_P3
+  - [N(0), N(3)]
+  - [N(1), N(2)]
+  - [N(1), N(2)]
+  - [N(3), N(4)]
+  - [N(3), N(4)]
+
+x-isotriplet_S0_A2_P3: &ISOTRIPLET_S0_A2_P3
+  - [N(0), N(3)]
+  - [N(1), N(2)]
+  - [N(1), N(2)]
+  - [N(3), N(4)]
+  - [N(3), N(4)]
+
+x-isotriplet_S0_E_P3: &ISOTRIPLET_S0_E_P3
+  - [N(0), N(3)]
+  - [N(1), N(2)]
+  - [N(1), N(2)]
+  - [N(1), N(2)]
+  - [N(1), N(2)]
+
+x-isotriplet_S0_A1_P4: &ISOTRIPLET_S0_A1_P4
+  - [N(0), N(4)]
+  - [N(1), N(1)]
+  - [N(2), N(2)]
+  - [N(2), N(2)]
+  - [N(3), N(3)]
+  - [N(3), N(3)]
+
+x-isotriplet_S0_A2_P4: &ISOTRIPLET_S0_A2_P4
+  - [N(0), N(4)]
+  - [N(2), N(2)]
+  - [N(3), N(3)]
+
+x-isotriplet_S0_B1_P4: &ISOTRIPLET_S0_B1_P4
+  - [N(2), N(2)]
+  - [N(2), N(2)]
+  - [N(3), N(3)]
+
+x-isotriplet_S0_B2_P4: &ISOTRIPLET_S0_B2_P4
+  - [N(2), N(2)]
+  - [N(3), N(3)]
+  - [N(3), N(3)]
+
+x-isotriplet_S0_E_P4: &ISOTRIPLET_S0_E_P4
+  - [N(0), N(4)]
+  - [N(2), N(2)]
+  - [N(3), N(3)]

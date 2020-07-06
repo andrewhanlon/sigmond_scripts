@@ -1,0 +1,11 @@
+Initialize:
+  ensembles_file: /media/ext1/research/ensemble_info/ensembles.xml
+  project_directory: /media/ext1/research/projects/C103_project/analysis/
+  precompute: true
+
+MCBinsInfo:
+  ensemble_id: cls21_c103
+  rebin: 1
+
+MCSamplingInfo:
+  mode: jackknife
