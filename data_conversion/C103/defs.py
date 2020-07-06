@@ -13,15 +13,6 @@ ensembles = [
     Ensemble("cls21_c103", 96, ['r005'], [0, 24, 48, 72]),
 ]
 
-omissions = {
-    'cls21_c103_r005': set(),
-    'cls21_c103': set(),
-}
-
-configs = {
-    'cls21_c103_r005': list(range(0, 401, 1)),
-}
-
 class Channel(NamedTuple):
   momentum: tuple
   irrep: str
@@ -34,6 +25,11 @@ class Channel(NamedTuple):
     strangeness_str = f"S{self.strangeness}".replace('-', 'm')
 
     return f"{mom_str}_{self.irrep}_{self.irrep_row}_{self.isospin}_{strangeness_str}"
+
+  def data_channel_str(self):
+    mom_str = f"P{self.momentum[0]}{self.momentum[1]}{self.momentum[2]}".replace('-', 'm')
+
+    return f"{mom_str}_{self.irrep}_{self.irrep_row}"
 
   def averaged_channel_str(self):
     psq = self.momentum[0]**2 + self.momentum[1]**2 + self.momentum[2]**2
