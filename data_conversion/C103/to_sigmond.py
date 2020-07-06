@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 
 import os
-import psutil
 
 import numpy as np
 import xml.etree.ElementTree as ET
@@ -18,7 +17,6 @@ COMPLEX_ARGS = [sigmond.ComplexArg.RealPart, sigmond.ComplexArg.ImaginaryPart]
 MAX_CORRS = 50
 
 def main():
-  process = psutil.Process(os.getpid())
   for ensemble in defs.ensembles:
     ensemble_name = ensemble.name
 
@@ -64,7 +62,6 @@ def main():
 def write_multiple_data(data_to_write, ensemble_name):
   ensemble_info = sigmond.MCEnsembleInfo(ensemble_name, 'ensembles.xml')
   bins_info = sigmond.MCBinsInfo(ensemble_info)
-  bins_info.addOmissions(defs.omissions[ensemble_name])
 
   for bin_file, datas in data_to_write.items():
     bins_handler = sigmond.BinsPutHandler(bins_info, bin_file, sigmond.WriteMode.Protect, False)
@@ -84,7 +81,6 @@ def write_single_data(data, ensemble_name, bin_file):
   mcobs_xml_handler.set_from_string(ET.tostring(mcobs_xml))
   sampling_info = sigmond.MCSamplingInfo()
   bins_info = sigmond.MCBinsInfo(ensemble_info)
-  bins_info.addOmissions(defs.omissions[ensemble_name])
   obs_get_handler = sigmond.MCObsGetHandler(mcobs_xml_handler, bins_info, sampling_info)
   obs_handler = sigmond.MCObsHandler(obs_get_handler, False)
 
@@ -148,7 +144,6 @@ def get_data(correlator, data_files, ensemble_name, ensemble_Nt, tsrc):
   sampling_info = sigmond.MCSamplingInfo()
   ensemble_info = sigmond.MCEnsembleInfo(ensemble_name, 'ensembles.xml')
   bins_info = sigmond.MCBinsInfo(ensemble_info)
-  bins_info.addOmissions(defs.omissions[ensemble_name])
   obs_get_handler = sigmond.MCObsGetHandler(mcobs_xml_handler, bins_info, sampling_info)
   obs_handler = sigmond.MCObsHandler(obs_get_handler, False)
 
@@ -179,7 +174,7 @@ def get_data(correlator, data_files, ensemble_name, ensemble_Nt, tsrc):
 
   corr_time_info_herm = sigmond.CorrelatorAtTimeInfo(correlator, 0, True, False)
   for tsep in range(tmin, tmax+1):
-    for cmp_i, complex_arg in enumerate(COMPLEX_ARGS):
+    for complex_arg in COMPLEX_ARGS:
       if correlator.isSinkSourceSame() and complex_arg is sigmond.ComplexArg.ImaginaryPart:
         continue
 
@@ -191,13 +186,16 @@ def get_data(correlator, data_files, ensemble_name, ensemble_Nt, tsrc):
         corr_time_info_opp.resetTimeSeparation(tsep)
         corr_time_info_opp_obs_info = sigmond.MCObsInfo(corr_time_info_opp, complex_arg)
         data_opp = np.array(obs_handler.getBins(corr_time_info_opp_obs_info).array())
-        data = 0.5*(data + np.conj(data_opp))
+        if complex_arg is sigmond.ComplexArg.RealPart:
+          data = 0.5*(data + data_opp)
+        else:
+          data = 0.5*(data - data_opp)
 
       if change_sign:
-        for cfg_ind, config in enumerate(defs.configs[ensemble_name]):
+        for config in range(bins_info.getNumberOfBins()):
           T = tsep + tsrc + srcTList[config]
           if T >= ensemble_Nt:
-            data[cfg_ind] = -data[cfg_ind]
+            data[config] = -data[config]
 
       corr_time_info_herm.resetTimeSeparation(tsep)
       corr_time_info_herm_obs_info = sigmond.MCObsInfo(corr_time_info_herm, complex_arg)
@@ -245,7 +243,6 @@ def get_corr_files(ensemble_name, search_dir):
   ensemble_info = sigmond.MCEnsembleInfo(ensemble_name, 'ensembles.xml')
   sampling_info = sigmond.MCSamplingInfo()
   bins_info = sigmond.MCBinsInfo(ensemble_info)
-  bins_info.addOmissions(defs.omissions[ensemble_name])
   obs_get_handler = sigmond.MCObsGetHandler(mcobs_xml_handler, bins_info, sampling_info)
   obs_handler = sigmond.MCObsHandler(obs_get_handler, False)
 
@@ -255,7 +252,7 @@ def get_corr_files(ensemble_name, search_dir):
   for corr in corr_handler.getCorrelatorSet():
     corr_opposite = sigmond.CorrelatorInfo(corr.getSource(), corr.getSink())
     if corr_opposite in corr_files:
-      corr_files[corr_opposite][1] = corr.getFileName(corr)
+      corr_files[corr_opposite][1] = corr_handler.getFileName(corr)
     else:
       corr_files[corr] = (corr_handler.getFileName(corr), None)
 
