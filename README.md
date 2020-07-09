@@ -55,8 +55,12 @@ However, the keys are identical in the files for each source time, so sigmond ca
 We must first average all sources that have the same keys, then put the result in a separate file.
 Either these files will be provided for you, or you can generate them using the script `data_conversion/C103/to_sigmond.py`.
 Make sure to update the `base_data_dir` in `data_conversion/C103/defs.py`. `base_data_dir` should contain the following
-  r005/src0, r005/src1, r005/src2, r005/src3
-where the raw correlator files are located in each of the `src` directories.
+    - r005/src0
+    - r005/src1
+    - r005/src2
+    - r005/src3
+
+  where the raw correlator files are located in each of the `src*` directories.
 Note that these scripts take 4.5 hours on my local computer to run.
 - `cd example_yaml/C103_NN/`
 - edit `ensemble_info/C103_all.yml`:
@@ -73,7 +77,7 @@ Note that these scripts take 4.5 hours on my local computer to run.
 
         run_sigmond.py -d -c ensemble_info/C103_all.yml tasks/averaged_data.yml
 
-This run will average over all equivalent momentum frames and irrep rows, then produce a PDF showing the averaged data.
+  This run will average over all equivalent momentum frames and irrep rows, then produce a PDF showing the averaged data.
 Note that reading the large data files can take some time (not more than 5 minutes on my computer)
 One this task has been completed, subsequent tasks will be much easier.
 
