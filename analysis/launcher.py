@@ -175,10 +175,21 @@ def read_config(config_filenames):
 
 class Executor:
 
+  sigmond_return_string = "Error: batch mode requires a file name as the only argument\n"
+
   def __init__(self, mode, sigmond_batch, **exec_options):
     self.mode = mode
     self.sigmond_batch = sigmond_batch
     self.exec_options = exec_options
+
+    # check sigmond_batch
+    try:
+      result = subprocess.run(self.sigmond_batch, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+      if result.stdout.decode('utf-8') != self.sigmond_return_string:
+        logging.error(f"sigmond_batch is invalid '{self.sigmond_batch}'")
+
+    except FileNotFoundError:
+      logging.error(f"sigmond_batch not found at '{self.sigmond_batch}'")
 
     if self.mode == "local":
       try:
