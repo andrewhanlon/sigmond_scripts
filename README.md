@@ -17,8 +17,20 @@ The analysis scripts use YAML configuration files to specify what you want to do
 ### What software requirements are there? ###
 
 - Python 3.8 is required
-- pybind11
-- Lots of python libaries. I don't know all of them off-hand, but trying runing `run_sigmond.py`. If you are missing a library, you will get a `ModuleNotFoundError`. Then you can use pip or your package manager to install it. It would be nice to have a comprehensive list of all packages required..
+- Many Python modules
+  - wheel
+  - cython
+  - pybind11
+  - pyyaml
+  - progressbar
+  - sortedcontainers
+  - pylatex
+  - numpy
+  - uncertainties
+  - aenum
+  - tqdm
+  - h5py
+  - matplotlib
 
 ### How do I get started? ###
 
