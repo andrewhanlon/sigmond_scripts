@@ -9,7 +9,7 @@ The analysis scripts use YAML configuration files to specify what you want to do
 ### Directory structure ###
 
 - analysis - contains the main scripts for running the analysis
-  - run_sigmond.py - the driving script (pass -h to see options)
+    - run_sigmond.py - the driving script (pass -h to see options)
 - data_conversion - contains various scripts for converting data to various formats (e.g. hdf5, LapH-binary, sigmond-bins).
 - example_yamls - contains some example yaml files that can be passed to run_sigmond.py
 - doc - contains documenation for how to use the analysis scripts (not up to date at all)
@@ -18,19 +18,19 @@ The analysis scripts use YAML configuration files to specify what you want to do
 
 - Python 3.8 is required
 - Many Python modules
-  - wheel
-  - cython
-  - pybind11
-  - pyyaml
-  - progressbar
-  - sortedcontainers
-  - pylatex
-  - numpy
-  - uncertainties
-  - aenum
-  - tqdm
-  - h5py
-  - matplotlib
+    - wheel
+    - cython
+    - pybind11
+    - pyyaml
+    - progressbar
+    - sortedcontainers
+    - pylatex
+    - numpy
+    - uncertainties
+    - aenum
+    - tqdm
+    - h5py
+    - matplotlib
 
 ### How do I get started? ###
 
@@ -60,12 +60,12 @@ where the raw correlator files are located in each of the `src` directories.
 Note that these scripts take 4.5 hours on my local computer to run.
 - `cd example_yaml/C103_NN/`
 - edit `ensemble_info/C103_all.yml`:
-  Initialize:
-    ensembles_file: <location of ensembles.xml file>  # can be left blank to use default
-    project_directory: <location on local machine where you want all project files to be created>
-    raw_data_directories:
-      - <location of converted data from first step above>
-    precompute: true   # doesn't really matter
+    Initialize:
+      ensembles_file: <location of ensembles.xml file>  # can be left blank to use default
+      project_directory: <location on local machine where you want all project files to be created>
+      raw_data_directories:
+        - <location of converted data from first step above>
+      precompute: true   # doesn't really matter
 - edit `tasks/averaged_data.yml`. Change `sigmond_batch` to the location of the `sigmond` binary produced when you install sigmond.
 - Next run
   run_sigmond.py -d -c ensemble_info/C103_all.yml tasks/averaged_data.yml
