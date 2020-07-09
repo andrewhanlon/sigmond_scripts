@@ -63,7 +63,7 @@ def main():
 
 
 def write_data(data, channel, op_list, hdf5_file):
-  f_hand = h5py.File(hdf5_file, 'w')
+  f_hand = h5py.File(hdf5_file, 'a')
   channel_group = f_hand.create_group(channel.data_channel_str())
   channel_group.attrs.create('opList', op_list)
   channel_group.create_dataset('data', data=data)
