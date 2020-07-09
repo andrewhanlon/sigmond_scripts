@@ -62,6 +62,7 @@ Make sure to update the `base_data_dir` in `data_conversion/C103/defs.py`. `base
 
   where the raw correlator files are located in each of the `src*` directories.
 Note that these scripts take 4.5 hours on my local computer to run.
+
 - `cd example_yaml/C103_NN/`
 - edit `ensemble_info/C103_all.yml`:
 
