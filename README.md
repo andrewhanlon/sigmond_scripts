@@ -73,13 +73,13 @@ Note that these scripts take 4.5 hours on my local computer to run.
             - <location of converted data from first step above>
           precompute: true   # doesn't really matter
 
-  You can also changing the resampling mode to Bootstrap.
-        
-        MCSamplingInfo:
-          mode: bootstrap
-          number_resampling: 1000
-          seed: 3103
-          boot_skip: 301
+    You can also change the resampling mode to Bootstrap.
+          
+          MCSamplingInfo:
+            mode: bootstrap
+            number_resampling: 1000
+            seed: 3103
+            boot_skip: 301
 
 - edit `tasks/averaged_data.yml`. Change `sigmond_batch` to the location of the `sigmond` binary produced when you installed sigmond.
 - Next run
