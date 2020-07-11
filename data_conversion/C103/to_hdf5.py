@@ -13,6 +13,10 @@ from sourceTimeList import srcTList
 
 import sigmond
 
+import sys
+sys.path.insert(1, "../../analysis/")
+import operator_info.operator
+
 COMPLEX_ARGS = [sigmond.ComplexArg.RealPart, sigmond.ComplexArg.ImaginaryPart]
 
 MAX_CORRS = 50
@@ -109,8 +113,8 @@ def get_data(correlators, ensemble_name, ensemble_Nt, tsrc):
       tmin = keys[0].getTimeIndex()
       tmax = keys[-1].getTimeIndex()
 
-  operators = sorted(list(operators))
-
+  operators = sorted(list([operator_info.operator.Operator(op) for op in operators]))
+  operators = [op.operator_info for op in operators]
 
   single_correlator = True if len(correlators['correlators']) == 1 else False
 
@@ -161,7 +165,7 @@ def get_data(correlators, ensemble_name, ensemble_Nt, tsrc):
           if snk_i != src_i:
             corr_data[:,src_i,snk_i,tsep] = np.conj(data)
 
-  operators = [operator.op_str() for operator in operators]
+  operators = [op.op_str() for op in operators]
   return corr_data, operators
 
 
@@ -231,12 +235,12 @@ def get_hdf5_file(channel, ensemble_name):
   return hdf5_file
 
 def get_channel(correlator):
-  operator = correlator.getSink().getBasicLapH()
-  P = (operator.getXMomentum(), operator.getYMomentum(), operator.getZMomentum())
-  irrep = operator.getLGIrrep()
-  irrep_row = operator.getLGIrrepRow()
-  isospin = operator.getIsospin()
-  strangeness = operator.getStrangeness()
+  op = correlator.getSink().getBasicLapH()
+  P = (op.getXMomentum(), op.getYMomentum(), op.getZMomentum())
+  irrep = op.getLGIrrep()
+  irrep_row = op.getLGIrrepRow()
+  isospin = op.getIsospin()
+  strangeness = op.getStrangeness()
   channel = defs.Channel(P, irrep, irrep_row, isospin, strangeness)
   return channel
 
