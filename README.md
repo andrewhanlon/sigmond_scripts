@@ -60,7 +60,7 @@ Make sure to update the `base_data_dir` in `data_conversion/C103/defs.py`. `base
     - r005/src2
     - r005/src3
 
-  where the raw correlator files are located in each of the `src*` directories.
+    where the raw correlator files are located in each of the `src*` directories.
 Note that these scripts take 4.5 hours on my local computer to run.
 
 - `cd example_yaml/C103_NN/`
@@ -73,12 +73,37 @@ Note that these scripts take 4.5 hours on my local computer to run.
             - <location of converted data from first step above>
           precompute: true   # doesn't really matter
 
+    You can also change the resampling mode to Bootstrap.
+          
+          MCSamplingInfo:
+            mode: bootstrap
+            number_resampling: 1000
+            seed: 3103
+            boot_skip: 301
+
 - edit `tasks/averaged_data.yml`. Change `sigmond_batch` to the location of the `sigmond` binary produced when you installed sigmond.
 - Next run
 
         run_sigmond.py -d -c ensemble_info/C103_all.yml tasks/averaged_data.yml
 
-  This run will average over all equivalent momentum frames and irrep rows, then produce a PDF showing the averaged data.
+    This run will average over all equivalent momentum frames and irrep rows, then produce a PDF showing the averaged data.
 Note that reading the large data files can take some time (not more than 5 minutes on my computer)
 One this task has been completed, subsequent tasks will be much easier.
 
+- edit `ensemble_info/C103_none.yml` to point to the correct file locations.
+edit `tasks/rotations/isosinglet_nonstrange_nucleonnucleon.yml` to change `sigmond_batch` location.
+
+- Then run
+
+        run_sigmond.py -d -c ensemble_info/C103_none.yml other_info/pivot_info.yml tasks/rotations/isosinglet_nonstrange_nucleonnucleon.yml
+
+    This will run the GEVP using the parameters in `other_info/pivot_info.yml` and the operators in `tasks/rotations/isosinglet_nonstrange_nucleonnucleon.yml`
+
+- edit `tasks/spectrum/isosinglet_nonstrange_nucleonnucleon.yml` to change `sigmond_batch` location.
+
+- Finally, run
+        
+        run_sigmond.py -d -c ensemble_info/C103_none.yml other_info/pivot_info.yml other_info/minimizer_info.yml non_interacting_levels/isosinglet_nonstrange_nucleonnucleon.yml tasks/spectrum/isosinglet_nonstrange_nucleonnucleon.yml
+
+    This will produce the final spectrum. The non-interacting levels used to form the ratio are defined in `non_interacting_levels/isosinglet_nonstrange_nucleonnucleon.yml`,
+and the fit choices are defined in `tasks/spectrum/isosinglet_nonstrange_nucleonnucleon.yml`.
