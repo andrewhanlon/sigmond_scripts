@@ -9,7 +9,6 @@ import h5py
 import tqdm
 
 import defs
-from sourceTimeList import srcTList
 
 import sigmond
 
@@ -41,6 +40,9 @@ def main():
       corrs_to_extend = list()
       op_lists = list()
       for replica_i, replica in enumerate(ensemble.replica):
+        if 'r005' in replica:
+          continue
+
         replica_ensemble_name = f"{ensemble_name}_{replica}"
         corrs_to_average = list()
         for tsrc_i, tsrc in enumerate(ensemble.sources):
@@ -50,20 +52,14 @@ def main():
           corrs_to_average.append(correlator_data)
 
         averaged_corr_data = np.mean(corrs_to_average, axis=0)
-        corrs_to_extend.append(averaged_corr_data)
 
-      if len(corrs_to_extend) > 1:
-        extended_corr_data = np.concatenate(corrs_to_extend)
-      else:
-        extended_corr_data = corrs_to_extend[0]
-
-      all_equal = all(op_list==op_lists[0] for op_list in op_lists)
-      if not all_equal:
-        print("not all op lists equal")
-        exit()
-      
-      hdf5_file = get_hdf5_file(channel, replica_ensemble_name)
-      write_data(extended_corr_data, channel, op_lists[0], hdf5_file)
+        all_equal = all(op_list==op_lists[0] for op_list in op_lists)
+        if not all_equal:
+          print("not all op lists equal")
+          exit()
+        
+        hdf5_file = get_hdf5_file(channel, replica_ensemble_name)
+        write_data(averaged_corr_data, channel, op_lists[0], hdf5_file)
 
 
 def write_data(data, channel, op_list, hdf5_file):
@@ -154,7 +150,7 @@ def get_data(correlators, ensemble_name, ensemble_Nt, tsrc):
 
         if change_sign:
           for config in range(bins_info.getNumberOfBins()):
-            T = tsep + tsrc + srcTList[config]
+            T = tsep + tsrc + defs.source_lists[ensemble_name][config]
             if T >= ensemble_Nt:
               data[config] = -data[config]
 

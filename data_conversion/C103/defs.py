@@ -1,5 +1,7 @@
 from typing import NamedTuple
 
+import sourceTimeList
+
 base_data_dir = "/media/ext2/research/data/raw_C103/"
 output_dir = "data"
 
@@ -10,8 +12,14 @@ class Ensemble(NamedTuple):
   sources: list
 
 ensembles = [
-    Ensemble("cls21_c103", 96, ['r005'], [0, 24, 48, 72]),
+    Ensemble("cls21_c103", 96, ['r005', 'r006'], [0, 24, 48, 72]),
 ]
+
+source_lists = {
+    "cls21_c103_r005": sourceTimeList.r005,
+    "cls21_c103_r006": sourceTimeList.r006,
+}
+
 
 class Channel(NamedTuple):
   momentum: tuple

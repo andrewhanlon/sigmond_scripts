@@ -8,7 +8,6 @@ import xml.etree.ElementTree as ET
 import tqdm
 
 import defs
-from sourceTimeList import srcTList
 
 import sigmond
 
@@ -193,7 +192,7 @@ def get_data(correlator, data_files, ensemble_name, ensemble_Nt, tsrc):
 
       if change_sign:
         for config in range(bins_info.getNumberOfBins()):
-          T = tsep + tsrc + srcTList[config]
+          T = tsep + tsrc + defs.source_lists[ensemble_name][config]
           if T >= ensemble_Nt:
             data[config] = -data[config]
 
