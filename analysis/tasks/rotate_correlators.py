@@ -220,8 +220,8 @@ class RotateCorrelators(tasks.task.Task):
                   pylatex.NoEscape(r"$\tau_D$"),
                   pylatex.NoEscape(r"$\xi_{cn}$ (max)"),
                   pylatex.NoEscape(r"$\xi_{cn}^C$ (input)"),
-                  pylatex.NoEscape(r"$\xi_{cn}^G$ (input)"),
                   pylatex.NoEscape(r"$\xi_{cn}^C$ (retain)"),
+                  pylatex.NoEscape(r"$\xi_{cn}^G$ (input)"),
                   pylatex.NoEscape(r"$\xi_{cn}^G$ (retain)"),
               ]
               param_table.add_row(header_row, mapper=[pylatex.utils.bold])
@@ -235,8 +235,8 @@ class RotateCorrelators(tasks.task.Task):
                   operator_basis.pivot_info.diagonalize_time,
                   operator_basis.pivot_info.max_condition_number,
                   rotation_log.metric_condition(False),
-                  rotation_log.matrix_condition(False),
                   rotation_log.metric_condition(True),
+                  rotation_log.matrix_condition(False),
                   rotation_log.matrix_condition(True),
               ]
               param_table.add_row(value_row)
