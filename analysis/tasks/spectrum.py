@@ -30,8 +30,8 @@ class Spectrum(tasks.task.Task):
 
   sh_name = "single_hadrons"
   ref_name = "ref"
-  reordered_energy = "reordered_energy"
-  reordered_amplitude = "reordered_amplitude"
+  ordered_energy = "ordered_energy"
+  ordered_amplitude = "ordered_amplitude"
 
   def initialize(self, spectrum, **extra_options):
     """ initializes the needed objects to perform fits to correlators
@@ -41,6 +41,7 @@ class Spectrum(tasks.task.Task):
       spectrum ({OperatorSet: [FitInfos]): a dictionary
           mapping each operator basis to a list of fit infos
           for each level
+      **reorder (bool): whether energies should be reordered
       **tmin_infos ({OperatorSet: [[FitInfo]]): a dictionary
           containing the differnt tmin fits to do.
       **minimizer_info (sigmondbind.MinimizerInfo): Speicifies the 
@@ -61,6 +62,7 @@ class Spectrum(tasks.task.Task):
     """
 
     self.spectrum = spectrum
+    self.reorder = extra_options.pop('reorder', True)
     self.tmin_infos = extra_options.pop('tmin_infos', dict())
     self.minimizer_info = extra_options.pop('minimizer_info', sigmond.MinimizerInfo())
     self.fit_plot_info = extra_options.pop('fit_plot_info', sigmond_info.sigmond_info.FitPlotInfo())
@@ -80,6 +82,8 @@ class Spectrum(tasks.task.Task):
 
     YAML:
       subtractvev: true   # optional
+
+      reorder: false   # optional
       
       # optional
       minimizer_info:
@@ -536,7 +540,7 @@ class Spectrum(tasks.task.Task):
 
         sigmond_input.doRotCorrMatInsertFitInfos(
             operator_set.pivot_info.pivot_type, energies, amplitudes, pivot_name=pivot_name,
-            pivot_filename=pivot_file, reorder=True)
+            pivot_filename=pivot_file, reorder=self.reorder)
 
         sigmond_input.doCorrMatrixZMagSquares(
             operator_set.pivot_info.pivot_type, pivot_name=pivot_name, plot_stub=zfactor_stub,
@@ -544,13 +548,13 @@ class Spectrum(tasks.task.Task):
             obsname='standard')
 
         sigmond_input.getFromPivot(
-            operator_set.pivot_info.pivot_type, self.reordered_energy, self.reordered_amplitude,
+            operator_set.pivot_info.pivot_type, self.ordered_energy, self.ordered_amplitude,
             pivot_name=pivot_name)
 
       else:
         for level, energy in enumerate(energies):
-          reordered_energy = sigmond.MCObsInfo(self.reordered_energy, level)
-          sigmond_input.doCopy(reordered_energy, energy, sampling_mode=self.sampling_mode)
+          ordered_energy = sigmond.MCObsInfo(self.ordered_energy, level)
+          sigmond_input.doCopy(ordered_energy, energy, sampling_mode=self.sampling_mode)
 
       # Get all the energies
       energy_samplings_obs = list()
@@ -558,11 +562,11 @@ class Spectrum(tasks.task.Task):
         channel = fit_info.operator.channel
         samp_dir = f"PSQ{channel.psq}/{channel.irrep}"
         
-        reordered_energy = sigmond.MCObsInfo(self.reordered_energy, level)
+        ordered_energy = sigmond.MCObsInfo(self.ordered_energy, level)
         elab = sigmond.MCObsInfo(f"{samp_dir}/elab_{level}", 0)
         ecm = sigmond.MCObsInfo(f"{samp_dir}/ecm_{level}", 0)
 
-        sigmond_input.doCopy(elab, reordered_energy, sampling_mode=self.sampling_mode)
+        sigmond_input.doCopy(elab, ordered_energy, sampling_mode=self.sampling_mode)
         sigmond_input.doBoost(ecm, channel.psq, self.ensemble_spatial_extent,
                               elab, sampling_mode=self.sampling_mode)
 

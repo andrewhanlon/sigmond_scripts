@@ -222,10 +222,20 @@ class SpectrumLog(SigmondLog):
 
   def parse(self, log_xml_root):
     self.energies = SortedDict()
-    for energy_level_xml in log_xml_root.findall(
-        "Task/DoRotCorrMatInsertFitInfos/SinglePivot/ReorderEnergies/EnergyLevel"):
-      new_level = int(energy_level_xml.findtext("LevelIndex"))
-      orig_level = int(energy_level_xml.findtext("OriginalIndex"))
+    self.reorder = True
+    energy_level_xmls = log_xml_root.findall("Task/DoRotCorrMatInsertFitInfos/SinglePivot/ReorderEnergies/EnergyLevel")
+    if not energy_level_xmls:
+      self.reorder = False
+      energy_level_xmls = log_xml_root.findall("Task/GetFromPivot/Energies/EnergyLevel")
+
+    for energy_level_xml in energy_level_xmls:
+      if self.reorder:
+        new_level = int(energy_level_xml.findtext("LevelIndex"))
+        orig_level = int(energy_level_xml.findtext("OriginalIndex"))
+      else:
+        new_level = int(energy_level_xml.findtext("Level"))
+        orig_level = int(energy_level_xml.findtext("Level"))
+
       level = Level(new_level, orig_level)
       energy_obs_str = energy_level_xml.findtext("MCObservable/Info")
       pattern = r"^(?P<obsname>\S+) (?P<obsid>\d+) (?P<simple>s|n) (?P<complex_arg>re|im)$"
