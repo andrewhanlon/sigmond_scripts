@@ -185,7 +185,7 @@ class Spectrum(tasks.task.Task):
               - model: 1-exp
                 tmin_min: 3
                 tmin_max: 10
-                tmax: 18
+                extra_tmaxes: 18, 19
 
         - name: rotated_op_basis
           pivot_info:
@@ -306,25 +306,30 @@ class Spectrum(tasks.task.Task):
               ratio = tmin_fit_info.pop('ratio', False)
               tmin = tmin_fit_info['tmin_min']
               tmin_max = tmin_fit_info['tmin_max']
-              if 'tmaxes' in tmin_fit_info:
-                tmaxes = tmin_fit_info.get('tmaxes')
+              if 'extra_tmaxes' in tmin_fit_info:
+                tmaxes = tmin_fit_info.pop('extra_tmaxes')
                 if isinstance(tmaxes, int):
                   tmaxes = [int(tmaxes)]
-                else:
+                elif '-' in tmaxes:
                   tmaxes = list(map(int, tmaxes.split('-')))
                   tmaxes = list(range(tmaxes[0], tmaxes[-1]+1))
+                elif isinstance(tmaxes, list):
+                  tmaxes = list(map(int, tmaxes))
+                else:
+                  logging.error("Invalid 'extra_tmaxes' parameter")
 
-                for tmin_tmax in tmaxes:
-                  fit_info = sigmond_info.fit_info.FitInfo(
-                      operator, fit_model, tmin, tmin_tmax, subtractvev, ratio, exclude_times, noise_cutoff,
-                      non_interacting_operators, tmin_max)
-                  tmin_info_list.append(fit_info)
+                tmaxes.append(tmax)
+
               else:
-                tmin_tmax = tmin_fit_info.get('tmax', tmax)
+                tmaxes = [tmax]
+
+              for tmin_tmax in sorted(tmaxes):
                 fit_info = sigmond_info.fit_info.FitInfo(
                     operator, fit_model, tmin, tmin_tmax, subtractvev, ratio, exclude_times, noise_cutoff,
                     non_interacting_operators, tmin_max)
-                tmin_info_list.append(fit_info)
+
+                if fit_info not in tmin_info_list:
+                  tmin_info_list.append(fit_info)
 
             tmin_infos[operator_set].append(tmin_info_list)
 
@@ -750,6 +755,7 @@ class Spectrum(tasks.task.Task):
           with doc.create(pylatex.Subsection(str(operator_set))):
             for level, tmin_fit_info in enumerate(tmin_fit_infos):
               list_of_tmin_plots = list()
+              list_of_tmin_shift_plots = list()
               for shift in [True, False]:
                 for fit_info in tmin_fit_info:
                   plotfile = self.tmin_plotfile(repr(operator_set), level, fit_info, shift, util.PlotExtension.pdf)
@@ -762,11 +768,27 @@ class Spectrum(tasks.task.Task):
                   if fit_info.ratio:
                     caption += " - ratio"
                   caption += f", $t_{{\\rm max}} = {fit_info.tmax}$"
-                  list_of_tmin_plots.append((plotfile, caption))
+                  if shift:
+                    list_of_tmin_shift_plots.append((plotfile, caption))
+                  else:
+                    list_of_tmin_plots.append((plotfile, caption))
 
+              grouped_shift_plots = [list_of_tmin_shift_plots[n:n+3] for n in range(0, len(list_of_tmin_shift_plots), 3)]
               grouped_plots = [list_of_tmin_plots[n:n+3] for n in range(0, len(list_of_tmin_plots), 3)]
               if grouped_plots:
                 with doc.create(pylatex.Subsubsection(f"ROT {level}")):
+                  for plot_group in grouped_shift_plots:
+                    with doc.create(pylatex.Figure(position='H')) as subfig:
+                      for plot in plot_group:
+                        plot_file = plot[0]
+                        cap = plot[1]
+                        if len(plot_group) == 1:
+                          util.add_image(subfig, self.results_dir, plot_file, width='0.33', caption=cap)
+                        else:
+                          with doc.create(pylatex.SubFigure(position='b', width=pylatex.NoEscape(r'0.33\linewidth'))) as fig:
+                            util.add_image(fig, self.results_dir, plot_file, width='1.0', caption=cap)
+
+                  doc.append(pylatex.NoEscape(r"\hrule"))
                   for plot_group in grouped_plots:
                     with doc.create(pylatex.Figure(position='H')) as subfig:
                       for plot in plot_group:
