@@ -159,60 +159,66 @@ class FitResult(NamedTuple):
 class FitLog(SigmondLog):
 
   def parse(self, log_xml_root):
-    fit_xmls = log_xml_root.findall("Task/DoFit")
-
     self.fits = SortedDict()
-    for fit_xml in fit_xmls:
-      if fit_xml.find("Error") is not None:
+    for task_xml in log_xml_root.findall("Task"):
+      count = task_xml.findtext("Count")
+      fit_xml = task_xml.find("DoFit")
+      if fit_xml is None or fit_xml.find("Error") is not None:
         continue
 
-      eigenvalues = list()
-      for eigenvalue in fit_xml.find("CovarianceMatrixEigenvalues").getchildren():
-        eigenvalues.append(float(eigenvalue.text))
-      eigenvalues.sort()
-      cov_cond = float(fit_xml.findtext("CovarianceMatrixConditionNumber"))
-      fit_results = fit_xml.find("BestFitResult")
-      chisq_dof = float(fit_results.findtext("ChiSquarePerDof"))
-      quality = float(fit_results.findtext("FitQuality"))
-      energy_fit = fit_results.find("FitParameter0")
-      energy_obs_str = energy_fit.findtext("MCObservable/Info")
-      pattern = r"^(?P<obsname>\S+) (?P<obsid>\d+) (?P<simple>s|n) (?P<complex_arg>re|im)$"
-      match = regex.match(pattern, energy_obs_str.strip())
-      if match.group('simple') != 'n' or match.group('complex_arg') != 're':
-        logging.error("Energies are supposed to be simple and real")
+      try:
+        eigenvalues = list()
+        for eigenvalue in fit_xml.find("CovarianceMatrixEigenvalues").getchildren():
+          eigenvalues.append(float(eigenvalue.text))
 
-      energy_obs = sigmond.MCObsInfo(match.group('obsname'), int(match.group('obsid')))
-      fit_info = FitInfo.createFromObservable(energy_obs)
-      energy_value = float(energy_fit.findtext("MCEstimate/FullEstimate"))
-      energy_error = float(energy_fit.findtext("MCEstimate/SymmetricError"))
-      energy = util.nice_value(energy_value, energy_error)
-      amplitude_fit = fit_results.find("FitParameter1")
-      amplitude_value = float(amplitude_fit.findtext("MCEstimate/FullEstimate"))
-      amplitude_error = float(amplitude_fit.findtext("MCEstimate/SymmetricError"))
-      amplitude = util.nice_value(amplitude_value, amplitude_error)
-      gap = "---"
-      if fit_info.has_gap:
-        sqrt_gap_fit = fit_results.find("FitParameter2")
-        sqrt_gap_value = float(sqrt_gap_fit.findtext("MCEstimate/FullEstimate"))
-        gap_value = sqrt_gap_value**2
-        gap_error = 2.*abs(sqrt_gap_value)*float(sqrt_gap_fit.findtext("MCEstimate/SymmetricError"))
-        gap = util.nice_value(gap_value, gap_error)
+        eigenvalues.sort()
+        cov_cond = float(fit_xml.findtext("CovarianceMatrixConditionNumber"))
+        fit_results = fit_xml.find("BestFitResult")
+        chisq_dof = float(fit_results.findtext("ChiSquarePerDof"))
+        quality = float(fit_results.findtext("FitQuality"))
+        energy_fit = fit_results.find("FitParameter0")
+        energy_obs_str = energy_fit.findtext("MCObservable/Info")
+        pattern = r"^(?P<obsname>\S+) (?P<obsid>\d+) (?P<simple>s|n) (?P<complex_arg>re|im)$"
+        match = regex.match(pattern, energy_obs_str.strip())
+        if match.group('simple') != 'n' or match.group('complex_arg') != 're':
+          logging.error("Energies are supposed to be simple and real")
 
-      const = '---'
-      if fit_info.has_const:
-        const_fit_num = fit_info.num_params - 1
-        const_fit = fit_results.find(f"FitParameter{const_fit_num}")
-        const_value = float(const_fit.findtext("MCEstimate/FullEstimate"))
-        const_err = float(const_fit.findtext("MCEstimate/SymmetricError"))
-        const = util.nice_value(const_value, const_err)
+        energy_obs = sigmond.MCObsInfo(match.group('obsname'), int(match.group('obsid')))
+        fit_info = FitInfo.createFromObservable(energy_obs)
+        energy_value = float(energy_fit.findtext("MCEstimate/FullEstimate"))
+        energy_error = float(energy_fit.findtext("MCEstimate/SymmetricError"))
+        energy = util.nice_value(energy_value, energy_error)
+        amplitude_fit = fit_results.find("FitParameter1")
+        amplitude_value = float(amplitude_fit.findtext("MCEstimate/FullEstimate"))
+        amplitude_error = float(amplitude_fit.findtext("MCEstimate/SymmetricError"))
+        amplitude = util.nice_value(amplitude_value, amplitude_error)
+        gap = "---"
+        if fit_info.has_gap:
+          sqrt_gap_fit = fit_results.find("FitParameter2")
+          sqrt_gap_value = float(sqrt_gap_fit.findtext("MCEstimate/FullEstimate"))
+          gap_value = sqrt_gap_value**2
+          gap_error = 2.*abs(sqrt_gap_value)*float(sqrt_gap_fit.findtext("MCEstimate/SymmetricError"))
+          gap = util.nice_value(gap_value, gap_error)
 
-      fit_result = FitResult(chisq_dof, quality, energy, amplitude, gap, const, cov_cond)
+        const = '---'
+        if fit_info.has_const:
+          const_fit_num = fit_info.num_params - 1
+          const_fit = fit_results.find(f"FitParameter{const_fit_num}")
+          const_value = float(const_fit.findtext("MCEstimate/FullEstimate"))
+          const_err = float(const_fit.findtext("MCEstimate/SymmetricError"))
+          const = util.nice_value(const_value, const_err)
 
-      if fit_info in self.fits:
-        logging.warning(f"Found two identical fits in {self.logfile}, ignoring...")
-        continue
+        fit_result = FitResult(chisq_dof, quality, energy, amplitude, gap, const, cov_cond)
 
-      self.fits[fit_info] = fit_result
+        if fit_info in self.fits:
+          logging.warning(f"Found two identical fits in {self.logfile}, ignoring...")
+          continue
+
+        self.fits[fit_info] = fit_result
+
+      except AttributeError as err:
+        logging.warning(f"{err} in DoFit task {count} in {self.logfile}")
+
 
 class Level(NamedTuple):
   new: int

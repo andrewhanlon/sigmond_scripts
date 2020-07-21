@@ -303,14 +303,28 @@ class Spectrum(tasks.task.Task):
             tmin_info_list = list()
             for tmin_fit_info in tmin_info['fit_infos']:
               fit_model = sigmond_info.fit_info.FitModel(tmin_fit_info['model'])
+              ratio = tmin_fit_info.pop('ratio', False)
               tmin = tmin_fit_info['tmin_min']
               tmin_max = tmin_fit_info['tmin_max']
-              tmin_tmax = tmin_fit_info.get('tmax', tmax)
-              ratio = tmin_fit_info.pop('ratio', False)
-              fit_info = sigmond_info.fit_info.FitInfo(
-                  operator, fit_model, tmin, tmin_tmax, subtractvev, ratio, exclude_times, noise_cutoff,
-                  non_interacting_operators, tmin_max)
-              tmin_info_list.append(fit_info)
+              if 'tmaxes' in tmin_fit_info:
+                tmaxes = tmin_fit_info.get('tmaxes')
+                if isinstance(tmaxes, int):
+                  tmaxes = [int(tmaxes)]
+                else:
+                  tmaxes = list(map(int, tmaxes.split('-')))
+                  tmaxes = list(range(tmaxes[0], tmaxes[-1]+1))
+
+                for tmin_tmax in tmaxes:
+                  fit_info = sigmond_info.fit_info.FitInfo(
+                      operator, fit_model, tmin, tmin_tmax, subtractvev, ratio, exclude_times, noise_cutoff,
+                      non_interacting_operators, tmin_max)
+                  tmin_info_list.append(fit_info)
+              else:
+                tmin_tmax = tmin_fit_info.get('tmax', tmax)
+                fit_info = sigmond_info.fit_info.FitInfo(
+                    operator, fit_model, tmin, tmin_tmax, subtractvev, ratio, exclude_times, noise_cutoff,
+                    non_interacting_operators, tmin_max)
+                tmin_info_list.append(fit_info)
 
             tmin_infos[operator_set].append(tmin_info_list)
 
