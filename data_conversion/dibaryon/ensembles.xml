@@ -23,6 +23,14 @@
      </EnsembleInfo>
 
      <EnsembleInfo>
+        <Id>cls_N202</Id>
+        <NStreams>1</NStreams>
+        <NMeas>899</NMeas>
+        <NSpace>48</NSpace>
+        <NTime>128</NTime>
+     </EnsembleInfo>
+
+     <EnsembleInfo>
         <Id>cls_B450</Id>
         <NStreams>1</NStreams>
         <NMeas>1612</NMeas>

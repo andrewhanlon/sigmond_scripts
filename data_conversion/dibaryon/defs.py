@@ -10,6 +10,7 @@ ensembles = [
     Ensemble("U103", True, True, 128, ('r001','r002','r003',), 'r001-003', 20, 5, 0, 24),
     Ensemble("H200", True, True, 96, ('r000','r001'), 'r000-001', 20, 8, 0, 32),
     Ensemble("N300", True, True, 128, ('r001','r002'), 'r001-002', 32, 6, 0, 40),
+    Ensemble("N202", True, True, 128, ('r001',), 'r001', 68, 8, 0, 32),
     Ensemble("U102", False, True, 128, ('r001', 'r002',), 'r001-002', 20, 5, 0, 24),
     Ensemble("E1", True, False, 64, ('',), '', 30, 8, 0, 32),
     Ensemble("E5", True, False, 64, ('f', 'g',), 'fg', 30, 4, 0, 32),
@@ -21,6 +22,7 @@ backward_prop_skip = {
     'H101': [0],
     'H200': [0,1,2,3],
     'N300': [0,1,2],
+    'N202': [0],
     'U103': [0],
     'U102': [0],
     'E1':   [],
@@ -33,6 +35,7 @@ forward_prop_skip = {
     'H101': [3],
     'H200': [4,5,6,7],
     'N300': [3,4,5],
+    'N202': [7],
     'U103': [4],
     'U102': [4],
     'E1':   [],
@@ -45,6 +48,7 @@ pseudoscalar_backward_prop_skip = {
     'H101': [0,1],
     'H200': [0,1,2,3,4,5],
     'N300': [0,1,2,3],
+    'N202': [0,1,2],
     'U103': [0,1],
     'U102': [0,1],
     'E1':   [],
@@ -57,6 +61,7 @@ pseudoscalar_forward_prop_skip = {
     'H101': [2,3],
     'H200': [2,3,4,5,6,7],
     'N300': [2,3,4,5],
+    'N202': [5,6,7],
     'U103': [3,4],
     'U102': [3,4],
     'E1':   [],
@@ -71,6 +76,7 @@ pseudoscalar_modes = {
     'H200': 20,
     'U103': 20,
     'N300': 32,
+    'N202': 68,
     'U102': 20,
     'E1':   56,
     'E5':   60,
@@ -82,6 +88,7 @@ pseudoscalar_sources = {
     'H101': [24, 40, 55, 71],
     'H200': [0, 4, 8, 12, 16, 20, 24, 28],
     'N300': [0, 8, 16, 24, 32, 40],
+    'N202': [0, 6, 12, 18, 24, 30, 36, 42],
     'U103': [32, 48, 64, 79, 95],
     'U102': [32, 48, 64, 79, 95],
     'E1':   [0, 0, 0, 0, 0, 0, 0, 0],
@@ -94,6 +101,7 @@ pseudoscalar_names = {
     'H101': ['ps'],
     'H200': ['ps'],
     'N300': ['ps'],
+    'N202': ['ps'],
     'U103': ['ps'],
     'U102': ['pion', 'kaon', 'eta_s'],
     'E1':   ['ps'],
@@ -116,6 +124,9 @@ pseudoscalar_op_strs = {
     'N300': {
       'ps': "isotriplet S=0 PSQ=0 A1um pion 0",
     },
+    'N202': {
+      'ps': "isotriplet S=0 PSQ=0 A1um pion 0",
+    },
     'U103': {
       'ps': "isotriplet S=0 PSQ=0 A1um pion 0",
     },
@@ -135,6 +146,7 @@ pseudoscalar_op_strs = {
 tsrc_files = {
     'H200': 'tsrc_list_H200',
     'N300': 'tsrc_list_N300',
+    'N202': 'tsrc_list_N202',
 }
 
 decuplet_ensembles = [
@@ -144,6 +156,7 @@ decuplet_ensembles = [
     'H200',
     'U103',
     'N300',
+    'N202',
 ]
 
 baryon_strangeness = {
