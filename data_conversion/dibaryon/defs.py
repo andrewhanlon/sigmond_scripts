@@ -1,19 +1,20 @@
 from collections import namedtuple
 
-Ensemble = namedtuple('Ensemble', ['name', 'su3', 'open', 'Nt', 'replica', 'replica_str', 'modes', 'srcs', 't0', 'ts'])
+Ensemble = namedtuple('Ensemble', ['name', 'dir_name', 'su3', 'open', 'Nt', 'replica', 'replica_str', 'modes', 'srcs', 't0', 'ts'])
 Channel = namedtuple('Channel', ['P', 'irrep', 'isospin', 'strangeness', 'flavor'])
 
 ensembles = [
-    Ensemble("A653", True, False, 48, ('r000',), 'r000', 32, 4, 0, 24),
-    Ensemble("B450", True, False, 64, ('r000',), 'r000', 32, 4, 0, 32),
-    Ensemble("H101", True, True, 96, ('r000','r001',), 'r000-001', 48, 4, 0, 24),
-    Ensemble("U103", True, True, 128, ('r001','r002','r003',), 'r001-003', 20, 5, 0, 24),
-    Ensemble("H200", True, True, 96, ('r000','r001'), 'r000-001', 20, 8, 0, 32),
-    Ensemble("N300", True, True, 128, ('r001','r002'), 'r001-002', 32, 6, 0, 40),
-    Ensemble("N202", True, True, 128, ('r001',), 'r001', 68, 8, 0, 32),
-    Ensemble("U102", False, True, 128, ('r001', 'r002',), 'r001-002', 20, 5, 0, 24),
-    Ensemble("E1", True, False, 64, ('',), '', 30, 8, 0, 32),
-    Ensemble("E5", True, False, 64, ('f', 'g',), 'fg', 30, 4, 0, 32),
+    Ensemble("A653", "A653", True, False, 48, ('r000',), 'r000', 32, 4, 0, 24),
+    Ensemble("B450", "B450", True, False, 64, ('r000',), 'r000', 32, 4, 0, 32),
+    Ensemble("H101", "H101", True, True, 96, ('r000','r001',), 'r000-001', 48, 4, 0, 24),
+    Ensemble("U103", "U103", True, True, 128, ('r001','r002','r003',), 'r001-003', 20, 5, 0, 24),
+    Ensemble("U103_60modes", "U103", True, True, 128, ('r001','r002','r003',), 'r001-003', 60, 5, 0, 24),
+    Ensemble("H200", "H200", True, True, 96, ('r000','r001'), 'r000-001', 20, 8, 0, 32),
+    Ensemble("N300", "N300", True, True, 128, ('r001','r002'), 'r001-002', 32, 6, 0, 40),
+    Ensemble("N202", "N202", True, True, 128, ('r001',), 'r001', 68, 8, 0, 32),
+    Ensemble("U102", "U102", False, True, 128, ('r001', 'r002',), 'r001-002', 20, 5, 0, 24),
+    Ensemble("E1", "E1", True, False, 64, ('',), '', 30, 8, 0, 32),
+    Ensemble("E5", "E5_SU3", True, False, 64, ('f', 'g',), 'fg', 30, 4, 0, 32),
 ]
 
 backward_prop_skip = {
@@ -24,6 +25,7 @@ backward_prop_skip = {
     'N300': [0,1,2],
     'N202': [0,1],
     'U103': [0],
+    'U103_60modes': [0],
     'U102': [0],
     'E1':   [],
     'E5':   [],
@@ -37,6 +39,7 @@ forward_prop_skip = {
     'N300': [3,4,5],
     'N202': [6,7],
     'U103': [4],
+    'U103_60modes': [4],
     'U102': [4],
     'E1':   [],
     'E5':   [],
@@ -50,6 +53,7 @@ pseudoscalar_backward_prop_skip = {
     'N300': [0,1,2,3],
     'N202': [0,1,2],
     'U103': [0,1],
+    'U103_60modes': [0,1],
     'U102': [0,1],
     'E1':   [],
     'E5':   [],
@@ -63,6 +67,7 @@ pseudoscalar_forward_prop_skip = {
     'N300': [2,3,4,5],
     'N202': [5,6,7],
     'U103': [3,4],
+    'U103_60modes': [3,4],
     'U102': [3,4],
     'E1':   [],
     'E5':   [],
@@ -75,6 +80,7 @@ pseudoscalar_modes = {
     'H101': 144,
     'H200': 20,
     'U103': 20,
+    'U103_60modes': 60,
     'N300': 32,
     'N202': 68,
     'U102': 20,
@@ -90,6 +96,7 @@ pseudoscalar_sources = {
     'N300': [0, 8, 16, 24, 32, 40],
     'N202': [0, 6, 12, 18, 24, 30, 36, 42],
     'U103': [32, 48, 64, 79, 95],
+    'U103_60modes': [32, 48, 64, 79, 95],
     'U102': [32, 48, 64, 79, 95],
     'E1':   [0, 0, 0, 0, 0, 0, 0, 0],
     'E5':   [0, 0, 0, 0],
@@ -103,6 +110,7 @@ pseudoscalar_names = {
     'N300': ['ps'],
     'N202': ['ps'],
     'U103': ['ps'],
+    'U103_60modes': ['ps'],
     'U102': ['pion', 'kaon', 'eta_s'],
     'E1':   ['ps'],
     'E5':   ['pion'],
@@ -128,6 +136,9 @@ pseudoscalar_op_strs = {
       'ps': "isotriplet S=0 PSQ=0 A1um pion 0",
     },
     'U103': {
+      'ps': "isotriplet S=0 PSQ=0 A1um pion 0",
+    },
+    'U103_60modes': {
       'ps': "isotriplet S=0 PSQ=0 A1um pion 0",
     },
     'U102': {

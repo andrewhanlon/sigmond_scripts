@@ -40,9 +40,6 @@ def main():
       corrs_to_extend = list()
       op_lists = list()
       for replica_i, replica in enumerate(ensemble.replica):
-        if 'r005' in replica:
-          continue
-
         replica_ensemble_name = f"{ensemble_name}_{replica}"
         corrs_to_average = list()
         for tsrc_i, tsrc in enumerate(ensemble.sources):
@@ -90,6 +87,7 @@ def get_data(correlators, ensemble_name, ensemble_Nt, tsrc):
   sampling_info = sigmond.MCSamplingInfo()
   ensemble_info = sigmond.MCEnsembleInfo(ensemble_name, 'ensembles.xml')
   bins_info = sigmond.MCBinsInfo(ensemble_info)
+  bins_info.addOmissions(defs.omissions[ensemble_name])
   obs_get_handler = sigmond.MCObsGetHandler(mcobs_xml_handler, bins_info, sampling_info)
   obs_handler = sigmond.MCObsHandler(obs_get_handler, False)
 
@@ -149,10 +147,10 @@ def get_data(correlators, ensemble_name, ensemble_Nt, tsrc):
         data = data_re + 1j*data_im
 
         if change_sign:
-          for config in range(bins_info.getNumberOfBins()):
+          for bin_i, config in enumerate(defs.config_indices[ensemble_name]):
             T = tsep + tsrc + defs.source_lists[ensemble_name][config]
             if T >= ensemble_Nt:
-              data[config] = -data[config]
+              data[bin_i] = -data[bin_i]
 
         if single_correlator:
           corr_data[:,tsep] = data
@@ -204,6 +202,7 @@ def get_corr_files(ensemble_name, search_dir):
   ensemble_info = sigmond.MCEnsembleInfo(ensemble_name, 'ensembles.xml')
   sampling_info = sigmond.MCSamplingInfo()
   bins_info = sigmond.MCBinsInfo(ensemble_info)
+  bins_info.addOmissions(defs.omissions[ensemble_name])
   obs_get_handler = sigmond.MCObsGetHandler(mcobs_xml_handler, bins_info, sampling_info)
   obs_handler = sigmond.MCObsHandler(obs_get_handler, False)
 

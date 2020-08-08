@@ -11,28 +11,27 @@ import sigmond
 
 import defs
 
-base_data_dir = "/media/ext1/research/projects/D200_project/analysis/"
 rel_rot_data_dir = ".sigmond/data/rotated_correlators"
+
+ensembles = ["cls21_c103"]
 
 BINS = True
 
 def main():
-  for ensemble in defs.ensembles:
+  for ensemble in ensembles:
     print(f"starting for ensemble {ensemble}")
-    for channel in os.listdir(base_data_dir):
-      rot_data_dir = os.path.join(base_data_dir, channel, rel_rot_data_dir)
-      if not os.path.isdir(rot_data_dir):
-        continue
+    rot_data_dir = os.path.join(defs.input_dirs[ensemble], rel_rot_data_dir)
+    if not os.path.isdir(rot_data_dir):
+      continue
 
-      print(f"Found rotated data in {channel}")
-      rot_data = find_data(ensemble, rot_data_dir)
-      write_to_file(rot_data, ensemble, channel)
-      print("done")
+    rot_data = find_data(ensemble, rot_data_dir)
+    write_to_file(rot_data, ensemble)
+    print("done")
 
 
-def write_to_file(the_data, ensemble_name, the_channel):
+def write_to_file(the_data, ensemble_name):
   os.makedirs(defs.output_dir, exist_ok=True)
-  filename = os.path.join(defs.output_dir, f"rotated_{ensemble_name}_{the_channel}.hdf5")
+  filename = os.path.join(defs.output_dir, f"rotated_{ensemble_name}.hdf5")
   h5_file = h5py.File(filename, 'w')
 
   for channel, data in the_data.items():

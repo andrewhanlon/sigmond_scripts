@@ -13,20 +13,16 @@ class Channel(NamedTuple):
 
 output_dir = "data"
 
-phases = dict()
+input_dirs = {
+    "cls21_s64_t128_D200": "/media/ext1/research/projects/D200_project/analysis/",
+    "cls21_c103": "/media/ext1/research/projects/C103_project/analysis/",
+}
 
-ensembles = ["cls21_s64_t128_D200"]
+phases = dict()
 
 omissions = {
     "cls21_s64_t128_D200": set(range(529, 2001, 1)),
-}
-
-configs = {
-    "cls21_s64_t128_D200": list(range(1, 530, 1)),
-}
-
-spatial_extent = {
-    "cls21_s64_t128_D200": 64,
+    "cls21_c103": set(),
 }
 
 name_map = {

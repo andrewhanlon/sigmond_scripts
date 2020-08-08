@@ -14,7 +14,7 @@ FORCE_HERM = True
 base_data_dir = "/media/ext2/research/data/raw_dibaryon/"
 
 #ensembles_to_do = ['U102', 'U103', 'B450', 'H101', 'H200', 'A653', 'N300', 'N202', 'E1', 'E5']
-ensembles_to_do = ['N202']
+ensembles_to_do = ['U103_60modes']
 
 def main():
   for ensemble in defs.ensembles:
@@ -48,7 +48,7 @@ def convert_dibaryons(ensemble, channel, ops):
   if not ops:
     return
 
-  data_dir = os.path.join(base_data_dir, f"analysis_{ensemble.name}")
+  data_dir = os.path.join(base_data_dir, f"analysis_{ensemble.dir_name}")
   data_str = 'c2_dibaryon'
   if ensemble.su3:
     data_str += f"/{channel.P}/{channel.irrep}/{channel.flavor}"
@@ -60,9 +60,9 @@ def convert_dibaryons(ensemble, channel, ops):
   raw_datas = list()
   for replica in ensemble.replica:
     if ensemble.su3:
-      data_filename = f"{ensemble.name}{replica}_{ensemble.modes}modes.hdf5"
+      data_filename = f"{ensemble.dir_name}{replica}_{ensemble.modes}modes.hdf5"
     else:
-      data_filename = f"{ensemble.name}{replica}_{ensemble.modes}modes_{channel.strangeness}.hdf5"
+      data_filename = f"{ensemble.dir_name}{replica}_{ensemble.modes}modes_{channel.strangeness}.hdf5"
     data_file = os.path.join(data_dir, data_filename)
     f_handler = h5py.File(data_file, 'r')
     data_handlers.append(f_handler)
@@ -136,11 +136,11 @@ def convert_dibaryons(ensemble, channel, ops):
 
 
 def convert_decuplets(ensemble):
-  data_dir = os.path.join(base_data_dir, "analysis_{}".format(ensemble.name))
+  data_dir = os.path.join(base_data_dir, f"analysis_{ensemble.dir_name}")
   data_handlers = list()
   raw_datas = list()
   for replica in ensemble.replica:
-    data_filename = "{}{}_{}modes_decuplet.hdf5".format(ensemble.name, replica, ensemble.modes)
+    data_filename = "{}{}_{}modes_decuplet.hdf5".format(ensemble.dir_name, replica, ensemble.modes)
     data_file = os.path.join(data_dir, data_filename)
     f_handler = h5py.File(data_file, 'r')
     data_handlers.append(f_handler)
@@ -211,11 +211,11 @@ def convert_decuplets(ensemble):
 
 
 def convert_baryons(ensemble):
-  data_dir = os.path.join(base_data_dir, "analysis_{}".format(ensemble.name))
+  data_dir = os.path.join(base_data_dir, f"analysis_{ensemble.dir_name}")
   data_handlers = list()
   raw_datas = list()
   for replica in ensemble.replica:
-    data_filename = "{}{}_{}modes_baryon.hdf5".format(ensemble.name, replica, ensemble.modes)
+    data_filename = "{}{}_{}modes_baryon.hdf5".format(ensemble.dir_name, replica, ensemble.modes)
     data_file = os.path.join(data_dir, data_filename)
     f_handler = h5py.File(data_file, 'r')
     data_handlers.append(f_handler)
@@ -286,7 +286,7 @@ def convert_baryons(ensemble):
 
 
 def convert_pseudoscalar(ensemble):
-  data_dir = os.path.join(base_data_dir, "analysis_{}".format(ensemble.name))
+  data_dir = os.path.join(base_data_dir, f"analysis_{ensemble.dir_name}")
   data_handlers = list()
   tsrc_list = dict()
   raw_datas = dict()
@@ -294,7 +294,7 @@ def convert_pseudoscalar(ensemble):
     raw_datas[ps_name] = list()
 
   for rep_num, replica in enumerate(ensemble.replica):
-    data_filename = "{}{}_{}modes_pseudoscalar.hdf5".format(ensemble.name, replica, defs.pseudoscalar_modes[ensemble.name])
+    data_filename = "{}{}_{}modes_pseudoscalar.hdf5".format(ensemble.dir_name, replica, defs.pseudoscalar_modes[ensemble.name])
     data_file = os.path.join(data_dir, data_filename)
     f_handler = h5py.File(data_file, 'r')
     data_handlers.append(f_handler)
