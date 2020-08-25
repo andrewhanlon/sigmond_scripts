@@ -277,7 +277,7 @@ def _find_data_files(data_dir):
       try:
         file_type = sigmond.getFileID(full_filename)
       except ValueError:
-        logging.warning("Invalid file '{full_filename}'")
+        logging.warning(f"Invalid file '{full_filename}'")
         continue
 
       if file_type == sigmond.FileType.Correlator:
