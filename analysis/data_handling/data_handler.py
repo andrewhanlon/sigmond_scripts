@@ -243,7 +243,7 @@ class DataHandler(metaclass=util.Singleton):
     elif filetype is sigmond.FileType.Samplings:
       sigmond_handler = sigmond.SamplingsGetHandler(self.bins_info, self.sampling_info, {filename})
     else:
-      logging.error("Invalid filetype {filetype} passed to DataHandler::_getSigmondData")
+      logging.error(f"Invalid filetype {filetype} passed to DataHandler::_getSigmondData")
 
     fileinfo = FileInfo(filename, filetype)
 
