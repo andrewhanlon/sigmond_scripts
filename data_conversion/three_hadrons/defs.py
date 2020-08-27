@@ -9,14 +9,23 @@ class Ensemble(NamedTuple):
   sources: list
   flavor_channels: list
 
+'''
 ensembles = [
-    Ensemble("cls21_n203", ['r000', 'r001'], [32, 52], ['kaons']),
+    Ensemble("cls21_n203", ['r000', 'r001'], [32, 52], ['kaons','pions']),
+    Ensemble("cls21_n200", ['r000', 'r001'], [32, 52], ['kaons','pions']),
+]
+'''
+ensembles = [
+    Ensemble("cls21_n200", ['r000', 'r001'], [32, 52], ['pions']),
 ]
 
 omissions = {
     'cls21_n203_r000': set(range(1, 756, 2)),
     'cls21_n203_r001': set(range(0, 787, 2)),
     'cls21_n203': set(range(1, 756, 2)).union(set(range(756, 1544, 2))),
+    'cls21_n200_r000': set(),
+    'cls21_n200_r001': set(),
+    'cls21_n200': set(),
 }
 
 class Channel(NamedTuple):

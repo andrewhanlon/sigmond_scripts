@@ -71,6 +71,14 @@
      </EnsembleInfo>
 
      <EnsembleInfo>
+        <Id>cls_U103_4</Id>
+        <NStreams>3</NStreams>
+        <NMeas>1432</NMeas>
+        <NSpace>24</NSpace>
+        <NTime>128</NTime>
+     </EnsembleInfo>
+
+     <EnsembleInfo>
         <Id>cls_U102</Id>
         <NStreams>2</NStreams>
         <NMeas>4861</NMeas>

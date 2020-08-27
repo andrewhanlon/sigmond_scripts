@@ -14,7 +14,7 @@ FORCE_HERM = True
 base_data_dir = "/media/ext2/research/data/raw_dibaryon/"
 
 #ensembles_to_do = ['U102', 'U103', 'B450', 'H101', 'H200', 'A653', 'N300', 'N202', 'E1', 'E5']
-ensembles_to_do = ['U103_60modes']
+ensembles_to_do = ['U103']
 
 def main():
   for ensemble in defs.ensembles:

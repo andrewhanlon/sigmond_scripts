@@ -30,6 +30,30 @@
         <NTime>128</NTime>
      </EnsembleInfo>
 
+     <EnsembleInfo>
+        <Id>cls21_n200_r000</Id>
+        <NStreams>1</NStreams>
+        <NMeas>856</NMeas>
+        <NSpace>48</NSpace>
+        <NTime>128</NTime>
+     </EnsembleInfo>
+
+     <EnsembleInfo>
+        <Id>cls21_n200_r001</Id>
+        <NStreams>1</NStreams>
+        <NMeas>856</NMeas>
+        <NSpace>48</NSpace>
+        <NTime>128</NTime>
+     </EnsembleInfo>
+
+     <EnsembleInfo>
+        <Id>cls21_n200</Id>
+        <NStreams>2</NStreams>
+        <NMeas>1712</NMeas>
+        <NSpace>48</NSpace>
+        <NTime>128</NTime>
+     </EnsembleInfo>
+
   </Infos>
 
 </KnownEnsembles>
