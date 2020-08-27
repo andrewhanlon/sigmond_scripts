@@ -243,7 +243,7 @@ class DataHandler(metaclass=util.Singleton):
     elif filetype is sigmond.FileType.Samplings:
       sigmond_handler = sigmond.SamplingsGetHandler(self.bins_info, self.sampling_info, {filename})
     else:
-      logging.error("Invalid filetype {filetype} passed to DataHandler::_getSigmondData")
+      logging.error(f"Invalid filetype {filetype} passed to DataHandler::_getSigmondData")
 
     fileinfo = FileInfo(filename, filetype)
 
@@ -277,7 +277,7 @@ def _find_data_files(data_dir):
       try:
         file_type = sigmond.getFileID(full_filename)
       except ValueError:
-        logging.warning("Invalid file '{full_filename}'")
+        logging.warning(f"Invalid file '{full_filename}'")
         continue
 
       if file_type == sigmond.FileType.Correlator:
