@@ -133,6 +133,11 @@ class Spectrum(tasks.task.Task):
               model: 1-exp
               tmin: 12
               tmax: 30
+              tmin_info:
+                - model: 1-exp
+                  tmin_min: 3
+                  tmin_max: 10
+                  extra_tmaxes: [18, 19]
             - operator: isotriplet S=0 PSQ=1 A2m P 0
               model: 2-exp
               tmin: 5
@@ -185,7 +190,7 @@ class Spectrum(tasks.task.Task):
               - model: 1-exp
                 tmin_min: 3
                 tmin_max: 10
-                extra_tmaxes: 18, 19
+                extra_tmaxes: [18, 19]
 
         - name: rotated_op_basis
           pivot_info:
@@ -251,11 +256,29 @@ class Spectrum(tasks.task.Task):
             fit_model = sigmond_info.fit_info.FitModel(tmin_fit_info['model'])
             tmin = tmin_fit_info['tmin_min']
             tmin_max = tmin_fit_info['tmin_max']
-            tmin_tmax = tmin_fit_info.get('tmax', fit_info.tmax)
-            tmin_fit_info = sigmond_info.fit_info.FitInfo(
-                operator, fit_model, tmin, tmin_tmax, subtractvev, False,
-                fit_info.exclude_times, fit_info.noise_cutoff, None, tmin_max)
-            tmin_infos[self.sh_name][scattering_particle].append(tmin_fit_info)
+
+            if 'extra_tmaxes' in tmin_fit_info:
+              tmaxes = tmin_fit_info.pop('extra_tmaxes')
+              if isinstance(tmaxes, int):
+                tmaxes = [int(tmaxes)]
+              elif '-' in tmaxes:
+                tmaxes = list(map(int, tmaxes.split('-')))
+                tmaxes = list(range(tmaxes[0], tmaxes[-1]+1))
+              elif isinstance(tmaxes, list):
+                tmaxes = list(map(int, tmaxes))
+              else:
+                logging.error("Invalid 'extra_tmaxes' parameter")
+
+              tmaxes.append(fit_info.tmax)
+
+            else:
+              tmaxes = [fit_info.tmax]
+
+            for tmin_tmax in sorted(tmaxes):
+              tmin_fit_info = sigmond_info.fit_info.FitInfo(
+                  operator, fit_model, tmin, tmin_tmax, subtractvev, False,
+                  fit_info.exclude_times, fit_info.noise_cutoff, None, tmin_max)
+              tmin_infos[self.sh_name][scattering_particle].append(tmin_fit_info)
 
 
       except KeyError as err:
