@@ -28,7 +28,6 @@ def main():
     for replica_i, replica in enumerate(ensemble.replica):
       replica_ensemble_name = f"{ensemble_name}_{replica}"
       for tsrc_i, tsrc in enumerate(ensemble.sources):
-        #data_dir = os.path.join(ensemble_name, replica, f"src{tsrc_i}")
         data_dir = os.path.join(replica, f"src{tsrc_i}")
         search_dir = os.path.join(defs.base_data_dir, data_dir)
         corr_files[tsrc_i][replica_i] = get_corr_files(replica_ensemble_name, search_dir)
@@ -55,7 +54,7 @@ def main():
           print("not all op lists equal")
           exit()
         
-        hdf5_file = get_hdf5_file(channel, replica_ensemble_name)
+        hdf5_file = get_hdf5_file(replica_ensemble_name)
         write_data(averaged_corr_data, channel, op_lists[0], hdf5_file)
 
 
@@ -119,11 +118,7 @@ def get_data(correlators, ensemble_name, ensemble_Nt, tsrc):
 
 
   for snk_i, snk_op in enumerate(operators):
-    bl_op = snk_op.getBasicLapH()
-    # TODO: replace with isFermionic()
-    change_sign = bl_op.isBaryon() or bl_op.isMesonBaryon()
-
-    for src_i, src_op in enumerate(operators[snk_i:], start=snk_i):
+    for src_i, src_op in enumerate(operators):
 
       correlator = sigmond.CorrelatorInfo(snk_op, src_op)
       correlator_opposite = sigmond.CorrelatorInfo(src_op, snk_op)
@@ -141,13 +136,13 @@ def get_data(correlators, ensemble_name, ensemble_Nt, tsrc):
           data = np.array(obs_handler.getBins(correlator_time_re_obsinfo).array())
         elif has_im:
           data = 1j*np.array(obs_handler.getBins(correlator_time_im_obsinfo).array())
+        else:
+          continue
 
         if single_correlator:
           corr_data[:,tsep] = data
         else:
           corr_data[:,snk_i,src_i,tsep] = data
-          if snk_i != src_i:
-            corr_data[:,src_i,snk_i,tsep] = np.conj(data)
 
   operators = [op.op_str() for op in operators]
   return corr_data, operators
@@ -212,11 +207,11 @@ def get_corr_files(ensemble_name, search_dir):
   return corr_files
 
 
-def get_hdf5_file(channel, ensemble_name):
+def get_hdf5_file(ensemble_name):
   output_dir = os.path.join(defs.output_dir, ensemble_name)
   os.makedirs(output_dir, exist_ok=True)
 
-  hdf5_file = os.path.join(output_dir, f"{channel.iso_strange_str()}.hdf5")
+  hdf5_file = os.path.join(output_dir, f"{ensemble_name}.hdf5")
   return hdf5_file
 
 def get_channel(correlator):
@@ -225,6 +220,13 @@ def get_channel(correlator):
   irrep = op.getLGIrrep()
   irrep_row = op.getLGIrrepRow()
   isospin = op.getIsospin()
+  if isospin=="pion":
+    isospin="triplet"
+
+  if isospin!="triplet":
+    print("shit")
+    exit()
+
   strangeness = op.getStrangeness()
   channel = defs.Channel(P, irrep, irrep_row, isospin, strangeness)
   return channel
