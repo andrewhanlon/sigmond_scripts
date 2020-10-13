@@ -1,6 +1,6 @@
 from typing import NamedTuple
 
-base_data_dir = "/media/ext2/research/data/raw_three_hadrons/"
+base_data_dir = "/latticeQCD/raid0/ahanlon/data/raw_three_hadrons/"
 output_dir = "data"
 
 class Ensemble(NamedTuple):
@@ -13,10 +13,11 @@ class Ensemble(NamedTuple):
 ensembles = [
     Ensemble("cls21_n203", ['r000', 'r001'], [32, 52], ['kaons','pions']),
     Ensemble("cls21_n200", ['r000', 'r001'], [32, 52], ['kaons','pions']),
+    Ensemble("cls21_nd00", ['r000'], [35], ['kaons','pions']),
 ]
 '''
 ensembles = [
-    Ensemble("cls21_n200", ['r000', 'r001'], [32, 52], ['pions']),
+    Ensemble("cls21_d200", ['r000'], [35], ['kaons','pions']),
 ]
 
 omissions = {
@@ -26,6 +27,8 @@ omissions = {
     'cls21_n200_r000': set(),
     'cls21_n200_r001': set(),
     'cls21_n200': set(),
+    'cls21_d200_r000': set([2000]),
+    'cls21_d200': set([2000]),
 }
 
 class Channel(NamedTuple):
