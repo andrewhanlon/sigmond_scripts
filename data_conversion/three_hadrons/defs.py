@@ -13,7 +13,7 @@ class Ensemble(NamedTuple):
 ensembles = [
     Ensemble("cls21_n203", ['r000', 'r001'], [32, 52], ['kaons','pions']),
     Ensemble("cls21_n200", ['r000', 'r001'], [32, 52], ['kaons','pions']),
-    Ensemble("cls21_nd00", ['r000'], [35], ['kaons','pions']),
+    Ensemble("cls21_d200", ['r000'], [35], ['kaons','pions']),
 ]
 '''
 ensembles = [
