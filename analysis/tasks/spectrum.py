@@ -326,11 +326,12 @@ class Spectrum(tasks.task.Task):
             tmin_info_list = list()
             for tmin_fit_info in tmin_info['fit_infos']:
               fit_model = sigmond_info.fit_info.FitModel(tmin_fit_info['model'])
-              ratio = tmin_fit_info.pop('ratio', False)
+              ratio = tmin_fit_info.get('ratio', False)
+              ratio = tmin_fit_info['ratio']
               tmin = tmin_fit_info['tmin_min']
               tmin_max = tmin_fit_info['tmin_max']
               if 'extra_tmaxes' in tmin_fit_info:
-                tmaxes = tmin_fit_info.pop('extra_tmaxes')
+                tmaxes = tmin_fit_info.get('extra_tmaxes')
                 if isinstance(tmaxes, int):
                   tmaxes = [int(tmaxes)]
                 elif '-' in tmaxes:
