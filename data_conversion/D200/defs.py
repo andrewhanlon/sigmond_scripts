@@ -27,11 +27,11 @@ phases = dict()
 ensembles = ["cls21_s64_t128_D200"]
 
 omissions = {
-    "cls21_s64_t128_D200": set(range(529, 2001, 1)),
+    "cls21_s64_t128_D200": set(list(range(0, 1000, 1)) + [1999, 2000]),
 }
 
 configs = {
-    "cls21_s64_t128_D200": list(range(1, 530, 1)),
+    "cls21_s64_t128_D200": list(range(1001, 2000, 1)),
 }
 
 spatial_extent = {

@@ -13,10 +13,10 @@ import defs
 import excluded_ops
 import missing_sh_ops
 
-base_data_dir = "/media/ext1/research/projects/D200_project/data/correlators/"
+base_data_dir = "/media/ext2/research/data/D200/D200/"
 
-FORCE_HERM = True
-AVERAGE_DATA = True
+FORCE_HERM = False
+AVERAGE_DATA = False
 EXCLUDE_OPERATORS = True
 
 def main():
@@ -129,7 +129,10 @@ def find_data(ensemble_name, search_dir):
       base, ext = os.path.splitext(filename)
       full_base = os.path.join(root, base)
 
-      suffix = int(ext[1:])
+      try:
+        suffix = int(ext[1:])
+      except ValueError:
+        continue
 
       if full_base in file_list_infos:
         if suffix < file_list_infos[full_base][0]:
