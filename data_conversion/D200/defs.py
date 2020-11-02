@@ -20,7 +20,7 @@ class EquivalentFrame(NamedTuple):
   def __repr__(self):
     return f"P{''.join(list(map(str, self.mom)))}_{self.row}".replace('-', 'm')
 
-output_dir = "data"
+output_dir = "/latticeQCD/raid0/ahanlon/share/D200/data/"
 
 phases = dict()
 
