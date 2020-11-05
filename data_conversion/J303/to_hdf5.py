@@ -28,7 +28,7 @@ def main():
     for replica_i, replica in enumerate(ensemble.replica):
       replica_ensemble_name = f"{ensemble_name}_{replica}"
       for tsrc_i, tsrc in enumerate(ensemble.sources):
-        data_dir = os.path.join(replica, f"src{tsrc_i}")
+        data_dir = os.path.join(replica, f"src{tsrc}")
         search_dir = os.path.join(defs.base_data_dir, data_dir)
         corr_files[tsrc_i][replica_i] = get_corr_files(replica_ensemble_name, search_dir)
 
@@ -40,6 +40,7 @@ def main():
       op_lists = list()
       for replica_i, replica in enumerate(ensemble.replica):
         replica_ensemble_name = f"{ensemble_name}_{replica}"
+        '''
         corrs_to_average = list()
         for tsrc_i, tsrc in enumerate(ensemble.sources):
           correlators = corr_files[tsrc_i][replica_i][channel]
@@ -56,6 +57,13 @@ def main():
         
         hdf5_file = get_hdf5_file(replica_ensemble_name)
         write_data(averaged_corr_data, channel, op_lists[0], hdf5_file)
+        '''
+        for tsrc_i, tsrc in enumerate(ensemble.sources):
+          correlators = corr_files[tsrc_i][replica_i][channel]
+          correlator_data, op_list = get_data(correlators, replica_ensemble_name, ensemble.Nt, tsrc)
+
+          hdf5_file = get_hdf5_file(replica_ensemble_name, tsrc)
+          write_data(correlator_data, channel, op_list, hdf5_file)
 
 
 def write_data(data, channel, op_list, hdf5_file):
@@ -207,11 +215,11 @@ def get_corr_files(ensemble_name, search_dir):
   return corr_files
 
 
-def get_hdf5_file(ensemble_name):
+def get_hdf5_file(ensemble_name, tsrc):
   output_dir = os.path.join(defs.output_dir, ensemble_name)
   os.makedirs(output_dir, exist_ok=True)
 
-  hdf5_file = os.path.join(output_dir, f"{ensemble_name}.hdf5")
+  hdf5_file = os.path.join(output_dir, f"{ensemble_name}_t0{tsrc}.hdf5")
   return hdf5_file
 
 def get_channel(correlator):

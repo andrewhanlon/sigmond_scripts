@@ -1,6 +1,6 @@
 from typing import NamedTuple
 
-base_data_dir = "/latticeQCD/raid6/ahanlon/data_J303/"
+base_data_dir = "/media/ext2/research/data/J303/"
 output_dir = "data"
 
 class Ensemble(NamedTuple):
@@ -10,7 +10,7 @@ class Ensemble(NamedTuple):
   sources: list
 
 ensembles = [
-    Ensemble("cls21_j303", 192, ['r003'], [48, 74]),
+    Ensemble("cls21_j303", 192, ['r003'], [48, 74, 118, 144]),
 ]
 
 config_indices = {
@@ -18,7 +18,7 @@ config_indices = {
 }
 
 omissions = {
-    "cls21_j303_r003": set(list(range(1, 8, 2)) + [8] + list(range(9, 80, 2))),
+    "cls21_j303_r003": set(list(range(1, 8, 2)) + [8] + list(range(9, 48, 2))),
 }
 
 class Channel(NamedTuple):
