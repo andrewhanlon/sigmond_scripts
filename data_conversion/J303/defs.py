@@ -13,12 +13,8 @@ ensembles = [
     Ensemble("cls21_j303", 192, ['r003'], [48, 74, 118, 144]),
 ]
 
-config_indices = {
-    "cls21_j303_r003": list(range(1, 9, 2)) + list(range(11, 82, 2)),
-}
-
 omissions = {
-    "cls21_j303_r003": set(list(range(1, 8, 2)) + [8] + list(range(9, 48, 2))),
+    "cls21_j303_r003": set(list(range(1, 200, 2))),
 }
 
 class Channel(NamedTuple):
