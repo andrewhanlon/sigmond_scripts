@@ -144,7 +144,7 @@ class RotationLog(SigmondLog):
 
   @property
   def number_levels(self):
-    return len(self.analyze_matrix_xml.find("GMatrixRetainedEigenvalues").getchildren())
+    return len(list(self.analyze_matrix_xml.find("GMatrixRetainedEigenvalues")))
 
 
 class FitResult(NamedTuple):
@@ -168,7 +168,7 @@ class FitLog(SigmondLog):
 
       try:
         eigenvalues = list()
-        for eigenvalue in fit_xml.find("CovarianceMatrixEigenvalues").getchildren():
+        for eigenvalue in fit_xml.find("CovarianceMatrixEigenvalues"):
           eigenvalues.append(float(eigenvalue.text))
 
         eigenvalues.sort()
