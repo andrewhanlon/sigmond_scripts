@@ -19,9 +19,17 @@
      </EnsembleInfo>
 
      <EnsembleInfo>
+        <Id>cls21_c103_r007</Id>
+        <NStreams>1</NStreams>
+        <NMeas>10</NMeas>
+        <NSpace>48</NSpace>
+        <NTime>96</NTime>
+     </EnsembleInfo>
+
+     <EnsembleInfo>
         <Id>cls21_c103</Id>
-        <NStreams>2</NStreams>
-        <NMeas>802</NMeas>
+        <NStreams>1</NStreams>
+        <NMeas>10</NMeas>
         <NSpace>48</NSpace>
         <NTime>96</NTime>
      </EnsembleInfo>

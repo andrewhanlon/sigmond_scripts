@@ -15,32 +15,54 @@ COMPLEX_ARGS = [sigmond.ComplexArg.RealPart, sigmond.ComplexArg.ImaginaryPart]
 
 MAX_CORRS = 50
 
+SOURCE_MOD = 12
+
+parity_name = {
+    True: 'fwd',
+    False: 'bwd',
+}
+
 def main():
   for ensemble in defs.ensembles:
     ensemble_name = ensemble.name
 
-    corr_files = [[0 for replica in ensemble.replica] for tsrc in ensemble.sources]
-    for replica_i, replica in enumerate(ensemble.replica):
+    corr_files = dict()
+    correlators = list()
+    for replica in ensemble.replica:
       replica_ensemble_name = f"{ensemble_name}_{replica}"
-      for tsrc_i, tsrc in enumerate(ensemble.sources):
-        #data_dir = os.path.join(ensemble_name, replica, f"src{tsrc_i}")
-        data_dir = os.path.join(replica, f"src{tsrc_i}")
+      corr_files[replica] = dict()
+      for source in ensemble.sources:
+        data_dir = os.path.join(replica, f"src{source[0]}", parity_name[source[1]])
         search_dir = os.path.join(defs.base_data_dir, data_dir)
-        corr_files[tsrc_i][replica_i] = get_corr_files(replica_ensemble_name, search_dir)
+        corr_files[replica][source] = get_corr_files(replica_ensemble_name, search_dir)
+        correlators.append(corr_files[replica][source].keys())
 
-    # TODO: check all elements of correlators have same keys
-    correlators = corr_files[0][0].keys()
+    # TODO - check that all elements of correlators are identical
+    all_equal = all(corrs==correlators[0] for corrs in correlators)
+    if not all_equal:
+      print("not all equal\n\n")
+      for corrs_num, corrs in enumerate(correlators):
+        print(f"corrs num {corrs_num}")
+        print("--------------------")
+        for corr in sorted(corrs):
+          print(f"\t{corr}")
+
+        print()
+
+      exit()
+
+    correlators = correlators[0]
 
     data_to_write = dict()
 
     for corr_num, correlator in enumerate(tqdm.tqdm(correlators), 1):
       corrs_to_extend = list()
-      for replica_i, replica in enumerate(ensemble.replica):
+      for replica in ensemble.replica:
         replica_ensemble_name = f"{ensemble_name}_{replica}"
         corrs_to_average = list()
-        for tsrc_i, tsrc in enumerate(ensemble.sources):
-          data_files = corr_files[tsrc_i][replica_i][correlator]
-          correlator_data = get_data(correlator, data_files, replica_ensemble_name, ensemble.Nt, tsrc)
+        for source in ensemble.sources:
+          data_files = corr_files[replica][source][correlator]
+          correlator_data = get_data(correlator, data_files, replica_ensemble_name, ensemble.Nt, source[0], source[1])
           corrs_to_average.append(correlator_data)
 
         averaged_corr_data = average_data(corrs_to_average)
@@ -119,7 +141,10 @@ def average_data(data):
   return averaged_data
 
 
-def get_data(correlator, data_files, ensemble_name, ensemble_Nt, tsrc):
+def get_data(correlator, data_files, ensemble_name, ensemble_Nt, tsrc, forward):
+  if not forward:
+    correlator.setBackwards()
+
   mcobs_xml = ET.Element("MCObservables")
   corr_data_xml = ET.SubElement(mcobs_xml, "BLCorrelatorData")
 
@@ -191,14 +216,27 @@ def get_data(correlator, data_files, ensemble_name, ensemble_Nt, tsrc):
           data = 0.5*(data - data_opp)
 
       if change_sign:
+        if not forward:
+          data = -data
+
         for config in range(bins_info.getNumberOfBins()):
-          T = tsep + tsrc + defs.source_lists[ensemble_name][config]
-          if T >= ensemble_Nt:
+          if forward:
+            T = tsep + tsrc + defs.source_lists[ensemble_name][config] % SOURCE_MOD
+          else:
+            T = -tsep + tsrc + defs.source_lists[ensemble_name][config] % SOURCE_MOD
+
+          if T >= ensemble_Nt or T < 0:
             data[config] = -data[config]
 
       corr_time_info_herm.resetTimeSeparation(tsep)
+      if not forward:
+        corr_time_info_herm.setForwards()
+
       corr_time_info_herm_obs_info = sigmond.MCObsInfo(corr_time_info_herm, complex_arg)
       correlator_data[corr_time_info_herm_obs_info] = data
+
+  if not forward:
+    correlator.setForwards()
 
   return correlator_data
 
@@ -249,11 +287,15 @@ def get_corr_files(ensemble_name, search_dir):
 
   corr_files = dict()
   for corr in corr_handler.getCorrelatorSet():
+    corr_file_name = corr_handler.getFileName(corr)
+    if corr.isBackwards():
+      corr.setForwards()
+
     corr_opposite = sigmond.CorrelatorInfo(corr.getSource(), corr.getSink())
     if corr_opposite in corr_files:
-      corr_files[corr_opposite][1] = corr_handler.getFileName(corr)
+      corr_files[corr_opposite][1] = corr_file_name
     else:
-      corr_files[corr] = (corr_handler.getFileName(corr), None)
+      corr_files[corr] = (corr_file_name, None)
 
   return corr_files
 

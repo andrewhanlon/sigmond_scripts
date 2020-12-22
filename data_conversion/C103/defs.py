@@ -2,8 +2,7 @@ from typing import NamedTuple
 
 import sourceTimeList
 
-#base_data_dir = "/media/ext2/research/data/raw_C103/"
-base_data_dir = "/media/ext2/research/data/raw_C103/pion/"
+base_data_dir = "/media/ext2/research/data/raw_C103/v2/"
 output_dir = "data"
 
 class Ensemble(NamedTuple):
@@ -11,43 +10,45 @@ class Ensemble(NamedTuple):
   Nt: int
   replica: list
   sources: list
+  parities: list
 
 ensembles = [
-    Ensemble("cls21_c103", 96, ['r005', 'r006'], [0, 24, 48, 72]),
+    #Ensemble("cls21_c103", 96, ['r005', 'r006', 'r007'], [0, 24, 48, 72]),
+    Ensemble(
+      "cls21_c103",
+      96,
+      ['r007'],
+      [
+        (0, True), (0, False),
+        (12, True), (12, False),
+        (24, True), (24, False),
+        (36, True), (36, False),
+        (48, True), (48, False),
+        (60, True), (60, False),
+        (72, True), (72, False),
+        (84, True), (84, False),
+      ],
+      ['fwd', 'bwd']
+    ),
 ]
 
 source_lists = {
     "cls21_c103_r005": sourceTimeList.r005,
     "cls21_c103_r006": sourceTimeList.r006,
+    "cls21_c103_r007": sourceTimeList.r007,
 }
 
 config_indices = {
     "cls21_c103_r005": list(range(401)),
     "cls21_c103_r006": list(range(401)),
+    "cls21_c103_r007": list(range(10)),
 }
 
 omissions = {
     "cls21_c103_r005": set(),
     "cls21_c103_r006": set(),
+    "cls21_c103_r007": set(),
 }
-
-'''
-ensembles = [
-    Ensemble("cls21_c103", 96, ['r005'], [0, 24, 48, 72]),
-]
-
-config_indices = {
-    "cls21_c103_r005": list(range(401))[::20],
-}
-
-source_lists = {
-    "cls21_c103_r005": sourceTimeList.r005,
-}
-
-omissions = {
-    "cls21_c103_r005": set(range(401)) - set(range(401)[::20]),
-}
-'''
 
 
 class Channel(NamedTuple):
