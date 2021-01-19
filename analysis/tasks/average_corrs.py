@@ -181,12 +181,10 @@ class AverageCorrelators(tasks.task.Task):
         data_files += self.data_handler.getChannelDataFiles(raw_channel)
         operators = [op for op in self.data_handler.getChannelOperators(raw_channel) if op not in self.excluded_operators]
 
-        '''
         if len(operators) == 1:
           operator = list(operators)[0]
           if operator.psq == 9 and abs(operator.getXMomentum()) != 0 and abs(operator.getXMomentum()) != 3:
             continue
-        '''
 
         for operator in operators:
           coeff = 1.

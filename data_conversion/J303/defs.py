@@ -14,7 +14,7 @@ ensembles = [
 ]
 
 omissions = {
-    "cls21_j303_r003": set(list(range(1, 200, 2))),
+    "cls21_j303_r003": set(list(range(1, 1073, 2))),
 }
 
 class Channel(NamedTuple):
