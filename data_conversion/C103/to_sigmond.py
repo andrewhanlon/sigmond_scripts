@@ -6,6 +6,7 @@ import numpy as np
 import xml.etree.ElementTree as ET
 
 import tqdm
+import argparse
 
 import defs
 
@@ -23,17 +24,30 @@ parity_name = {
 }
 
 def main():
+
+  parser = argparse.ArgumentParser(description="Convert C103 data")
+  parser.add_argument("-i", "--input", type=str, required=True, metavar='input directory',
+                      help="Specify directory containing raw data")
+  parser.add_argument("-o", "--output", type=str, required=True, metavar='output directory',
+                      help="Specify output directory to write averaged data")
+
+  args = parser.parse_args()
+  
   for ensemble in defs.ensembles:
     ensemble_name = ensemble.name
+    print(f"Working on ensemble {ensemble_name}")
 
     corr_files = dict()
     correlators = list()
     for replica in ensemble.replica:
       replica_ensemble_name = f"{ensemble_name}_{replica}"
+      print(f"replica {replica}")
       corr_files[replica] = dict()
       for source in ensemble.sources:
+        print(f"source {source}")
         data_dir = os.path.join(replica, f"src{source[0]}", parity_name[source[1]])
-        search_dir = os.path.join(defs.base_data_dir, data_dir)
+        search_dir = os.path.join(args.input, data_dir)
+        print(f"searching in {search_dir}")
         corr_files[replica][source] = get_corr_files(replica_ensemble_name, search_dir)
         correlators.append(corr_files[replica][source].keys())
 
@@ -69,7 +83,7 @@ def main():
         corrs_to_extend.append(averaged_corr_data)
 
       extended_corr_data = extend_data(corrs_to_extend)
-      binfile = get_binfile(correlator, ensemble_name)
+      binfile = get_binfile(correlator, ensemble_name, args.output)
       if binfile not in data_to_write:
         data_to_write[binfile] = list()
 
@@ -168,6 +182,7 @@ def get_data(correlator, data_files, ensemble_name, ensemble_Nt, tsrc, forward):
   sampling_info = sigmond.MCSamplingInfo()
   ensemble_info = sigmond.MCEnsembleInfo(ensemble_name, 'ensembles.xml')
   bins_info = sigmond.MCBinsInfo(ensemble_info)
+  bins_info.addOmissions(defs.omissions[ensemble_name])
   obs_get_handler = sigmond.MCObsGetHandler(mcobs_xml_handler, bins_info, sampling_info)
   obs_handler = sigmond.MCObsHandler(obs_get_handler, False)
 
@@ -219,14 +234,14 @@ def get_data(correlator, data_files, ensemble_name, ensemble_Nt, tsrc, forward):
         if not forward:
           data = -data
 
-        for config in range(bins_info.getNumberOfBins()):
+        for bin_i, config in enumerate(defs.config_indices[ensemble_name]):
           if forward:
             T = tsep + tsrc + defs.source_lists[ensemble_name][config] % SOURCE_MOD
           else:
             T = -tsep + tsrc + defs.source_lists[ensemble_name][config] % SOURCE_MOD
 
           if T >= ensemble_Nt or T < 0:
-            data[config] = -data[config]
+            data[bin_i] = -data[bin_i]
 
       corr_time_info_herm.resetTimeSeparation(tsep)
       if not forward:
@@ -242,6 +257,7 @@ def get_data(correlator, data_files, ensemble_name, ensemble_Nt, tsrc, forward):
 
 
 def get_corr_files(ensemble_name, search_dir):
+  print("finding files...", end='')
   file_list_infos = dict()
   for root, dirs, files in os.walk(search_dir, topdown=True):
     for filename in files:
@@ -267,6 +283,8 @@ def get_corr_files(ensemble_name, search_dir):
       else:
         file_list_infos[base] = [suffix, suffix]
 
+  print("done")
+
   file_list_infos = [sigmond.FileListInfo(stub, suffix[0], suffix[1], False)
                      for stub, suffix in file_list_infos.items()]
 
@@ -280,9 +298,11 @@ def get_corr_files(ensemble_name, search_dir):
   ensemble_info = sigmond.MCEnsembleInfo(ensemble_name, 'ensembles.xml')
   sampling_info = sigmond.MCSamplingInfo()
   bins_info = sigmond.MCBinsInfo(ensemble_info)
+  bins_info.addOmissions(defs.omissions[ensemble_name])
   obs_get_handler = sigmond.MCObsGetHandler(mcobs_xml_handler, bins_info, sampling_info)
   obs_handler = sigmond.MCObsHandler(obs_get_handler, False)
 
+  print("searching through correlators...", end='')
   corr_handler = sigmond.BLCorrelatorDataHandler(file_list_infos, set(), set(), ensemble_info)
 
   corr_files = dict()
@@ -297,10 +317,12 @@ def get_corr_files(ensemble_name, search_dir):
     else:
       corr_files[corr] = (corr_file_name, None)
 
+  print("done")
+
   return corr_files
 
 
-def get_binfile(correlator, ensemble_name):
+def get_binfile(correlator, ensemble_name, base_output_dir):
   operator = correlator.getSink().getBasicLapH()
   P = (operator.getXMomentum(), operator.getYMomentum(), operator.getZMomentum())
   irrep = operator.getLGIrrep()
@@ -309,7 +331,7 @@ def get_binfile(correlator, ensemble_name):
   strangeness = operator.getStrangeness()
   channel = defs.Channel(P, irrep, irrep_row, isospin, strangeness)
 
-  output_dir = os.path.join(defs.output_dir, ensemble_name)
+  output_dir = os.path.join(base_output_dir, ensemble_name)
   os.makedirs(output_dir, exist_ok=True)
 
   bin_file = os.path.join(output_dir, f"{channel.iso_strange_str()}.bin")

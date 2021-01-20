@@ -7,6 +7,7 @@ import xml.etree.ElementTree as ET
 import h5py
 
 import tqdm
+import argparse
 
 import defs
 
@@ -20,18 +21,40 @@ COMPLEX_ARGS = [sigmond.ComplexArg.RealPart, sigmond.ComplexArg.ImaginaryPart]
 
 MAX_CORRS = 50
 
+SOURCE_MOD = 12
+
+parity_name = {
+    True: 'fwd',
+    False: 'bwd',
+}
+
 def main():
+
+  parser = argparse.ArgumentParser(description="Convert C103 data")
+  parser.add_argument("-i", "--input", type=str, required=True, metavar='input directory',
+                      help="Specify directory containing raw data")
+  parser.add_argument("-o", "--output", type=str, required=True, metavar='output directory',
+                      help="Specify output directory to write averaged data")
+
+  args = parser.parse_args()
+
   for ensemble in defs.ensembles:
     ensemble_name = ensemble.name
+    print(f"Working on ensemble {ensemble_name}")
 
-    corr_files = [[0 for replica in ensemble.replica] for tsrc in ensemble.sources]
-    for replica_i, replica in enumerate(ensemble.replica):
+    corr_files = dict()
+    correlators = list()
+    for replica in ensemble.replica:
       replica_ensemble_name = f"{ensemble_name}_{replica}"
-      for tsrc_i, tsrc in enumerate(ensemble.sources):
-        #data_dir = os.path.join(ensemble_name, replica, f"src{tsrc_i}")
-        data_dir = os.path.join(replica, f"src{tsrc_i}")
-        search_dir = os.path.join(defs.base_data_dir, data_dir)
-        corr_files[tsrc_i][replica_i] = get_corr_files(replica_ensemble_name, search_dir)
+      print(f"replica {replica}")
+      corr_files[replica] = dict()
+      for source in ensemble.sources:
+        print(f"source {source}")
+        data_dir = os.path.join(replica, f"src{source[0]}", parity_name[source[1]])
+        search_dir = os.path.join(args.input, data_dir)
+        print(f"searching in {search_dir}")
+        corr_files[replica][source] = get_corr_files(replica_ensemble_name, search_dir)
+        correlators.append(corr_files[replica][source].keys())
 
     # TODO: check all elements of correlators have same keys
     channels = corr_files[0][0].keys()
@@ -55,7 +78,7 @@ def main():
           print("not all op lists equal")
           exit()
         
-        hdf5_file = get_hdf5_file(channel, replica_ensemble_name)
+        hdf5_file = get_hdf5_file(channel, replica_ensemble_name, args.output)
         write_data(averaged_corr_data, channel, op_lists[0], hdf5_file)
 
 
@@ -222,8 +245,8 @@ def get_corr_files(ensemble_name, search_dir):
   return corr_files
 
 
-def get_hdf5_file(channel, ensemble_name):
-  output_dir = os.path.join(defs.output_dir, ensemble_name)
+def get_hdf5_file(channel, ensemble_name, base_output_dir):
+  output_dir = os.path.join(base_output_dir, ensemble_name)
   os.makedirs(output_dir, exist_ok=True)
 
   hdf5_file = os.path.join(output_dir, f"{channel.iso_strange_str()}.hdf5")

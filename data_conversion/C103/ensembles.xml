@@ -21,7 +21,15 @@
      <EnsembleInfo>
         <Id>cls21_c103_r007</Id>
         <NStreams>1</NStreams>
-        <NMeas>10</NMeas>
+        <NMeas>404</NMeas>
+        <NSpace>48</NSpace>
+        <NTime>96</NTime>
+     </EnsembleInfo>
+
+     <EnsembleInfo>
+        <Id>cls21_c103_r008</Id>
+        <NStreams>1</NStreams>
+        <NMeas>404</NMeas>
         <NSpace>48</NSpace>
         <NTime>96</NTime>
      </EnsembleInfo>
@@ -29,7 +37,7 @@
      <EnsembleInfo>
         <Id>cls21_c103</Id>
         <NStreams>1</NStreams>
-        <NMeas>10</NMeas>
+        <NMeas>1490</NMeas>
         <NSpace>48</NSpace>
         <NTime>96</NTime>
      </EnsembleInfo>
