@@ -44,6 +44,8 @@ class Anisotropy(tasks.task.Task):
         max_iterations: 1024
         verbosity: high
 
+      particles: [pi, kaon]   # optional (default to include all)
+
       # optional
       anisotropy_plot_info:
         goodness: chisq
@@ -75,15 +77,21 @@ class Anisotropy(tasks.task.Task):
 
     task_options['minimizer_info'] = sigmond_info.sigmond_info.getMinimizerInfo(task_options)
     task_options['anisotropy_plot_info'] = sigmond_info.sigmond_info.AnisotropyPlotInfo.createFromConfig(task_options)
+
+    particles = task_options.pop('particles', list())
     
     # check for scattering_particles
     scattering_particles = dict()
     try:
       for scattering_particle in task_options.pop('scattering_particles'):
         name = scattering_particle.pop('name')
+        if particles and name not in particles:
+          continue
+
         scattering_particles[name] = list()
         fits = scattering_particle.pop('fits')
         for fit in fits:
+          fit.pop('tmin_info', None) # removes tmin_info if someone includes it
           operator = operator_info.operator.Operator(fit.pop('operator'))
           fit_model = sigmond_info.fit_info.FitModel(fit.pop('model'))
           fit_info = sigmond_info.fit_info.FitInfo(operator, fit_model, **fit)
