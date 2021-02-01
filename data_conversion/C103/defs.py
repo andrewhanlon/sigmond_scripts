@@ -7,7 +7,12 @@ class Ensemble(NamedTuple):
   Nt: int
   replica: list
   sources: list
-  parities: list
+
+
+parity_name = {
+    True: 'fwd',
+    False: 'bwd',
+}
 
 ensembles = [
     Ensemble(
@@ -23,8 +28,7 @@ ensembles = [
         (60, True), (60, False),
         (72, True), (72, False),
         (84, True), (84, False),
-      ],
-      ['fwd', 'bwd']
+      ]
     ),
 ]
 

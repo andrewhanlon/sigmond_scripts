@@ -18,11 +18,6 @@ MAX_CORRS = 50
 
 SOURCE_MOD = 12
 
-parity_name = {
-    True: 'fwd',
-    False: 'bwd',
-}
-
 def main():
 
   parser = argparse.ArgumentParser(description="Convert C103 data")
@@ -45,7 +40,7 @@ def main():
       corr_files[replica] = dict()
       for source in ensemble.sources:
         print(f"source {source}")
-        data_dir = os.path.join(replica, f"src{source[0]}", parity_name[source[1]])
+        data_dir = os.path.join(replica, f"src{source[0]}", defs.parity_name[source[1]])
         search_dir = os.path.join(args.input, data_dir)
         print(f"searching in {search_dir}")
         corr_files[replica][source] = get_corr_files(replica_ensemble_name, search_dir)
@@ -60,9 +55,7 @@ def main():
         print("--------------------")
         for corr in sorted(corrs):
           print(f"\t{corr}")
-
         print()
-
       exit()
 
     correlators = correlators[0]

@@ -1,22 +1,19 @@
 #!/bin/bash
-#PBS -N C103_merge
-#PBS -q red
-#PBS -l walltime=200:00:00
-#PBS -l cput=200:00:00
-#PBS -l nodes=1:ppn=1
-#PBS -l mem=2000mb
-#PBS -j oe
-#PBS -o /latticeQCD/raid0/ahanlon/data/raw_C103/new/to_sigmond.log
-#PBS -e /latticeQCD/raid0/ahanlon/data/raw_C103/new/to_sigmond.log
-#PBS -m a
-#PBS -M ddhanlon@gmail.com
+#SBATCH --job-name=C103_to_hdf5
+#SBATCH --partition=red
+#SBATCH --time=600:00:00
+#SBATCH --ntasks=1
+#SBATCH --output=/latticeQCD/raid4/ahanlon/data/C103/hdf5/to_hdf5.out
+#SBATCH --error=/latticeQCD/raid4/ahanlon/data/C103/hdf5/to_hdf5.err
+#SBATCH --mail-type=END,FAIL
+#SBATCH --mail-user=ddhanlon@gmail.com
 
-#export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/lib
 #export  PATH=$PATH:/usr/local/bin
+export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/lib
 
-PYTHON=/home/ahanlon/.apps/python/3.9.0/bin/pydoc3.9
+PYTHON=/home/ahanlon/.apps/python/3.9.0/bin/python3.9
 PROG=/home/ahanlon/code/sigmond_scripts/data_conversion/C103/to_hdf5.py
-INPUT_DIR = /latticeQCD/raid0/ahanlon/data/raw_C103/new/
-OUTPUT_DIR = /latticeQCD/raid0/ahanlon/data/merged_C103/
+INPUTDIR=/latticeQCD/raid4/ahanlon/data/C103/raw/
+OUTPUTDIR=/latticeQCD/raid4/ahanlon/data/C103/hdf5/
 
-${PYTHON} ${PROG} -i ${INPUT_DIR} -o ${OUTPUT_DIR}
+stdbuf -o0 -e0 ${PYTHON} ${PROG} -i ${INPUTDIR} -o ${OUTPUTDIR}
