@@ -41,6 +41,8 @@ class Spectrum(tasks.task.Task):
       spectrum ({OperatorSet: [FitInfos]): a dictionary
           mapping each operator basis to a list of fit infos
           for each level
+      **flagged_levels ({OperatorSet: [bool]): a dictionary
+          mapping each operator to its 'flag'
       **reorder (bool): whether energies should be reordered
       **tmin_infos ({OperatorSet: [[FitInfo]]): a dictionary
           containing the differnt tmin fits to do.
@@ -62,6 +64,7 @@ class Spectrum(tasks.task.Task):
     """
 
     self.spectrum = spectrum
+    self.flagged_levels = extra_options.pop('flagged_levels', dict())
     self.reorder = extra_options.pop('reorder', True)
     self.tmin_infos = extra_options.pop('tmin_infos', dict())
     self.minimizer_info = extra_options.pop('minimizer_info', sigmond.MinimizerInfo())
@@ -206,6 +209,7 @@ class Spectrum(tasks.task.Task):
             - model: 2-exp
               tmin: 12
               tmax: 25
+              flag: True        # default is False
             - model: 1-exp
               tmin: 16
               tmax: 23
@@ -286,7 +290,9 @@ class Spectrum(tasks.task.Task):
 
     task_options['scattering_particles'] = scattering_particles
 
+    # get the spectrum now
     spectrum = dict()
+    flagged_levels = dict()
     try:
       for energy_set in task_options.pop('spectrum', []):
         operator_set = operator_info.operator_set.getOperatorSet(energy_set)
@@ -296,6 +302,7 @@ class Spectrum(tasks.task.Task):
         tmin_info_confs = energy_set.pop('tmin_info', [None]*len(operators))
 
         spectrum[operator_set] = list()
+        flagged_levels[operator_set] = list()
         tmin_infos[operator_set] = list()
         for operator, level, non_interacting_level, tmin_info in zip(operators, levels, non_interacting_levels, tmin_info_confs):
           fit_model = sigmond_info.fit_info.FitModel(level.pop('model'))
@@ -304,6 +311,7 @@ class Spectrum(tasks.task.Task):
           exclude_times = level.pop('exclude_times', [])
           noise_cutoff = level.pop('noise_cutoff', 0.0)
           ratio = level.pop('ratio', False)
+          flag = level.pop('flag', False)
           util.check_extra_keys(level, "spectrum.level")
 
           if non_interacting_level is None:
@@ -321,6 +329,7 @@ class Spectrum(tasks.task.Task):
               non_interacting_operators)
 
           spectrum[operator_set].append(fit_info)
+          flagged_levels[operator_set].append(flag)
 
           if tmin_info is not None:
             tmin_info_list = list()
@@ -362,7 +371,7 @@ class Spectrum(tasks.task.Task):
 
     task_options['tmin_infos'] = tmin_infos
 
-    self.initialize(spectrum, **task_options)
+    self.initialize(spectrum, flagged_levels=flagged_levels, **task_options)
 
   @property
   def results_dir(self):
@@ -878,7 +887,7 @@ class Spectrum(tasks.task.Task):
 
   def _addFitTable(self, doc):
     with doc.create(pylatex.Center()) as centered:
-      long_tabu = "X[c] X[c] X[2,c] X[4,c] X[4,c] X[4,c] X[3,c] X[2,c] X[2,c]"
+      long_tabu = "X[0.1,c] X[c] X[c] X[2,c] X[4,c] X[4,c] X[4,c] X[3,c] X[2,c] X[2,c]"
       with centered.create(pylatex.LongTabu(long_tabu, to=r"\linewidth")) as data_table:
 
         if self.reference_fit_info is None:
@@ -888,6 +897,7 @@ class Spectrum(tasks.task.Task):
           ref_energy_header = fr"$E_{{\rm cm}} / E_{{{ref_latex}}}$"
 
         header_row = [
+            pylatex.NoEscape(""),
             pylatex.NoEscape(r"$d^2$"),
             pylatex.NoEscape(r"$\Lambda$"),
             pylatex.NoEscape(r"Level"),
@@ -906,6 +916,10 @@ class Spectrum(tasks.task.Task):
           data_table.add_hline()
           new_level = 0
           for level, energy in self.energies[operator_set].items():
+            flag = ""
+            if operator_set in self.flagged_levels:
+              flag = "X" if self.flagged_levels[operator_set][level] else ""
+
             fit_info = fit_infos[level]
             channel = operator_set.channel
             logfile = self.logfile(repr(operator_set))
@@ -924,6 +938,7 @@ class Spectrum(tasks.task.Task):
               irrep = pylatex.NoEscape(rf"${self.latex_map[irrep]}$")
 
             data_row = [
+                flag,
                 channel.psq,
                 irrep,
                 pylatex.NoEscape(rf"${level} \to {new_level}$"),
