@@ -1,6 +1,6 @@
 from typing import NamedTuple
 
-base_data_dir = "/media/ext2/research/data/J303/"
+base_data_dir = "/disk2/research/data/J303/"
 output_dir = "data"
 
 class Ensemble(NamedTuple):
@@ -15,6 +15,10 @@ ensembles = [
 
 omissions = {
     "cls21_j303_r003": set(list(range(1, 1073, 2))),
+}
+
+configs = {
+    "cls21_j303_r003": list(range(1, 1073, 2)),
 }
 
 class Channel(NamedTuple):

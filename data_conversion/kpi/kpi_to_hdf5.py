@@ -10,7 +10,7 @@ import defs
 
 import sigmondbind as sig
 
-base_data_dir = "/media/ext/research/data/raw_kpi"
+base_data_dir = "/disk2/research/data/kpi/raw/"
 
 FORCE_HERM = True
 

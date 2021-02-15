@@ -23,17 +23,24 @@ MAX_CORRS = 50
 def main():
   for ensemble in defs.ensembles:
     ensemble_name = ensemble.name
+    print(f"Working on {ensemble_name}")
 
     corr_files = [[0 for replica in ensemble.replica] for tsrc in ensemble.sources]
+    channels = list()
     for replica_i, replica in enumerate(ensemble.replica):
       replica_ensemble_name = f"{ensemble_name}_{replica}"
       for tsrc_i, tsrc in enumerate(ensemble.sources):
-        data_dir = os.path.join(replica, f"src{tsrc}")
+        data_dir = os.path.join(ensemble_name, replica, f"src{tsrc}")
         search_dir = os.path.join(defs.base_data_dir, data_dir)
+        print(f"Searching in {search_dir}")
         corr_files[tsrc_i][replica_i] = get_corr_files(replica_ensemble_name, search_dir)
+        channels.append(corr_files[tsrc_i][replica_i].keys())
 
-    # TODO: check all elements of correlators have same keys
-    channels = corr_files[0][0].keys()
+    if not all(chans == channels[0] for chans in channels):
+      print("Not all channels equal")
+      sys.exit()
+
+    channels = channels[0]
 
     for channel in tqdm.tqdm(channels):
       corrs_to_extend = list()
@@ -44,7 +51,7 @@ def main():
         corrs_to_average = list()
         for tsrc_i, tsrc in enumerate(ensemble.sources):
           correlators = corr_files[tsrc_i][replica_i][channel]
-          correlator_data, op_list = get_data(correlators, replica_ensemble_name, ensemble.Nt, tsrc)
+          correlator_data, op_list = get_data(correlators, replica_ensemble_name, tsrc)
           op_lists.append(op_list)
           corrs_to_average.append(correlator_data)
 
@@ -60,9 +67,9 @@ def main():
         '''
         for tsrc_i, tsrc in enumerate(ensemble.sources):
           correlators = corr_files[tsrc_i][replica_i][channel]
-          correlator_data, op_list = get_data(correlators, replica_ensemble_name, ensemble.Nt, tsrc)
+          correlator_data, op_list = get_data(correlators, replica_ensemble_name, tsrc)
 
-          hdf5_file = get_hdf5_file(replica_ensemble_name, tsrc)
+          hdf5_file = get_hdf5_file(replica_ensemble_name, channel, tsrc)
           write_data(correlator_data, channel, op_list, hdf5_file, replica, replica_ensemble_name)
 
 
@@ -81,8 +88,7 @@ def write_data(data, channel, op_list, hdf5_file, replica, replica_ensemble_name
   f_hand.close()
 
 
-
-def get_data(correlators, ensemble_name, ensemble_Nt, tsrc):
+def get_data(correlators, ensemble_name, tsrc):
   mcobs_xml = ET.Element("MCObservables")
   corr_data_xml = ET.SubElement(mcobs_xml, "BLCorrelatorData")
 
@@ -117,8 +123,15 @@ def get_data(correlators, ensemble_name, ensemble_Nt, tsrc):
 
     if tmin is None:
       keys = corr_handler.getOrderedKeys(corr)
-      tmin = keys[0].getTimeIndex()
-      tmax = keys[-1].getTimeIndex()
+      try:
+        tmin = keys[0].getTimeIndex()
+        tmax = keys[-1].getTimeIndex()
+      except IndexError:
+        print(f"no keys for {corr.corr_str()}")
+        print("in files:")
+        print(file_list_infos)
+        #sys.exit()
+        continue
 
   operators = sorted(list([operator_info.operator.Operator(op) for op in operators]))
   operators = [op.operator_info for op in operators]
@@ -209,6 +222,11 @@ def get_corr_files(ensemble_name, search_dir):
 
   corr_files = dict()
   for corr in corr_handler.getCorrelatorSet():
+    if corr.getSource().isBackwards() or corr.getSink().isBackwards():
+      print(corr.corr_str())
+      print(corr_handler.getFileName(corr))
+      #sys.exit()
+
     channel = get_channel(corr)
     if channel not in corr_files:
       corr_files[channel] = dict()
@@ -218,14 +236,22 @@ def get_corr_files(ensemble_name, search_dir):
     corr_files[channel]['data_files'].append(corr_handler.getFileName(corr))
     corr_files[channel]['correlators'].append(corr)
 
+  # DEBUG
+  for channel, corrs in corr_files.items():
+    print(f"Channel {channel}")
+    for x in range(len(corrs['data_files'])):
+      print(f"  Data file: {corrs['data_files'][x]}")
+      print(f"  corr: {corrs['correlators'][x].corr_str()}")
+      print()
+
   return corr_files
 
 
-def get_hdf5_file(ensemble_name, tsrc):
+def get_hdf5_file(ensemble_name, channel, tsrc):
   output_dir = os.path.join(defs.output_dir, ensemble_name)
   os.makedirs(output_dir, exist_ok=True)
 
-  hdf5_file = os.path.join(output_dir, f"{ensemble_name}_t0{tsrc}.hdf5")
+  hdf5_file = os.path.join(output_dir, f"{ensemble_name}_{channel.iso_strange_str()}_t0{tsrc}.hdf5")
   return hdf5_file
 
 def get_channel(correlator):
@@ -234,13 +260,7 @@ def get_channel(correlator):
   irrep = op.getLGIrrep()
   irrep_row = op.getLGIrrepRow()
   isospin = op.getIsospin()
-  if isospin=="pion":
-    isospin="triplet"
-
-  if isospin!="triplet":
-    print("shit")
-    exit()
-
+  isospin = defs.name_map.get(isospin, isospin)
   strangeness = op.getStrangeness()
   channel = defs.Channel(P, irrep, irrep_row, isospin, strangeness)
   return channel
