@@ -38,6 +38,8 @@ class ViewData(tasks.task.Task):
       **plot_info (PlotInfo): info about the plot
       **write_operators (bool): determines whether the operators
           should be written to file
+      **split_pdfs (bool): specifies if PDFs should be split by channel,
+          in which case it will group by irrep and P^2
     """
 
     self.channels = options.pop('channels', SortedSet())
@@ -48,6 +50,7 @@ class ViewData(tasks.task.Task):
     self.hermitian = options.pop('hermitian', True)
     self.subtractvev = options.pop('subtractvev', True)
     self.write_operators = options.pop('write_operators', False)
+    self.split_pdfs = options.pop('split_pdfs', False)
 
     self.plot_info = options.pop('plot_info', sigmond_info.sigmond_info.PlotInfo())
 
@@ -65,6 +68,7 @@ class ViewData(tasks.task.Task):
       subtractvev: false                   # optional
 
       write_operators: false
+      split_pdfs: true                 # optional
 
       auto_add: false                      # optional
 
@@ -221,3 +225,72 @@ class ViewData(tasks.task.Task):
 
     filename = os.path.join(self.results_dir, f"{util.str_to_file(self.task_name)}_rebin{self.rebin}")
     util.compile_pdf(doc, filename)
+
+  def finalize(self):
+    if self.write_operators and os.path.isfile(self.op_yaml_file):
+      os.remove(self.op_yaml_file)
+
+    all_operator_set_ops = SortedSet()
+    if self.operator_sets:
+      all_operator_set_ops = SortedSet.union(*[op_set.operators for op_set in self.operator_sets])
+
+    # create docs
+    if self.split_pdfs:
+      docs = dict()
+      for channel in self.channels:
+        operators = [op for op in self.data_handler.getChannelOperators(channel) if op not in all_operator_set_ops and op not in self.excluded_operators]
+        if not operators:
+          continue
+        
+        if channel.irrep_psq_key not in docs:
+          docs[channel.irrep_psq_key] = util.create_doc(f"Correlators and Effective Energies: {self.ensemble_name} - {self.task_name} - {channel.irrep_psq_key}")
+
+      for operator_set in self.operator_sets:
+        docs[operator_set.name] = util.create_doc(f"Correlators and Effective Energies: {self.ensemble_name} - {self.task_name} - {operator_set.name}")
+
+    else:
+      doc = util.create_doc(f"Correlators and Effective Energies: {self.ensemble_name} - {self.task_name}")
+
+    # create content
+    for channel in self.channels:
+      if self.split_pdfs:
+        doc = docs[channel.irrep_psq_key]
+
+      data_files = self.data_files + self.data_handler.getChannelDataFiles(channel)
+
+      operators = [op for op in self.data_handler.getChannelOperators(channel) if op not in all_operator_set_ops and op not in self.excluded_operators]
+      if not operators:
+        continue
+
+      if self.write_operators:
+        operator_info.operator_set.write_operators(self.op_file(repr(channel)), operators, True, False)
+        operator_info.operator_set.write_operators_to_yaml(self.op_yaml_file, repr(channel), operators, True)
+
+      with doc.create(pylatex.Section(str(channel))):
+        self.addPlotsToPDF(doc, data_files, operators, repr(channel))
+
+    for operator_set in self.operator_sets:
+      if self.write_operators:
+        operator_info.operator_set.write_operators(self.op_file(operator_set.name), operator_set.operators, True, False)
+        operator_info.operator_set.write_operators_to_yaml(self.op_yaml_file, operator_set.name, operator_set.operators, True)
+
+      data_files = self.data_files
+      for channel in operator_set.channels:
+        channel_data_files = self.data_handler.getChannelDataFiles(channel)
+        data_files += self.data_handler.getChannelDataFiles(channel)
+
+      if self.split_pdfs:
+        self.addPlotsToPDF(doc, data_files, operator_set.operators, operator_set.name)
+
+      else:
+        with doc.create(pylatex.Section(operator_set.name)):
+          self.addPlotsToPDF(doc, data_files, operator_set.operators, operator_set.name)
+
+    # compile
+    if self.split_pdfs:
+      for split_key, doc in docs.items():
+        filename = os.path.join(self.results_dir, f"{util.str_to_file(self.task_name)}_{split_key}_rebin{self.rebin}")
+        util.compile_pdf(doc, filename)
+    else:
+      filename = os.path.join(self.results_dir, f"{util.str_to_file(self.task_name)}_rebin{self.rebin}")
+      util.compile_pdf(doc, filename)

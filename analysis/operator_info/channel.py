@@ -157,6 +157,10 @@ class Channel:
     else:
       return f"PSQ{self.momentum_squared}"
 
+  @property
+  def irrep_psq_key(self):
+    return f"{self.irrep}_PSQ{self.psq}"
+
   def __str__(self):
     _str = "iso{} S={} {}".format(self.isospin, self.strangeness, self.irrep)
     if hasattr(self, "irreprow"):
