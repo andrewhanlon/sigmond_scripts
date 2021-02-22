@@ -188,48 +188,6 @@ class ViewData(tasks.task.Task):
     if self.write_operators and os.path.isfile(self.op_yaml_file):
       os.remove(self.op_yaml_file)
 
-    doc = util.create_doc(
-        f"Correlators and Effective Energies: {self.ensemble_name} - {self.task_name}")
-
-    all_operator_set_ops = SortedSet()
-    if self.operator_sets:
-      all_operator_set_ops = SortedSet.union(*[op_set.operators for op_set in self.operator_sets])
-
-    for channel in self.channels:
-      data_files = self.data_files + self.data_handler.getChannelDataFiles(channel)
-
-      operators = [op for op in self.data_handler.getChannelOperators(channel) if op not in all_operator_set_ops and op not in self.excluded_operators]
-      if not operators:
-        continue
-
-      if self.write_operators:
-        operator_info.operator_set.write_operators(self.op_file(repr(channel)), operators, True, False)
-        operator_info.operator_set.write_operators_to_yaml(self.op_yaml_file, repr(channel), operators, True)
-
-
-      with doc.create(pylatex.Section(str(channel))):
-        self.addPlotsToPDF(doc, data_files, operators, repr(channel))
-
-    for operator_set in self.operator_sets:
-      if self.write_operators:
-        operator_info.operator_set.write_operators(self.op_file(operator_set.name), operator_set.operators, True, False)
-        operator_info.operator_set.write_operators_to_yaml(self.op_yaml_file, operator_set.name, operator_set.operators, True)
-
-      data_files = self.data_files
-      for channel in operator_set.channels:
-        channel_data_files = self.data_handler.getChannelDataFiles(channel)
-        data_files += self.data_handler.getChannelDataFiles(channel)
-
-      with doc.create(pylatex.Section(operator_set.name)):
-        self.addPlotsToPDF(doc, data_files, operator_set.operators, operator_set.name)
-
-    filename = os.path.join(self.results_dir, f"{util.str_to_file(self.task_name)}_rebin{self.rebin}")
-    util.compile_pdf(doc, filename)
-
-  def finalize(self):
-    if self.write_operators and os.path.isfile(self.op_yaml_file):
-      os.remove(self.op_yaml_file)
-
     all_operator_set_ops = SortedSet()
     if self.operator_sets:
       all_operator_set_ops = SortedSet.union(*[op_set.operators for op_set in self.operator_sets])
@@ -290,7 +248,7 @@ class ViewData(tasks.task.Task):
     if self.split_pdfs:
       for split_key, doc in docs.items():
         filename = os.path.join(self.results_dir, f"{util.str_to_file(self.task_name)}_{split_key}_rebin{self.rebin}")
-        util.compile_pdf(doc, filename)
+        util.compile_pdf(doc, filename, self.latex_compiler)
     else:
       filename = os.path.join(self.results_dir, f"{util.str_to_file(self.task_name)}_rebin{self.rebin}")
-      util.compile_pdf(doc, filename)
+      util.compile_pdf(doc, filename, self.latex_compiler)

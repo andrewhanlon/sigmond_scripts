@@ -316,7 +316,7 @@ class AverageCorrelators(tasks.task.Task):
         self.addPlotsToPDF(doc, data_files, operators, repr(channel))
 
     filename = os.path.join(self.results_dir, util.str_to_file(self.task_name))
-    util.compile_pdf(doc, filename)
+    util.compile_pdf(doc, filename, self.latex_compiler)
 
 
 def _getOperatorsMap(operators, averaged_channel, get_had_spat=False, get_had_irrep=False):

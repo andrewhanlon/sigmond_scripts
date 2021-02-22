@@ -88,7 +88,7 @@ def get_minor_ticks(x_range, y_range):
 
 
 def spectrum(thresholds, energies, non_interacting_energies, latex_map, rotate_irreps,
-             plot_width_factor, ref_name, filename):
+             plot_width_factor, ref_name, filename, latex_compiler):
   global FRAME_WIDTH
   FRAME_WIDTH *= plot_width_factor
   global PERCENT_ROOM
@@ -254,4 +254,4 @@ def spectrum(thresholds, energies, non_interacting_energies, latex_map, rotate_i
       tikz_pic.append(pylatex.NoEscape(en_tikz))
 
   util.write_tikz(tikz_pic, tikz_filename)
-  util.compile_pdf(doc, filename)
+  util.compile_pdf(doc, filename, latex_compiler)

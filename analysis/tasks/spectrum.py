@@ -735,7 +735,7 @@ class Spectrum(tasks.task.Task):
       self._addZfactors(doc)
 
     filename = os.path.join(self.results_dir, f"spectrum_{self.ensemble_name}_{self.task_name}_rebin{self.rebin}")
-    util.compile_pdf(doc, filename)
+    util.compile_pdf(doc, filename, self.latex_compiler)
 
   def _addZfactors(self, doc):
     with doc.create(pylatex.Section("Overlap factors")):
@@ -1098,6 +1098,7 @@ class Spectrum(tasks.task.Task):
     os.makedirs(plot_directory, exist_ok=True)
     plot_filename = os.path.join(plot_directory, "spectrum")
     utils.plotting.spectrum(thresholds, energies, non_interacting_energies, self.latex_map,
-                            self.rotate_labels, self.plot_width_factor, self.ref_name, plot_filename)
+                            self.rotate_labels, self.plot_width_factor, self.ref_name, plot_filename,
+                            self.latex_compiler)
     return plot_filename
 

@@ -37,6 +37,7 @@ class ProjectInfo(NamedTuple):
   sampling_info: sigmond.MCSamplingInfo
   data_files: data_handling.data_files.DataFiles
   precompute: bool
+  latex_compiler: str
 
 
 def launch(config_filenames):
@@ -101,6 +102,9 @@ def read_config(config_filenames):
   util.ERR_PREC = config.pop('precision', 2)
   logging.info(f"Error precision set to {util.ERR_PREC}")
 
+  # get latex compiler
+  latex_compiler = config.pop('latex_compiler', None)
+
   # Read in the MCBinsInfo (which includes ensemble info)
   try:
     bins_info_config = config.pop('MCBinsInfo')
@@ -142,7 +146,7 @@ def read_config(config_filenames):
   project_info = ProjectInfo(
       project_dir=project_dir, raw_data_dirs=raw_data_dirs, ensembles_file=ensembles_file,
       echo_xml=echo_xml, bins_info=bins_info, sampling_info=sampling_info, data_files=data_files,
-      precompute=precompute)
+      precompute=precompute, latex_compiler=latex_compiler)
 
   if not config:
     logging.error("No tasks blocks found")

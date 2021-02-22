@@ -431,9 +431,9 @@ def add_image(figure, rel_dir, pdf_file, width="1.0", caption="", view=True):
     figure.append(pylatex.NoEscape(missing_figure_tex))
 
 
-def compile_pdf(doc, filename):
+def compile_pdf(doc, filename, compiler=None):
   logging.info(f"Compiling LaTeX: {filename}.tex")
-  doc.generate_pdf(filename, clean=True, clean_tex=False, compiler_args=['-f'])
+  doc.generate_pdf(filename, clean=True, clean_tex=False, compiler=compiler, compiler_args=['-f'])
   logging.info(f"Created PDF: {filename}.pdf")
 
 def write_tikz(tikz, filename):

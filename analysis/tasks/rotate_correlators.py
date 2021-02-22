@@ -305,4 +305,4 @@ class RotateCorrelators(tasks.task.Task):
     results_dir = self.results_dir
     os.makedirs(results_dir, exist_ok=True)
     filename = os.path.join(results_dir, self.task_name)
-    util.compile_pdf(doc, filename)
+    util.compile_pdf(doc, filename, self.latex_compiler)

@@ -453,7 +453,7 @@ class FitCorrelators(tasks.task.Task):
     results_dir = self.results_dir
     os.makedirs(results_dir, exist_ok=True)
     filename = os.path.join(results_dir, self.task_name)
-    util.compile_pdf(doc, filename)
+    util.compile_pdf(doc, filename, self.latex_compiler)
 
   def _add_tmins(self, doc, fit_infos, fit_name, operator_set, ratio):
     for fit_info1, fit_info2 in zip(*[iter(fit_infos)]*2):

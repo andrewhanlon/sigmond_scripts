@@ -141,6 +141,10 @@ class Task(metaclass=ABCMeta):
   def data_files(self):
     return self.project_info.data_files
 
+  @property
+  def latex_compiler(self):
+    return self.project_info.latex_compiler
+
   def new_sigmond_input(self, project_name, inputfile, logfile, data_files):
     return sigmond_info.sigmond_input.SigmondInput(
         project_name, self.bins_info, self.sampling_info, self.ensembles_file, data_files,
