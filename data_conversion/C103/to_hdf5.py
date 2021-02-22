@@ -63,28 +63,8 @@ def main():
     channels = channels[0]
 
     for channel in tqdm.tqdm(channels):
-      #corrs_to_extend = list()
-      #op_lists = list()
       for replica in ensemble.replica:
         replica_ensemble_name = f"{ensemble_name}_{replica}"
-        '''
-        corrs_to_average = list()
-        for source in ensemble.sources:
-          correlators = corr_files[replica][source][channel]
-          correlator_data, op_list = get_data(correlators, replica_ensemble_name, ensemble.Nt, source)
-          op_lists.append(op_list)
-          corrs_to_average.append(correlator_data)
-
-        averaged_corr_data = np.mean(corrs_to_average, axis=0)
-
-        all_equal = all(op_list==op_lists[0] for op_list in op_lists)
-        if not all_equal:
-          print("not all op lists equal")
-          exit()
-        
-        hdf5_file = get_hdf5_file(replica_ensemble_name)
-        write_data(averaged_corr_data, channel, op_lists[0], hdf5_file)
-        '''
         for source in ensemble.sources:
           correlators = corr_files[replica][source][channel]
           correlator_data, op_list = get_data(correlators, replica_ensemble_name)
