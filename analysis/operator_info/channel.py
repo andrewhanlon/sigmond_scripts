@@ -23,7 +23,7 @@ irreprows = {
 
 class Channel:
 
-  EXTRA_INFO_KEYS = ['irreprow', 'momentum', 'momentum_squared']
+  EXTRA_INFO_KEYS = ['irreprow', 'momentum', 'ref_momentum']
 
   def __init__(self, isospin, strangeness, irrep, **extra_info):
     """Channel __init__ method
@@ -37,10 +37,8 @@ class Channel:
           has been averaged over.
       **momentum (tuple of 3 ints): the definite momentum for
           a channel.
-      **momentum_squared (int): the momentum squared for the channel,
-          which assumes the equivalent momentum frames have been
-          averaged over. Note that a momentum squared of 0 is treated
-          as a momentum channel with P = (0, 0, 0)
+      **ref_momentum (tuple of 3 ints): the reference momentum for
+          a channel.
 
     TODO:
       - Make use of sigmondbind.Momentum ?
@@ -58,13 +56,12 @@ class Channel:
 
     if hasattr(self, 'momentum'):
       self.momentum = tuple(self.momentum)
-    
-    if hasattr(self, 'momentum') and hasattr(self, 'momentum_squared'):
-      raise ValueError("Channel can not have both 'momentum' and 'momentum_squared'")
 
-    if hasattr(self, 'momentum') and self.momentum == (0,0,0):
-      del self.momentum
-      self.momentum_squared = 0
+    if hasattr(self, 'ref_momentum'):
+      self.ref_momentum = tuple(sorted([abs(pi) for pi in self.ref_momentum]))
+    
+    if hasattr(self, 'momentum') and hasattr(self, 'ref_momentum'):
+      raise ValueError("Channel can not have both 'momentum' and 'ref_momentum'")
 
   @classmethod
   def createFromOperator(cls, operator):
@@ -92,11 +89,9 @@ class Channel:
       if gi_op.getLGIrrepRow() > 0:
         kw_args["irreprow"] = gi_op.getLGIrrepRow()
 
-      if gi_op.hasDefiniteMomentum():
-        kw_args["momentum"] = (gi_op.getXMomentum(), gi_op.getYMomentum(),
-                               gi_op.getZMomentum())
-      else:
-        kw_args["momentum_squared"] = gi_op.getMomentumSquared()
+      mom = (gi_op.getXMomentum(), gi_op.getYMomentum(), gi_op.getZMomentum())
+      mom_str = "momentum" if gi_op.hasDefiniteMomentum() else "ref_momentum"
+      kw_args[mom_str] = mom
 
       return cls(**kw_args)
 
@@ -107,7 +102,7 @@ class Channel:
       del aver_chan.irreprow
     if hasattr(aver_chan, 'momentum'):
       del aver_chan.momentum
-      aver_chan.momentum_squared = self.psq
+      aver_chan.ref_momentum = tuple(sorted([abs(pi) for pi in self.momentum]))
 
     return aver_chan
 
@@ -120,9 +115,16 @@ class Channel:
     return self.psq == 0
 
   @property
+  def refP(self):
+    if hasattr(self, 'ref_momentum'):
+      return self.ref_momentum
+    else:
+      return tuple(sorted([abs(pi) for pi in self.momentum]))
+
+  @property
   def psq(self):
-    if hasattr(self, 'momentum_squared'):
-      return self.momentum_squared
+    if hasattr(self, 'ref_momentum'):
+      return self.ref_momentum[0]**2 + self.ref_momentum[1]**2 + self.ref_momentum[2]**2
     else:
       return self.momentum[0]**2 + self.momentum[1]**2 + self.momentum[2]**2
 
@@ -139,8 +141,9 @@ class Channel:
       op_str += " P=({},{},{})".format(self.momentum[0], self.momentum[1],
                                        self.momentum[2])
 
-    if hasattr(self, "momentum_squared"):
-      op_str += " PSQ={}".format(self.momentum_squared)
+    if hasattr(self, "ref_momentum"):
+      op_str += " Pref=({},{},{})".format(self.ref_momentum[0], self.ref_momentum[1],
+                                          self.ref_momentum[2])
 
     op_str += " {}".format(self.irrep)
     if hasattr(self, "irreprow"):
@@ -155,11 +158,11 @@ class Channel:
     if hasattr(self, "momentum"):
       return f"P{self.momentum[0]}{self.momentum[1]}{self.momentum[2]}"
     else:
-      return f"PSQ{self.momentum_squared}"
+      return f"Pref{self.ref_momentum[0]}{self.ref_momentum[1]}{self.ref_momentum[2]}"
 
   @property
-  def irrep_psq_key(self):
-    return f"{self.irrep}_PSQ{self.psq}"
+  def irrep_refP_key(self):
+    return f"{self.irrep}_Pref{self.refP}"
 
   def __str__(self):
     _str = "iso{} S={} {}".format(self.isospin, self.strangeness, self.irrep)
@@ -168,8 +171,8 @@ class Channel:
 
     if hasattr(self, "momentum"):
       _str += " P=({},{},{})".format(self.momentum[0], self.momentum[1], self.momentum[2])
-    elif hasattr(self, "momentum_squared"):
-      _str += " PSQ={}".format(self.momentum_squared)
+    elif hasattr(self, "ref_momentum"):
+      _str += " Pref=({},{},{})".format(self.ref_momentum[0], self.ref_momentum[1], self.ref_momentum[2])
 
     return _str
   
@@ -181,8 +184,8 @@ class Channel:
 
     if hasattr(self, "momentum"):
       _str += "_P{}{}{}".format(self.momentum[0], self.momentum[1], self.momentum[2])
-    elif hasattr(self, "momentum_squared"):
-      _str += "_P{}".format(self.momentum_squared)
+    elif hasattr(self, "ref_momentum"):
+      _str += "_Pref{}{}{}".format(self.ref_momentum[0], self.ref_momentum[1], self.ref_momentum[2])
 
     return _str.replace('-', 'm')
   

@@ -200,8 +200,8 @@ class ViewData(tasks.task.Task):
         if not operators:
           continue
         
-        if channel.irrep_psq_key not in docs:
-          docs[channel.irrep_psq_key] = util.create_doc(f"Correlators and Effective Energies: {self.ensemble_name} - {self.task_name} - {channel.irrep_psq_key}")
+        if channel.irrep_refP_key not in docs:
+          docs[channel.irrep_refP_key] = util.create_doc(f"Correlators and Effective Energies: {self.ensemble_name} - {self.task_name} - {channel.irrep_refP_key}")
 
       for operator_set in self.operator_sets:
         docs[operator_set.name] = util.create_doc(f"Correlators and Effective Energies: {self.ensemble_name} - {self.task_name} - {operator_set.name}")
@@ -212,7 +212,7 @@ class ViewData(tasks.task.Task):
     # create content
     for channel in self.channels:
       if self.split_pdfs:
-        doc = docs[channel.irrep_psq_key]
+        doc = docs[channel.irrep_refP_key]
 
       data_files = self.data_files + self.data_handler.getChannelDataFiles(channel)
 

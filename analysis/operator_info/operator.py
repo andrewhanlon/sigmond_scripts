@@ -70,8 +70,8 @@ class Operator:
   def createFromCompact(cls, compact_str):
     compact_str = compact_str.strip()
     if compact_str[0].isdigit(): # is gi_operator
-      pattern = r"^(?P<iso_int>\d)(?P<strange>-?\d)(p(?P<psq>\d)|(?P<px>-?\d)" \
-                r"(?P<py>-?\d)(?P<pz>-?\d))(?P<irrep>[A-Z]\d?[gu]?[mp]?)" \
+      pattern = r"^(?P<iso_int>\d)(?P<strange>-?\d)(?P<ref_mom>R)?(?P<px>-?\d)" \
+                r"(?P<py>-?\d)(?P<pz>-?\d)(?P<irrep>[A-Z]\d?[gu]?[mp]?)" \
                 r"(_(?P<irreprow>\d))?-(?P<id_name>\S+)-(?P<id_index>\d+)$"
 
       match = regex.match(pattern, compact_str)
@@ -81,10 +81,10 @@ class Operator:
       matches = match.groupdict()
       isospin = Isospin(int(matches['iso_int'])).name
       op_str = f"iso{isospin} S={matches['strange']}"
-      if matches['psq'] is not None:
-        op_str += f" PSQ={matches['psq']}"
-      else:
-        op_str += f" P=({matches['px']},{matches['py']},{matches['pz']})"
+      op_str += " P"
+      if matches['ref_mom'] is not None:
+        op_str += "ref"
+      op_str += "=({matches['px']},{matches['py']},{matches['pz']})"
 
       op_str += f" {matches['irrep']}"
       if matches['irreprow'] is not None:
@@ -156,20 +156,17 @@ class Operator:
   def compact_str(self):
     if self.operator_type == sigmond.OpKind.GenIrrep:
       operator = self.operator_info.getGenIrrep()
-      if self.psq >= 10:
-        logging.critical("PSQ >= 10 not supported")
-
       if abs(operator.getStrangeness()) >= 10:
         logging.critical("Strangeness >= 10 not supported")
 
       isospin_int = Isospin(operator.getIsospin()).to_int()
       compact_str = f"{isospin_int}{operator.getStrangeness()}"
-      if operator.hasDefiniteMomentum():
-        compact_str += f"{operator.getXMomentum()}" \
-                       f"{operator.getYMomentum()}" \
-                       f"{operator.getZMomentum()}"
-      else:
-        compact_str += f"p{operator.getMomentumSquared()}"
+      if not operator.hasDefiniteMomentum():
+        compact_str += "R"
+
+      compact_str += f"{operator.getXMomentum()}" \
+                     f"{operator.getYMomentum()}" \
+                     f"{operator.getZMomentum()}"
 
       compact_str += operator.getLGIrrep()
       if operator.getLGIrrepRow():
@@ -179,9 +176,6 @@ class Operator:
 
     else:
       operator = self.operator_info.getBasicLapH()
-      if self.psq >= 10:
-        logging.critical("PSQ >= 10 not supported")
-
       if abs(operator.getStrangeness()) >= 10:
         logging.critical("Strangeness >= 10 not supported")
 
@@ -273,11 +267,13 @@ class Operator:
       return self
 
   @property
+  def refP(self):
+    p = (self.getXMomentum(), self.getYMomentum(), self.getZMomentum())
+    return tuple(sorted([abs(pi) for pi in p]))
+
+  @property
   def psq(self):
-    if self.operator_type == sigmond.OpKind.BasicLapH:
-      return self.getXMomentum()**2 + self.getYMomentum()**2 + self.getZMomentum()**2
-    else:
-      return self.getMomentumSquared()
+    return self.getXMomentum()**2 + self.getYMomentum()**2 + self.getZMomentum()**2
 
   @property
   def vev(self):
@@ -373,11 +369,8 @@ class Operator:
           self.getLGIrrepRow(),
           self.getIDName(),
           self.getIDIndex(),
+          (self.getXMomentum(), self.getYMomentum(), self.getZMomentum()),
       ]
-
-      if self.hasDefiniteMomentum():
-        mom = (self.getXMomentum(), self.getYMomentum(), self.getZMomentum())
-        _comp_list.append(mom)
 
     return tuple(_comp_list)
 

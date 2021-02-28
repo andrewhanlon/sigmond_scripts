@@ -188,13 +188,13 @@ class ScatteringParticle:
   """ Scattering Particle
 
   This class is used for representing a single particle with some 
-  P^2. This is convenient for strings like 'name(3)' for representing
-  a single particle called 'name' with P^2=3.
+  refP. This is convenient for strings like 'name(0,1,2)' for representing
+  a single particle called 'name' with refP=(0,1,2).
   """
 
-  def __init__(self, name, psq, irrep=None):
+  def __init__(self, name, refP, irrep=None):
     self.name = name
-    self.psq = psq
+    self.refP = refP
     self.irrep = irrep
 
   @classmethod
@@ -202,28 +202,32 @@ class ScatteringParticle:
     try:
       name, arg = particle[:-1].split('(')
       if '_' in arg:
-        psq, irrep = arg.split('_')
-        psq = int(psq)
+        refP, irrep = arg.split('_')
+        refP = tuple(sorted([abs(int(pi)) for pi in refP.split(',')]))
       else:
-        psq = int(arg)
+        refP = tuple(sorted([abs(int(pi)) for pi in arg.split(',')]))
         irrep = None
 
     except ValueError:
       logging.error(f"Invalid ScatteringParticle '{particle}'")
 
-    return cls(name, psq, irrep)
+    return cls(name, refP, irrep)
+
+  @property
+  def psq(self):
+    return self.refP[0]**2 + self.refP[1]**2 + self.refP[2]**2
 
   def __str__(self):
     if self.irrep is None:
-      return f"{self.name}({self.psq})"
+      return f"{self.name}({self.refP[0]},{self.refP[1]},{self.refP[2]})"
     else:
-      return f"{self.name}({self.psq}_{self.irrep})"
+      return f"{self.name}({self.refP[0]},{self.refP[1]},{self.refP[2]}_{self.irrep})"
 
   def __repr__(self):
     if self.irrep is None:
-      return f"{self.name}({self.psq})"
+      return f"{self.name}({self.refP[0]},{self.refP[1]},{self.refP[2]})"
     else:
-      return f"{self.name}({self.psq}_{self.irrep})"
+      return f"{self.name}({self.refP[0]},{self.refP[1]},{self.refP[2]}_{self.irrep})"
 
   def __hash__(self):
     return hash(self.__repr__())

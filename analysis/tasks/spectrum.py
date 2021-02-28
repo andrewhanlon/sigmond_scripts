@@ -141,11 +141,11 @@ class Spectrum(tasks.task.Task):
                   tmin_min: 3
                   tmin_max: 10
                   extra_tmaxes: [18, 19]
-            - operator: isotriplet S=0 PSQ=1 A2m P 0
+            - operator: isotriplet S=0 Pref=(1,0,0) A2m P 0
               model: 2-exp
               tmin: 5
               tmax: 15
-            - operator: isotriplet S=0 PSQ=2 A2m P 0
+            - operator: isotriplet S=0 Pref=(1,0,1) A2m P 0
               model: log-1-exp
               tmin: 8
               tmax: 12
@@ -243,12 +243,12 @@ class Spectrum(tasks.task.Task):
           use_irrep = fit.pop('use_irrep', False)
           fit_model = sigmond_info.fit_info.FitModel(fit.pop('model'))
           fit_info = sigmond_info.fit_info.FitInfo(operator, fit_model, **fit)
-          psq = operator.psq
+          refP = operator.refP
           if use_irrep:
             irrep = operator.getLGIrrep()
-            scattering_particle = sigmond_info.sigmond_info.ScatteringParticle(name, psq, irrep)
+            scattering_particle = sigmond_info.sigmond_info.ScatteringParticle(name, refP, irrep)
           else:
-            scattering_particle = sigmond_info.sigmond_info.ScatteringParticle(name, psq)
+            scattering_particle = sigmond_info.sigmond_info.ScatteringParticle(name, refP)
 
           if scattering_particle in scattering_particles:
             logging.error(f"Scattering particle '{scattering_particle}' encountered twice")
@@ -529,7 +529,7 @@ class Spectrum(tasks.task.Task):
             at_rest_scattering_particle = sigmond_info.sigmond_info.ScatteringParticle(scattering_particle.name, 0)
             at_rest_scattering_particle_fit_info = self.scattering_particles[at_rest_scattering_particle]
 
-            non_interacting_level.append((at_rest_scattering_particle_fit_info.energy_observable, scattering_particle.psq))
+            non_interacting_level.append((at_rest_scattering_particle_fit_info.energy_observable, scattering_particle.refP))
             non_interacting_amp.append(scattering_particle_fit_info.amplitude_observable)
 
         if tmin_fit_info is not None:
@@ -612,7 +612,7 @@ class Spectrum(tasks.task.Task):
       energy_samplings_obs = list()
       for level, fit_info in enumerate(fit_infos):
         channel = fit_info.operator.channel
-        samp_dir = f"PSQ{channel.psq}/{channel.irrep}"
+        samp_dir = f"Pref{channel.refP}/{channel.irrep}"
         
         ordered_energy = sigmond.MCObsInfo(self.ordered_energy, level)
         elab = sigmond.MCObsInfo(f"{samp_dir}/elab_{level}", 0)
@@ -898,7 +898,7 @@ class Spectrum(tasks.task.Task):
 
         header_row = [
             pylatex.NoEscape(""),
-            pylatex.NoEscape(r"$d^2$"),
+            pylatex.NoEscape(r"$\vec{d}_{\rm ref}$"),
             pylatex.NoEscape(r"$\Lambda$"),
             pylatex.NoEscape(r"Level"),
             pylatex.NoEscape(ref_energy_header),
@@ -939,7 +939,7 @@ class Spectrum(tasks.task.Task):
 
             data_row = [
                 flag,
-                channel.psq,
+                channel.refP,
                 irrep,
                 pylatex.NoEscape(rf"${level} \to {new_level}$"),
                 energy,
@@ -979,7 +979,7 @@ class Spectrum(tasks.task.Task):
       if operator_set.is_rotated:
         for level, fit_info in self.spectrum_logs[operator_set].energies.items():
           operator = fit_info.operator
-          obs_name = f"PSQ{operator.psq}/{operator.channel.irrep}/ecm_{level.new}"
+          obs_name = f"Pref{operator.refP}/{operator.channel.irrep}/ecm_{level.new}"
           if self.reference_fit_info is not None:
             obs_name += f"_{self.ref_name}"
 
@@ -993,7 +993,7 @@ class Spectrum(tasks.task.Task):
       else:
         for level, fit_info in enumerate(fit_infos):
           operator = fit_info.operator
-          obs_name = f"PSQ{operator.psq}/{operator.channel.irrep}/ecm_{level}"
+          obs_name = f"Pref{operator.refP}/{operator.channel.irrep}/ecm_{level}"
           if self.reference_fit_info is not None:
             obs_name += f"_{self.ref_name}"
 

@@ -59,11 +59,11 @@ class Anisotropy(tasks.task.Task):
               model: 1-exp
               tmin: 12
               tmax: 30
-            - operator: isotriplet S=0 PSQ=1 A2m P 0
+            - operator: isotriplet S=0 Pref=(1,0,1) A2m P 0
               model: 2-exp
               tmin: 5
               tmax: 15
-            - operator: isotriplet S=0 PSQ=2 A2m P 0
+            - operator: isotriplet S=0 Pref=(2,0,0) A2m P 0
               model: log-1-exp
               tmin: 8
               tmax: 12
