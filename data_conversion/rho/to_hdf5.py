@@ -28,7 +28,7 @@ def main():
     for replica_i, replica in enumerate(ensemble.replica):
       replica_ensemble_name = f"{ensemble_name}_{replica}"
       for tsrc_i, tsrc in enumerate(ensemble.sources):
-        data_dir = os.path.join(replica, f"src{tsrc}")
+        data_dir = os.path.join(ensemble_name, replica, f"src{tsrc}")
         search_dir = os.path.join(defs.base_data_dir, data_dir)
         corr_files[tsrc_i][replica_i] = get_corr_files(replica_ensemble_name, search_dir)
 

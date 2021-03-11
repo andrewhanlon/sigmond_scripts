@@ -1,6 +1,6 @@
 from typing import NamedTuple
 
-base_data_dir = "/disk2/research/data/J303/"
+base_data_dir = "/disk2/research/data/rho/"
 output_dir = "data"
 
 class Ensemble(NamedTuple):
@@ -10,15 +10,18 @@ class Ensemble(NamedTuple):
   sources: list
 
 ensembles = [
-    Ensemble("cls21_j303", 192, ['r003'], [48, 74, 118, 144]),
+    #Ensemble("cls21_j303", 192, ['r003'], [48, 74, 118, 144]),
+    Ensemble("cls21_d200", 128, ['r000'], [92]),
 ]
 
 omissions = {
     "cls21_j303_r003": set(list(range(1, 1073, 2))),
+    "cls21_d200_r000": set(),
 }
 
 configs = {
     "cls21_j303_r003": list(range(1, 1073, 2)),
+    "cls21_d200_r000": list(range(1, 2001, 1)),
 }
 
 class Channel(NamedTuple):
