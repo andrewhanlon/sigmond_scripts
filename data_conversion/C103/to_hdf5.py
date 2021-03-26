@@ -27,9 +27,9 @@ def main():
                       help="Specify directory containing raw data")
   parser.add_argument("-o", "--output", type=str, required=True, metavar='output directory',
                       help="Specify output directory to write averaged data")
-  parser.add_argument("-s", "--ave-sources", action='store_true', metavar='average sources',
+  parser.add_argument("-s", "--ave-sources", action='store_true',
                       help="Specify if averaging over sources should be done")
-  parser.add_argument("-e", "--ave-equiv", action='store_true', metavar='average equivalent',
+  parser.add_argument("-e", "--ave-equiv", action='store_true',
                       help="Specify if averaging over equivalent momentum frames and irrep rows should be done (will also assume averaging over sources")
 
   args = parser.parse_args()
@@ -67,6 +67,7 @@ def main():
     channels = channels[0]
 
     if args.ave_equiv:
+      print("Averaging over all equivalent momentum and irrep rows")
       averaged_channels = dict()
       for channel in channels:
         psq = channel.momentum[0]**2 + channel.momentum[1]**2 + channel.momentum[2]**2
@@ -101,6 +102,7 @@ def main():
 
 
     else:
+      print(f"Averaging over all sources: {args.ave_sources}")
       for channel in tqdm.tqdm(channels):
         if args.ave_sources:
           op_lists = list()
