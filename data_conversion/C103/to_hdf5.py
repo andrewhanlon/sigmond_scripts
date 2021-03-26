@@ -19,7 +19,10 @@ import operator_info.operator
 
 COMPLEX_ARGS = [sigmond.ComplexArg.RealPart, sigmond.ComplexArg.ImaginaryPart]
 
-MAX_CORRS = 50
+SOURCE_MOD = 12
+
+AVERAGE_SRCS = True
+AVERAGE_MOM = True
 
 def main():
   parser = argparse.ArgumentParser(description="Convert C103 data")
@@ -62,15 +65,72 @@ def main():
 
     channels = channels[0]
 
-    for channel in tqdm.tqdm(channels):
-      for replica in ensemble.replica:
-        replica_ensemble_name = f"{ensemble_name}_{replica}"
-        for source in ensemble.sources:
-          correlators = corr_files[replica][source][channel]
-          correlator_data, op_list = get_data(correlators, replica_ensemble_name)
+    if AVERAGE_MOM:
+      averaged_channels = dict()
+      for channel in channels:
+        psq = channel.momentum[0]**2 + channel.momentum[1]**2 + channel.momentum[2]**2
+        averaged_channel = defs.AveragedChannel(psq, channel.irrep, channel.isospin, channel.strangeness)
+        if averaged_channel not in averaged_channels:
+          averaged_channels[averaged_channel] = list()
 
-          hdf5_file = get_hdf5_file(args.output, replica_ensemble_name, channel, source)
-          write_data(correlator_data, channel, op_list, hdf5_file)
+        averaged_channels[averaged_channel].append(channel)
+
+      for averaged_channel, channels in tqdm.tqdm(averaged_channels.items()):
+        op_lists = list()
+        for replica in ensemble.replica:
+          replica_ensemble_name = f"{ensemble_name}_{replica}"
+          corrs_to_average = list()
+          for channel in channels:
+            for source in ensemble.sources:
+              correlators = corr_files[replica][source][channel]
+              correlator_data, op_list = get_data(correlators, replica_ensemble_name, ensemble.Nt, source[0])
+              op_list = average_op_list(op_list)
+              op_lists.append(op_list)
+              corrs_to_average.append(correlator_data)
+
+          averaged_corr_data = np.mean(corrs_to_average, axis=0)
+
+          all_equal = all(op_list==op_lists[0] for op_list in op_lists)
+          if not all_equal:
+            print("not all op lists equal")
+            exit()
+          
+          hdf5_file = get_hdf5_file(args.output, replica_ensemble_name, averaged_channel)
+          write_data(averaged_corr_data, averaged_channel, op_lists[0], hdf5_file)
+
+
+    else:
+      for channel in tqdm.tqdm(channels):
+        if AVERAGE_SRCS:
+          op_lists = list()
+          for replica in ensemble.replica:
+            replica_ensemble_name = f"{ensemble_name}_{replica}"
+            corrs_to_average = list()
+            for source in ensemble.sources:
+              correlators = corr_files[replica][source][channel]
+              correlator_data, op_list = get_data(correlators, replica_ensemble_name, ensemble.Nt, source[0])
+              op_lists.append(op_list)
+              corrs_to_average.append(correlator_data)
+
+            averaged_corr_data = np.mean(corrs_to_average, axis=0)
+
+            all_equal = all(op_list==op_lists[0] for op_list in op_lists)
+            if not all_equal:
+              print("not all op lists equal")
+              exit()
+            
+            hdf5_file = get_hdf5_file(args.output, replica_ensemble_name, channel)
+            write_data(averaged_corr_data, channel, op_lists[0], hdf5_file)
+
+        else:
+          for replica in ensemble.replica:
+            replica_ensemble_name = f"{ensemble_name}_{replica}"
+            for source in ensemble.sources:
+              correlators = corr_files[replica][source][channel]
+              correlator_data, op_list = get_data(correlators, replica_ensemble_name, ensemble.Nt, source[0])
+
+              hdf5_file = get_hdf5_file(args.output, replica_ensemble_name, channel, source)
+              write_data(correlator_data, channel, op_list, hdf5_file)
 
 
 def write_data(data, channel, op_list, hdf5_file):
@@ -82,8 +142,7 @@ def write_data(data, channel, op_list, hdf5_file):
   f_hand.close()
 
 
-
-def get_data(correlators, ensemble_name):
+def get_data(correlators, ensemble_name, ensemble_Nt, tsrc):
   mcobs_xml = ET.Element("MCObservables")
   corr_data_xml = ET.SubElement(mcobs_xml, "BLCorrelatorData")
 
@@ -133,10 +192,13 @@ def get_data(correlators, ensemble_name):
 
 
   for snk_i, snk_op in enumerate(operators):
+    bl_op = snk_op.getBasicLapH()
+    change_sign = bl_op.isBaryon() or bl_op.isMesonBaryon()
+    forward = not snk_op.isBackwards()
+
     for src_i, src_op in enumerate(operators):
 
       correlator = sigmond.CorrelatorInfo(snk_op, src_op)
-      correlator_opposite = sigmond.CorrelatorInfo(src_op, snk_op)
       for tsep in range(tmin, tmax+1):
         correlator_time = sigmond.CorrelatorAtTimeInfo(correlator, tsep, False, False)
         correlator_time_re_obsinfo = sigmond.MCObsInfo(correlator_time, sigmond.ComplexArg.RealPart)
@@ -154,13 +216,30 @@ def get_data(correlators, ensemble_name):
         else:
           continue
 
+        if change_sign:
+          if not forward:
+            data = -data
+
+          for bin_i, config in enumerate(defs.config_indices[ensemble_name]):
+            if forward:
+              T = tsep + tsrc + defs.source_lists[ensemble_name][config] % SOURCE_MOD
+            else:
+              T = -tsep + tsrc + defs.source_lists[ensemble_name][config] % SOURCE_MOD
+
+            if T >= ensemble_Nt or T < 0:
+              data[bin_i] = -data[bin_i]
+
         if single_correlator:
           corr_data[:,tsep] = data
         else:
           corr_data[:,snk_i,src_i,tsep] = data
 
-  operators = [op.op_str() for op in operators]
-  return corr_data, operators
+  op_list = list()
+  for operator in operators:
+    operator.setForwards()
+    op_list.append(operator.op_str())
+
+  return corr_data, op_list
 
 
 def get_corr_files(ensemble_name, search_dir):
@@ -175,7 +254,6 @@ def get_corr_files(ensemble_name, search_dir):
 
       if file_type != sigmond.FileType.Correlator:
         continue
-
 
       base, ext = os.path.splitext(full_filename)
 
@@ -222,11 +300,17 @@ def get_corr_files(ensemble_name, search_dir):
   return corr_files
 
 
-def get_hdf5_file(base_output_dir, ensemble_name, channel, source):
+def get_hdf5_file(base_output_dir, ensemble_name, channel, source=None):
   output_dir = os.path.join(base_output_dir, ensemble_name)
   os.makedirs(output_dir, exist_ok=True)
 
-  hdf5_file = os.path.join(output_dir, f"{ensemble_name}_{channel.iso_strange_str()}_t0{source[0]}_{defs.parity_name[source[1]]}.hdf5")
+  if source is not None:
+    hdf5_file =f"{ensemble_name}_{channel.iso_strange_str()}_t0{source[0]}_{defs.parity_name[source[1]]}.hdf5"
+  else:
+    hdf5_file = f"{ensemble_name}_{channel.iso_strange_str()}.hdf5"
+
+  hdf5_file = os.path.join(output_dir, hdf5_file)
+
   return hdf5_file
 
 def get_channel(correlator):
@@ -238,6 +322,27 @@ def get_channel(correlator):
   strangeness = op.getStrangeness()
   channel = defs.Channel(P, irrep, irrep_row, isospin, strangeness)
   return channel
+
+def average_op_list(op_list):
+  new_op_list = list()
+  for op in op_list:
+    tokens = op.split(' ')
+    if tokens[1].startswith('P'): # single hadron
+      mom = tokens[1].split('(')[1].rstrip(')').split(',')
+      psq = str(int(mom[0])**2 + int(mom[1])**2 + int(mom[2])**2)
+      tokens[1] = f"PSQ={psq}"
+      tokens[2] = tokens[2].split('_')[0]
+      new_op_list.append(' '.join(tokens))
+
+    else: # multi hadron
+      tokens[1] = tokens[1].split('_')[0]
+      for i in range(2, len(tokens)):
+        if tokens[i].startswith('[P'):
+          mom = tokens[i].split('(')[1].rstrip(')').split(',')
+          psq = str(int(mom[0])**2 + int(mom[1])**2 + int(mom[2])**2)
+          tokens[i] = f"[PSQ={psq}"
+
+      new_op_list.append(' '.join(tokens))
 
 
 if __name__ == "__main__":
