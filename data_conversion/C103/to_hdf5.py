@@ -21,15 +21,16 @@ COMPLEX_ARGS = [sigmond.ComplexArg.RealPart, sigmond.ComplexArg.ImaginaryPart]
 
 SOURCE_MOD = 12
 
-AVERAGE_SRCS = True
-AVERAGE_MOM = True
-
 def main():
   parser = argparse.ArgumentParser(description="Convert C103 data")
   parser.add_argument("-i", "--input", type=str, required=True, metavar='input directory',
                       help="Specify directory containing raw data")
   parser.add_argument("-o", "--output", type=str, required=True, metavar='output directory',
                       help="Specify output directory to write averaged data")
+  parser.add_argument("-s", "--ave-sources", action='store_true', metavar='average sources',
+                      help="Specify if averaging over sources should be done")
+  parser.add_argument("-e", "--ave-equiv", action='store_true', metavar='average equivalent',
+                      help="Specify if averaging over equivalent momentum frames and irrep rows should be done (will also assume averaging over sources")
 
   args = parser.parse_args()
 
@@ -65,7 +66,7 @@ def main():
 
     channels = channels[0]
 
-    if AVERAGE_MOM:
+    if args.ave_equiv:
       averaged_channels = dict()
       for channel in channels:
         psq = channel.momentum[0]**2 + channel.momentum[1]**2 + channel.momentum[2]**2
@@ -101,7 +102,7 @@ def main():
 
     else:
       for channel in tqdm.tqdm(channels):
-        if AVERAGE_SRCS:
+        if args.ave_sources:
           op_lists = list()
           for replica in ensemble.replica:
             replica_ensemble_name = f"{ensemble_name}_{replica}"

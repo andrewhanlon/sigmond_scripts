@@ -3,8 +3,8 @@
 #SBATCH --partition=red
 #SBATCH --time=700:00:00
 #SBATCH --ntasks=1
-#SBATCH --output=/latticeQCD/raid4/ahanlon/data/C103/hdf5_ave/to_hdf5_ave.out
-#SBATCH --error=/latticeQCD/raid4/ahanlon/data/C103/hdf5_ave/to_hdf5_ave.err
+#SBATCH --output=/latticeQCD/raid4/ahanlon/data/C103/hdf5_ave_src/to_hdf5_ave.out
+#SBATCH --error=/latticeQCD/raid4/ahanlon/data/C103/hdf5_ave_src/to_hdf5_ave.err
 #SBATCH --mail-type=END,FAIL
 #SBATCH --mail-user=ddhanlon@gmail.com
 
@@ -12,8 +12,8 @@
 export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/lib
 
 PYTHON=/home/ahanlon/.apps/python/3.9.0/bin/python3.9
-PROG=/home/ahanlon/code/sigmond_scripts/data_conversion/C103/to_hdf5_ave.py
+PROG=/home/ahanlon/code/sigmond_scripts/data_conversion/C103/to_hdf5.py
 INPUTDIR=/latticeQCD/raid4/ahanlon/data/C103/raw/
-OUTPUTDIR=/latticeQCD/raid4/ahanlon/data/C103/hdf5_ave/
+OUTPUTDIR=/latticeQCD/raid4/ahanlon/data/C103/hdf5_ave_src/
 
-stdbuf -o0 -e0 ${PYTHON} ${PROG} -i ${INPUTDIR} -o ${OUTPUTDIR}
+stdbuf -o0 -e0 ${PYTHON} ${PROG} -i ${INPUTDIR} -o ${OUTPUTDIR} --ave-sources
