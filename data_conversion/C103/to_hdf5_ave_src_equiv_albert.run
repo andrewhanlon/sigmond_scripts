@@ -1,6 +1,6 @@
 #!/bin/bash
 #SBATCH --job-name=C103_to_hdf5_ave_src_equiv
-#SBATCH --partition=green
+#SBATCH --partition=red
 #SBATCH --time=1000:00:00
 #SBATCH --ntasks=1
 #SBATCH --output=/latticeQCD/raid4/ahanlon/data/C103/hdf5_ave_src_equiv/to_hdf5.out

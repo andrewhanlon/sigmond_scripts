@@ -67,7 +67,7 @@ def main():
     channels = channels[0]
 
     if args.ave_equiv:
-      print("Averaging over all equivalent momentum and irrep rows")
+      print("Averaging over all equivalent momentum and irrep rows", flush=True)
       averaged_channels = dict()
       for channel in channels:
         psq = channel.momentum[0]**2 + channel.momentum[1]**2 + channel.momentum[2]**2
@@ -76,6 +76,12 @@ def main():
           averaged_channels[averaged_channel] = list()
 
         averaged_channels[averaged_channel].append(channel)
+
+      for averaged_channel, channels in averaged_channels.items():
+        print(f"Averaged Channel: {averaged_channel!s}", flush=True)
+        for channel in channels:
+          print(f"  * {channel!s}", flush=True)
+        print("", flush=True)
 
       for averaged_channel, channels in tqdm.tqdm(averaged_channels.items()):
         op_lists = list()
@@ -102,7 +108,7 @@ def main():
 
 
     else:
-      print(f"Averaging over all sources: {args.ave_sources}")
+      print(f"Averaging over all sources: {args.ave_sources}", flush=True)
       for channel in tqdm.tqdm(channels):
         if args.ave_sources:
           op_lists = list()
@@ -139,7 +145,7 @@ def main():
 def write_data(data, channel, op_list, hdf5_file):
   f_hand = h5py.File(hdf5_file, 'a')
   channel_group = f_hand.create_group(channel.data_channel_str())
-  channel_group.attrs.create('opList', op_list)
+  channel_group.attrs.create('op_list', op_list)
   channel_group.create_dataset('data', data=data)
 
   f_hand.close()
@@ -346,6 +352,8 @@ def average_op_list(op_list):
           tokens[i] = f"[PSQ={psq}"
 
       new_op_list.append(' '.join(tokens))
+
+  return new_op_list
 
 
 if __name__ == "__main__":
