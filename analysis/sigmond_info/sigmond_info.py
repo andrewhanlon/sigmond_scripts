@@ -105,6 +105,25 @@ class AnisotropyPlotInfo(NamedTuple):
 
     return anisotropy_plot_info
 
+class DispersionPlotInfo(NamedTuple):
+  goodness: Goodness = Goodness.chisq
+  symbol_color: SymbolColor = SymbolColor.blue
+  symbol_type: SymbolType = SymbolType.circle
+
+  @classmethod
+  def createFromConfig(cls, options):
+    dispersion_plot_info = options.pop('dispersion_plot_info', dict())
+    util.updateOption(dispersion_plot_info, 'goodness', Goodness)
+    util.updateOption(dispersion_plot_info, 'symbol_color', SymbolColor)
+    util.updateOption(dispersion_plot_info, 'symbol_type', SymbolType)
+
+    try:
+      dispersion_plot_info = cls(**dispersion_plot_info)
+    except TypeError as err:
+      logging.error(f"Invalid 'dispersion_plot_info' config: {err}")
+
+    return dispersion_plot_info
+
 
 class TMinPlotInfo(NamedTuple):
   obsname: str = "standard"

@@ -187,7 +187,9 @@ def spectrum(thresholds, energies, non_interacting_energies, latex_map, rotate_i
   irrep_label_poss = np.linspace(label_width/2., FRAME_WIDTH-label_width/2, num_channels)
   '''
 
+  print("irrep positions")
   for irrep_label_pos, irrep_label in zip(irrep_label_poss, energies.keys()):
+    print(f"{irrep_label}: {irrep_label_pos}")
     if rotate_irreps:
       tikz_lab = rf"\node[anchor=north east, rotate=45, inner sep=0.2em] at ({irrep_label_pos},0.)" \
                  rf"{{\footnotesize {{{irrep_label}}}}};"
@@ -199,7 +201,7 @@ def spectrum(thresholds, energies, non_interacting_energies, latex_map, rotate_i
 
 
   # Draw non-interacting levels
-  box_width = label_width*.9
+  box_width = label_width*.8
   for counter, (x_pos, non_energy_list) in enumerate(zip(irrep_label_poss, non_interacting_energies.values())):
     for non_energy_est in non_energy_list:
       non_energy_val = non_energy_est.getFullEstimate()
@@ -255,3 +257,6 @@ def spectrum(thresholds, energies, non_interacting_energies, latex_map, rotate_i
 
   util.write_tikz(tikz_pic, tikz_filename)
   util.compile_pdf(doc, filename, latex_compiler)
+
+  print(f"x_range: {x_range}")
+  print(f"energy_range: {energy_range}")

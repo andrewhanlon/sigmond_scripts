@@ -394,6 +394,67 @@ class SigmondInput:
 
     self._addTask(xml)
 
+  def doDispersion(self, scattering_particle_energies, spatial_extent, **extra_options):
+    """ Adds a 'DoDispersion' task to the
+        SigmondInput object
+
+    Args:
+      scattering_particle_energies (dict): Specifies the single
+          hadron fits
+      spatial_extent (int): Need this if you want to get the
+          absolute/difference energy from a tmin fit
+      **name (str): used for naming the fit parameters
+      **minimizer_info (sigmond_xml.MinimizerInfo): Specifies the
+          info for the Minimizer.
+      **sampling_mode (sigmond_xml.SamplingMode): specifies a
+          sampling mode to use for the fit.
+      **cov_sampling_mode (sigmond_xml.SamplingMode): specifies the
+          sampling mode to use in the calculation of the covariance
+          matrix.
+      **plotfile (str): specifies the plot filename
+      **plot_info (DispersionPlotInfo): all the information
+          for the plotting.
+    """
+
+    xml = ET.Element("Task")
+    ET.SubElement(xml, "Action").text = "DoFit"
+    ET.SubElement(xml, "Type").text = "Dispersion"
+    if 'minimizer_info' in extra_options:
+      xml.append(extra_options['minimizer_info'].xml())
+    if 'sampling_mode' in extra_options:
+      ET.SubElement(xml, "SamplingMode").text = str(extra_options['sampling_mode'])
+    if 'cov_sampling_mode' in extra_options:
+      ET.SubElement(xml, "CovMatCalcSamplingMode").text = str(extra_options['cov_sampling_mode'])
+
+    fit_tag = ET.SubElement(xml, "DispersionFit")
+    ET.SubElement(fit_tag, "SpatialExtentNumSites").text = str(spatial_extent)
+    for scat_energy_obs, psq in scattering_particle_energies:
+      scat_energy_xml = ET.SubElement(fit_tag, "Energy")
+      ET.SubElement(scat_energy_xml, "Name").text = scat_energy_obs.getObsName()
+      ET.SubElement(scat_energy_xml, "IDIndex").text = str(scat_energy_obs.getObsIndex())
+      ET.SubElement(scat_energy_xml, "IntMomSquared").text = str(psq)
+
+    name = extra_options.get('name', '')
+    coeff_xml = ET.SubElement(fit_tag, "Coefficient")
+    ET.SubElement(coeff_xml, "Name").text = f"{name}_coeff"
+    ET.SubElement(coeff_xml, "IDIndex").text = "0"
+    mass_xml = ET.SubElement(fit_tag, "RestMassSquared")
+    ET.SubElement(mass_xml, "Name").text = f"{name}_mass_squared"
+    ET.SubElement(mass_xml, "IDIndex").text = "0"
+
+    if 'plotfile' in extra_options:
+      plot_tag = ET.SubElement(fit_tag, "DoPlot")
+      ET.SubElement(plot_tag, "PlotFile").text = extra_options['plotfile']
+      if 'name' in extra_options:
+        ET.SubElement(plot_tag, "ParticleName").text = extra_options['name']
+      if 'plot_info' in extra_options:
+        plot_info = extra_options['plot_info']
+        ET.SubElement(plot_tag, "SymbolColor").text = plot_info.symbol_color.value
+        ET.SubElement(plot_tag, "SymbolType").text = plot_info.symbol_type.value
+        ET.SubElement(plot_tag, "Goodness").text = plot_info.goodness.value
+
+    self._addTask(xml)
+
   def doTemporalCorrelatorFit(self, fit_info, **extra_options):
     """ Adds a 'DoFit' task of type 'TemporalCorrelator' to the
         SigmondInput object
