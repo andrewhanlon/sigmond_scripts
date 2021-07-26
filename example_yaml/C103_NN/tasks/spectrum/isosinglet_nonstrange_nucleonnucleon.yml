@@ -1,7 +1,7 @@
 Execute:
   mode: local
-  sigmond_batch: /home/ahanlon/.bin/sigmond
-  max_simultaneous: 1
+  sigmond_batch: /home/ahanlon/.local/bin/sigmond
+  max_simultaneous: 7
 
 I0_S0_NN:
   task_type: spectrum
@@ -160,6 +160,7 @@ I0_S0_NN:
           - model: 1-exp
             tmin_min: 5
             tmin_max: 11
+            ratio: False
           - model: 1-exp
             tmin_min: 1
             tmin_max: 10
@@ -167,6 +168,7 @@ I0_S0_NN:
           - model: 2-exp
             tmin_min: 2
             tmin_max: 10
+            ratio: False
 
     - name: isosinglet_S0_A2g_P0
       pivot_info:
@@ -193,6 +195,7 @@ I0_S0_NN:
           - model: 1-exp
             tmin_min: 5
             tmin_max: 11
+            ratio: False
           - model: 1-exp
             tmin_min: 1
             tmin_max: 10
@@ -200,10 +203,12 @@ I0_S0_NN:
           - model: 2-exp
             tmin_min: 2
             tmin_max: 10
+            ratio: False
         - fit_infos:
           - model: 1-exp
             tmin_min: 5
             tmin_max: 11
+            ratio: False
           - model: 1-exp
             tmin_min: 1
             tmin_max: 10
@@ -211,10 +216,12 @@ I0_S0_NN:
           - model: 2-exp
             tmin_min: 2
             tmin_max: 10
+            ratio: False
         - fit_infos:
           - model: 1-exp
             tmin_min: 5
             tmin_max: 11
+            ratio: False
           - model: 1-exp
             tmin_min: 1
             tmin_max: 10
@@ -222,6 +229,7 @@ I0_S0_NN:
           - model: 2-exp
             tmin_min: 2
             tmin_max: 10
+            ratio: False
 
     - name: isosinglet_S0_A2u_P0
       operators:
@@ -240,6 +248,7 @@ I0_S0_NN:
           - model: 1-exp
             tmin_min: 5
             tmin_max: 11
+            ratio: False
           - model: 1-exp
             tmin_min: 1
             tmin_max: 10
@@ -247,6 +256,7 @@ I0_S0_NN:
           - model: 2-exp
             tmin_min: 2
             tmin_max: 10
+            ratio: False
 
     - name: isosinglet_S0_Eg_P0
       pivot_info:
@@ -277,6 +287,7 @@ I0_S0_NN:
           - model: 1-exp
             tmin_min: 5
             tmin_max: 11
+            ratio: False
           - model: 1-exp
             tmin_min: 1
             tmin_max: 10
@@ -284,10 +295,12 @@ I0_S0_NN:
           - model: 2-exp
             tmin_min: 2
             tmin_max: 6
+            ratio: False
         - fit_infos:
           - model: 1-exp
             tmin_min: 5
             tmin_max: 11
+            ratio: False
           - model: 1-exp
             tmin_min: 1
             tmin_max: 10
@@ -295,10 +308,12 @@ I0_S0_NN:
           - model: 2-exp
             tmin_min: 2
             tmin_max: 6
+            ratio: False
         - fit_infos:
           - model: 1-exp
             tmin_min: 5
             tmin_max: 11
+            ratio: False
           - model: 1-exp
             tmin_min: 1
             tmin_max: 10
@@ -306,10 +321,12 @@ I0_S0_NN:
           - model: 2-exp
             tmin_min: 2
             tmin_max: 6
+            ratio: False
         - fit_infos:
           - model: 1-exp
             tmin_min: 5
             tmin_max: 11
+            ratio: False
           - model: 1-exp
             tmin_min: 1
             tmin_max: 10
@@ -317,6 +334,7 @@ I0_S0_NN:
           - model: 2-exp
             tmin_min: 2
             tmin_max: 6
+            ratio: False
 
     - name: isosinglet_S0_T1g_P0
       pivot_info:
@@ -405,6 +423,7 @@ I0_S0_NN:
           - model: 1-exp
             tmin_min: 5
             tmin_max: 15
+            ratio: False
           - model: 1-exp
             tmin_min: 1
             tmin_max: 13
@@ -412,11 +431,13 @@ I0_S0_NN:
           - model: 2-exp
             tmin_min: 2
             tmin_max: 6
+            ratio: False
             
         - fit_infos:
           - model: 1-exp
             tmin_min: 5
             tmin_max: 15
+            ratio: False
           - model: 1-exp
             tmin_min: 1
             tmin_max: 13
@@ -424,11 +445,13 @@ I0_S0_NN:
           - model: 2-exp
             tmin_min: 2
             tmin_max: 6
+            ratio: False
             
         - fit_infos:
           - model: 1-exp
             tmin_min: 5
             tmin_max: 15
+            ratio: False
           - model: 1-exp
             tmin_min: 1
             tmin_max: 13
@@ -436,11 +459,13 @@ I0_S0_NN:
           - model: 2-exp
             tmin_min: 2
             tmin_max: 6
+            ratio: False
             
         - fit_infos:
           - model: 1-exp
             tmin_min: 5
             tmin_max: 15
+            ratio: False
           - model: 1-exp
             tmin_min: 1
             tmin_max: 13
@@ -448,11 +473,13 @@ I0_S0_NN:
           - model: 2-exp
             tmin_min: 2
             tmin_max: 6
+            ratio: False
             
         - fit_infos:
           - model: 1-exp
             tmin_min: 5
             tmin_max: 15
+            ratio: False
           - model: 1-exp
             tmin_min: 1
             tmin_max: 13
@@ -460,11 +487,13 @@ I0_S0_NN:
           - model: 2-exp
             tmin_min: 2
             tmin_max: 6
+            ratio: False
             
         - fit_infos:
           - model: 1-exp
             tmin_min: 5
             tmin_max: 15
+            ratio: False
           - model: 1-exp
             tmin_min: 1
             tmin_max: 13
@@ -472,11 +501,13 @@ I0_S0_NN:
           - model: 2-exp
             tmin_min: 2
             tmin_max: 6
+            ratio: False
             
         - fit_infos:
           - model: 1-exp
             tmin_min: 5
             tmin_max: 15
+            ratio: False
           - model: 1-exp
             tmin_min: 1
             tmin_max: 13
@@ -484,11 +515,13 @@ I0_S0_NN:
           - model: 2-exp
             tmin_min: 2
             tmin_max: 6
+            ratio: False
             
         - fit_infos:
           - model: 1-exp
             tmin_min: 5
             tmin_max: 15
+            ratio: False
           - model: 1-exp
             tmin_min: 1
             tmin_max: 13
@@ -496,11 +529,13 @@ I0_S0_NN:
           - model: 2-exp
             tmin_min: 2
             tmin_max: 6
+            ratio: False
             
         - fit_infos:
           - model: 1-exp
             tmin_min: 5
             tmin_max: 15
+            ratio: False
           - model: 1-exp
             tmin_min: 1
             tmin_max: 13
@@ -508,11 +543,13 @@ I0_S0_NN:
           - model: 2-exp
             tmin_min: 2
             tmin_max: 6
+            ratio: False
             
         - fit_infos:
           - model: 1-exp
             tmin_min: 5
             tmin_max: 15
+            ratio: False
           - model: 1-exp
             tmin_min: 1
             tmin_max: 13
@@ -520,11 +557,13 @@ I0_S0_NN:
           - model: 2-exp
             tmin_min: 2
             tmin_max: 6
+            ratio: False
             
         - fit_infos:
           - model: 1-exp
             tmin_min: 5
             tmin_max: 15
+            ratio: False
           - model: 1-exp
             tmin_min: 1
             tmin_max: 13
@@ -532,11 +571,13 @@ I0_S0_NN:
           - model: 2-exp
             tmin_min: 2
             tmin_max: 8
+            ratio: False
 
         - fit_infos:
           - model: 1-exp
             tmin_min: 5
             tmin_max: 15
+            ratio: False
           - model: 1-exp
             tmin_min: 1
             tmin_max: 13
@@ -544,11 +585,13 @@ I0_S0_NN:
           - model: 2-exp
             tmin_min: 2
             tmin_max: 7
+            ratio: False
 
         - fit_infos:
           - model: 1-exp
             tmin_min: 5
             tmin_max: 15
+            ratio: False
           - model: 1-exp
             tmin_min: 1
             tmin_max: 13
@@ -556,11 +599,13 @@ I0_S0_NN:
           - model: 2-exp
             tmin_min: 2
             tmin_max: 10
+            ratio: False
             
         - fit_infos:
           - model: 1-exp
             tmin_min: 5
             tmin_max: 15
+            ratio: False
           - model: 1-exp
             tmin_min: 1
             tmin_max: 13
@@ -568,11 +613,13 @@ I0_S0_NN:
           - model: 2-exp
             tmin_min: 2
             tmin_max: 10
+            ratio: False
 
         - fit_infos:
           - model: 1-exp
             tmin_min: 5
             tmin_max: 16
+            ratio: False
           - model: 1-exp
             tmin_min: 1
             tmin_max: 16
@@ -580,6 +627,7 @@ I0_S0_NN:
           - model: 2-exp
             tmin_min: 2
             tmin_max: 10
+            ratio: False
 
     - name: isosinglet_S0_T1u_P0
       pivot_info:
@@ -623,6 +671,7 @@ I0_S0_NN:
           - model: 1-exp
             tmin_min: 5
             tmin_max: 13
+            ratio: False
           - model: 1-exp
             tmin_min: 1
             tmin_max: 12
@@ -630,11 +679,13 @@ I0_S0_NN:
           - model: 2-exp
             tmin_min: 2
             tmin_max: 10
+            ratio: False
 
         - fit_infos:
           - model: 1-exp
             tmin_min: 5
             tmin_max: 14
+            ratio: False
           - model: 1-exp
             tmin_min: 1
             tmin_max: 14
@@ -642,11 +693,13 @@ I0_S0_NN:
           - model: 2-exp
             tmin_min: 2
             tmin_max: 10
+            ratio: False
 
         - fit_infos:
           - model: 1-exp
             tmin_min: 5
             tmin_max: 13
+            ratio: False
           - model: 1-exp
             tmin_min: 1
             tmin_max: 12
@@ -654,11 +707,13 @@ I0_S0_NN:
           - model: 2-exp
             tmin_min: 2
             tmin_max: 10
+            ratio: False
 
         - fit_infos:
           - model: 1-exp
             tmin_min: 5
             tmin_max: 14
+            ratio: False
           - model: 1-exp
             tmin_min: 1
             tmin_max: 14
@@ -666,11 +721,13 @@ I0_S0_NN:
           - model: 2-exp
             tmin_min: 2
             tmin_max: 10
+            ratio: False
 
         - fit_infos:
           - model: 1-exp
             tmin_min: 5
             tmin_max: 13
+            ratio: False
           - model: 1-exp
             tmin_min: 1
             tmin_max: 12
@@ -678,11 +735,13 @@ I0_S0_NN:
           - model: 2-exp
             tmin_min: 2
             tmin_max: 10
+            ratio: False
 
         - fit_infos:
           - model: 1-exp
             tmin_min: 5
             tmin_max: 14
+            ratio: False
           - model: 1-exp
             tmin_min: 1
             tmin_max: 14
@@ -690,6 +749,7 @@ I0_S0_NN:
           - model: 2-exp
             tmin_min: 2
             tmin_max: 10
+            ratio: False
 
     - name: isosinglet_S0_T2g_P0
       pivot_info:
@@ -753,6 +813,7 @@ I0_S0_NN:
           - model: 1-exp
             tmin_min: 5
             tmin_max: 14
+            ratio: False
           - model: 1-exp
             tmin_min: 1
             tmin_max: 12
@@ -760,11 +821,13 @@ I0_S0_NN:
           - model: 2-exp
             tmin_min: 2
             tmin_max: 10
+            ratio: False
             
         - fit_infos:
           - model: 1-exp
             tmin_min: 5
             tmin_max: 12
+            ratio: False
           - model: 1-exp
             tmin_min: 1
             tmin_max: 10
@@ -772,11 +835,13 @@ I0_S0_NN:
           - model: 2-exp
             tmin_min: 2
             tmin_max: 10
+            ratio: False
 
         - fit_infos:
           - model: 1-exp
             tmin_min: 5
             tmin_max: 14
+            ratio: False
           - model: 1-exp
             tmin_min: 1
             tmin_max: 12
@@ -784,11 +849,13 @@ I0_S0_NN:
           - model: 2-exp
             tmin_min: 2
             tmin_max: 10
+            ratio: False
             
         - fit_infos:
           - model: 1-exp
             tmin_min: 5
             tmin_max: 12
+            ratio: False
           - model: 1-exp
             tmin_min: 1
             tmin_max: 10
@@ -796,11 +863,13 @@ I0_S0_NN:
           - model: 2-exp
             tmin_min: 2
             tmin_max: 10
+            ratio: False
 
         - fit_infos:
           - model: 1-exp
             tmin_min: 5
             tmin_max: 14
+            ratio: False
           - model: 1-exp
             tmin_min: 1
             tmin_max: 9
@@ -808,11 +877,13 @@ I0_S0_NN:
           - model: 2-exp
             tmin_min: 2
             tmin_max: 10
+            ratio: False
 
         - fit_infos:
           - model: 1-exp
             tmin_min: 5
             tmin_max: 14
+            ratio: False
           - model: 1-exp
             tmin_min: 1
             tmin_max: 12
@@ -820,11 +891,13 @@ I0_S0_NN:
           - model: 2-exp
             tmin_min: 2
             tmin_max: 10
+            ratio: False
             
         - fit_infos:
           - model: 1-exp
             tmin_min: 5
             tmin_max: 12
+            ratio: False
           - model: 1-exp
             tmin_min: 1
             tmin_max: 10
@@ -832,11 +905,13 @@ I0_S0_NN:
           - model: 2-exp
             tmin_min: 2
             tmin_max: 10
+            ratio: False
 
         - fit_infos:
           - model: 1-exp
             tmin_min: 5
             tmin_max: 14
+            ratio: False
           - model: 1-exp
             tmin_min: 1
             tmin_max: 12
@@ -844,11 +919,13 @@ I0_S0_NN:
           - model: 2-exp
             tmin_min: 2
             tmin_max: 10
+            ratio: False
             
         - fit_infos:
           - model: 1-exp
             tmin_min: 5
             tmin_max: 12
+            ratio: False
           - model: 1-exp
             tmin_min: 1
             tmin_max: 10
@@ -856,11 +933,13 @@ I0_S0_NN:
           - model: 2-exp
             tmin_min: 2
             tmin_max: 10
+            ratio: False
 
         - fit_infos:
           - model: 1-exp
             tmin_min: 5
             tmin_max: 14
+            ratio: False
           - model: 1-exp
             tmin_min: 1
             tmin_max: 9
@@ -868,6 +947,7 @@ I0_S0_NN:
           - model: 2-exp
             tmin_min: 2
             tmin_max: 10
+            ratio: False
 
     - name: isosinglet_S0_T2u_P0
       pivot_info:
@@ -896,6 +976,7 @@ I0_S0_NN:
           - model: 1-exp
             tmin_min: 5
             tmin_max: 14
+            ratio: False
           - model: 1-exp
             tmin_min: 1
             tmin_max: 12
@@ -903,11 +984,13 @@ I0_S0_NN:
           - model: 2-exp
             tmin_min: 2
             tmin_max: 10
+            ratio: False
             
         - fit_infos:
           - model: 1-exp
             tmin_min: 5
             tmin_max: 12
+            ratio: False
           - model: 1-exp
             tmin_min: 1
             tmin_max: 10
@@ -915,11 +998,13 @@ I0_S0_NN:
           - model: 2-exp
             tmin_min: 2
             tmin_max: 10
+            ratio: False
 
         - fit_infos:
           - model: 1-exp
             tmin_min: 5
             tmin_max: 14
+            ratio: False
           - model: 1-exp
             tmin_min: 1
             tmin_max: 9
@@ -927,6 +1012,7 @@ I0_S0_NN:
           - model: 2-exp
             tmin_min: 2
             tmin_max: 10
+            ratio: False
 
     - name: isosinglet_S0_A1_P1
       pivot_info:
@@ -989,6 +1075,7 @@ I0_S0_NN:
           - model: 1-exp
             tmin_min: 5
             tmin_max: 13
+            ratio: False
           - model: 1-exp
             tmin_min: 1
             tmin_max: 11
@@ -996,11 +1083,13 @@ I0_S0_NN:
           - model: 2-exp
             tmin_min: 2
             tmin_max: 10
+            ratio: False
 
         - fit_infos:
           - model: 1-exp
             tmin_min: 5
             tmin_max: 13
+            ratio: False
           - model: 1-exp
             tmin_min: 1
             tmin_max: 11
@@ -1008,11 +1097,13 @@ I0_S0_NN:
           - model: 2-exp
             tmin_min: 2
             tmin_max: 8
+            ratio: False
             
         - fit_infos:
           - model: 1-exp
             tmin_min: 5
             tmin_max: 14
+            ratio: False
           - model: 1-exp
             tmin_min: 1
             tmin_max: 12
@@ -1020,11 +1111,13 @@ I0_S0_NN:
           - model: 2-exp
             tmin_min: 2
             tmin_max: 10
+            ratio: False
 
         - fit_infos:
           - model: 1-exp
             tmin_min: 5
             tmin_max: 13
+            ratio: False
           - model: 1-exp
             tmin_min: 1
             tmin_max: 12
@@ -1032,11 +1125,13 @@ I0_S0_NN:
           - model: 2-exp
             tmin_min: 2
             tmin_max: 8
+            ratio: False
             
         - fit_infos:
           - model: 1-exp
             tmin_min: 5
             tmin_max: 13
+            ratio: False
           - model: 1-exp
             tmin_min: 1
             tmin_max: 11
@@ -1044,11 +1139,13 @@ I0_S0_NN:
           - model: 2-exp
             tmin_min: 2
             tmin_max: 10
+            ratio: False
 
         - fit_infos:
           - model: 1-exp
             tmin_min: 5
             tmin_max: 13
+            ratio: False
           - model: 1-exp
             tmin_min: 1
             tmin_max: 11
@@ -1056,11 +1153,13 @@ I0_S0_NN:
           - model: 2-exp
             tmin_min: 2
             tmin_max: 8
+            ratio: False
             
         - fit_infos:
           - model: 1-exp
             tmin_min: 5
             tmin_max: 14
+            ratio: False
           - model: 1-exp
             tmin_min: 1
             tmin_max: 12
@@ -1068,11 +1167,13 @@ I0_S0_NN:
           - model: 2-exp
             tmin_min: 2
             tmin_max: 10
+            ratio: False
 
         - fit_infos:
           - model: 1-exp
             tmin_min: 5
             tmin_max: 13
+            ratio: False
           - model: 1-exp
             tmin_min: 1
             tmin_max: 12
@@ -1080,11 +1181,13 @@ I0_S0_NN:
           - model: 2-exp
             tmin_min: 2
             tmin_max: 8
+            ratio: False
             
         - fit_infos:
           - model: 1-exp
             tmin_min: 5
             tmin_max: 14
+            ratio: False
           - model: 1-exp
             tmin_min: 1
             tmin_max: 10
@@ -1092,11 +1195,13 @@ I0_S0_NN:
           - model: 2-exp
             tmin_min: 2
             tmin_max: 10
+            ratio: False
 
         - fit_infos:
           - model: 1-exp
             tmin_min: 5
             tmin_max: 12
+            ratio: False
           - model: 1-exp
             tmin_min: 1
             tmin_max: 10
@@ -1104,6 +1209,7 @@ I0_S0_NN:
           - model: 2-exp
             tmin_min: 2
             tmin_max: 6
+            ratio: False
 
     - name: isosinglet_S0_A2_P1
       pivot_info:
@@ -1166,6 +1272,7 @@ I0_S0_NN:
           - model: 1-exp
             tmin_min: 5
             tmin_max: 16
+            ratio: False
           - model: 1-exp
             tmin_min: 1
             tmin_max: 13
@@ -1173,11 +1280,13 @@ I0_S0_NN:
           - model: 2-exp
             tmin_min: 2
             tmin_max: 6
+            ratio: False
 
         - fit_infos:
           - model: 1-exp
             tmin_min: 5
             tmin_max: 16
+            ratio: False
           - model: 1-exp
             tmin_min: 1
             tmin_max: 13
@@ -1185,11 +1294,13 @@ I0_S0_NN:
           - model: 2-exp
             tmin_min: 2
             tmin_max: 10
+            ratio: False
             
         - fit_infos:
           - model: 1-exp
             tmin_min: 5
             tmin_max: 16
+            ratio: False
           - model: 1-exp
             tmin_min: 1
             tmin_max: 13
@@ -1197,11 +1308,13 @@ I0_S0_NN:
           - model: 2-exp
             tmin_min: 2
             tmin_max: 10
+            ratio: False
 
         - fit_infos:
           - model: 1-exp
             tmin_min: 5
             tmin_max: 16
+            ratio: False
           - model: 1-exp
             tmin_min: 1
             tmin_max: 13
@@ -1209,11 +1322,13 @@ I0_S0_NN:
           - model: 2-exp
             tmin_min: 2
             tmin_max: 8
+            ratio: False
             
         - fit_infos:
           - model: 1-exp
             tmin_min: 5
             tmin_max: 16
+            ratio: False
           - model: 1-exp
             tmin_min: 1
             tmin_max: 9
@@ -1221,11 +1336,13 @@ I0_S0_NN:
           - model: 2-exp
             tmin_min: 2
             tmin_max: 6
+            ratio: False
 
         - fit_infos:
           - model: 1-exp
             tmin_min: 5
             tmin_max: 14
+            ratio: False
           - model: 1-exp
             tmin_min: 1
             tmin_max: 12
@@ -1233,11 +1350,13 @@ I0_S0_NN:
           - model: 2-exp
             tmin_min: 2
             tmin_max: 10
+            ratio: False
             
         - fit_infos:
           - model: 1-exp
             tmin_min: 5
             tmin_max: 13
+            ratio: False
           - model: 1-exp
             tmin_min: 1
             tmin_max: 12
@@ -1245,11 +1364,13 @@ I0_S0_NN:
           - model: 2-exp
             tmin_min: 2
             tmin_max: 10
+            ratio: False
 
         - fit_infos:
           - model: 1-exp
             tmin_min: 5
             tmin_max: 14
+            ratio: False
           - model: 1-exp
             tmin_min: 1
             tmin_max: 11
@@ -1257,11 +1378,13 @@ I0_S0_NN:
           - model: 2-exp
             tmin_min: 2
             tmin_max: 8
+            ratio: False
             
         - fit_infos:
           - model: 1-exp
             tmin_min: 5
             tmin_max: 15
+            ratio: False
           - model: 1-exp
             tmin_min: 1
             tmin_max: 12
@@ -1269,11 +1392,13 @@ I0_S0_NN:
           - model: 2-exp
             tmin_min: 2
             tmin_max: 10
+            ratio: False
 
         - fit_infos:
           - model: 1-exp
             tmin_min: 5
             tmin_max: 11
+            ratio: False
           - model: 1-exp
             tmin_min: 1
             tmin_max: 8
@@ -1281,6 +1406,7 @@ I0_S0_NN:
           - model: 2-exp
             tmin_min: 2
             tmin_max: 6
+            ratio: False
 
     - name: isosinglet_S0_B1_P1
       pivot_info:
@@ -1333,6 +1459,7 @@ I0_S0_NN:
           - model: 1-exp
             tmin_min: 5
             tmin_max: 13
+            ratio: False
           - model: 1-exp
             tmin_min: 1
             tmin_max: 12
@@ -1340,11 +1467,13 @@ I0_S0_NN:
           - model: 2-exp
             tmin_min: 2
             tmin_max: 10
+            ratio: False
 
         - fit_infos:
           - model: 1-exp
             tmin_min: 5
             tmin_max: 14
+            ratio: False
           - model: 1-exp
             tmin_min: 1
             tmin_max: 11
@@ -1352,11 +1481,13 @@ I0_S0_NN:
           - model: 2-exp
             tmin_min: 2
             tmin_max: 10
+            ratio: False
             
         - fit_infos:
           - model: 1-exp
             tmin_min: 5
             tmin_max: 13
+            ratio: False
           - model: 1-exp
             tmin_min: 1
             tmin_max: 12
@@ -1364,11 +1495,13 @@ I0_S0_NN:
           - model: 2-exp
             tmin_min: 2
             tmin_max: 10
+            ratio: False
 
         - fit_infos:
           - model: 1-exp
             tmin_min: 5
             tmin_max: 13
+            ratio: False
           - model: 1-exp
             tmin_min: 1
             tmin_max: 10
@@ -1376,11 +1509,13 @@ I0_S0_NN:
           - model: 2-exp
             tmin_min: 2
             tmin_max: 7
+            ratio: False
 
         - fit_infos:
           - model: 1-exp
             tmin_min: 5
             tmin_max: 13
+            ratio: False
           - model: 1-exp
             tmin_min: 1
             tmin_max: 12
@@ -1388,11 +1523,13 @@ I0_S0_NN:
           - model: 2-exp
             tmin_min: 2
             tmin_max: 10
+            ratio: False
 
         - fit_infos:
           - model: 1-exp
             tmin_min: 5
             tmin_max: 14
+            ratio: False
           - model: 1-exp
             tmin_min: 1
             tmin_max: 11
@@ -1400,11 +1537,13 @@ I0_S0_NN:
           - model: 2-exp
             tmin_min: 2
             tmin_max: 10
+            ratio: False
             
         - fit_infos:
           - model: 1-exp
             tmin_min: 5
             tmin_max: 13
+            ratio: False
           - model: 1-exp
             tmin_min: 1
             tmin_max: 12
@@ -1412,11 +1551,13 @@ I0_S0_NN:
           - model: 2-exp
             tmin_min: 2
             tmin_max: 10
+            ratio: False
 
         - fit_infos:
           - model: 1-exp
             tmin_min: 5
             tmin_max: 13
+            ratio: False
           - model: 1-exp
             tmin_min: 1
             tmin_max: 10
@@ -1424,6 +1565,7 @@ I0_S0_NN:
           - model: 2-exp
             tmin_min: 2
             tmin_max: 7
+            ratio: False
 
     - name: isosinglet_S0_B2_P1
       pivot_info:
@@ -1476,6 +1618,7 @@ I0_S0_NN:
           - model: 1-exp
             tmin_min: 5
             tmin_max: 14
+            ratio: False
           - model: 1-exp
             tmin_min: 1
             tmin_max: 10
@@ -1483,11 +1626,13 @@ I0_S0_NN:
           - model: 2-exp
             tmin_min: 2
             tmin_max: 8
+            ratio: False
 
         - fit_infos:
           - model: 1-exp
             tmin_min: 5
             tmin_max: 14
+            ratio: False
           - model: 1-exp
             tmin_min: 1
             tmin_max: 12
@@ -1495,11 +1640,13 @@ I0_S0_NN:
           - model: 2-exp
             tmin_min: 2
             tmin_max: 8
+            ratio: False
             
         - fit_infos:
           - model: 1-exp
             tmin_min: 5
             tmin_max: 13
+            ratio: False
           - model: 1-exp
             tmin_min: 1
             tmin_max: 10
@@ -1507,11 +1654,13 @@ I0_S0_NN:
           - model: 2-exp
             tmin_min: 2
             tmin_max: 8
+            ratio: False
 
         - fit_infos:
           - model: 1-exp
             tmin_min: 5
             tmin_max: 14
+            ratio: False
           - model: 1-exp
             tmin_min: 1
             tmin_max: 12
@@ -1519,11 +1668,13 @@ I0_S0_NN:
           - model: 2-exp
             tmin_min: 2
             tmin_max: 10
+            ratio: False
 
         - fit_infos:
           - model: 1-exp
             tmin_min: 5
             tmin_max: 14
+            ratio: False
           - model: 1-exp
             tmin_min: 1
             tmin_max: 10
@@ -1531,11 +1682,13 @@ I0_S0_NN:
           - model: 2-exp
             tmin_min: 2
             tmin_max: 8
+            ratio: False
 
         - fit_infos:
           - model: 1-exp
             tmin_min: 5
             tmin_max: 14
+            ratio: False
           - model: 1-exp
             tmin_min: 1
             tmin_max: 12
@@ -1543,11 +1696,13 @@ I0_S0_NN:
           - model: 2-exp
             tmin_min: 2
             tmin_max: 8
+            ratio: False
             
         - fit_infos:
           - model: 1-exp
             tmin_min: 5
             tmin_max: 13
+            ratio: False
           - model: 1-exp
             tmin_min: 1
             tmin_max: 10
@@ -1555,11 +1710,13 @@ I0_S0_NN:
           - model: 2-exp
             tmin_min: 2
             tmin_max: 8
+            ratio: False
 
         - fit_infos:
           - model: 1-exp
             tmin_min: 5
             tmin_max: 14
+            ratio: False
           - model: 1-exp
             tmin_min: 1
             tmin_max: 12
@@ -1567,6 +1724,7 @@ I0_S0_NN:
           - model: 2-exp
             tmin_min: 2
             tmin_max: 10
+            ratio: False
 
     - name: isosinglet_S0_E_P1
       pivot_info:
@@ -1669,6 +1827,7 @@ I0_S0_NN:
           - model: 1-exp
             tmin_min: 5
             tmin_max: 13
+            ratio: False
           - model: 1-exp
             tmin_min: 1
             tmin_max: 13
@@ -1676,83 +1835,13 @@ I0_S0_NN:
           - model: 2-exp
             tmin_min: 2
             tmin_max: 10
+            ratio: False
 
         - fit_infos:
           - model: 1-exp
             tmin_min: 5
             tmin_max: 15
-          - model: 1-exp
-            tmin_min: 1
-            tmin_max: 13
-            ratio: True
-          - model: 2-exp
-            tmin_min: 2
-            tmin_max: 8
-
-        - fit_infos:
-          - model: 1-exp
-            tmin_min: 5
-            tmin_max: 15
-          - model: 1-exp
-            tmin_min: 1
-            tmin_max: 13
-            ratio: True
-          - model: 2-exp
-            tmin_min: 2
-            tmin_max: 10
-
-        - fit_infos:
-          - model: 1-exp
-            tmin_min: 5
-            tmin_max: 14
-          - model: 1-exp
-            tmin_min: 1
-            tmin_max: 12
-            ratio: True
-          - model: 2-exp
-            tmin_min: 2
-            tmin_max: 10
-
-        - fit_infos:
-          - model: 1-exp
-            tmin_min: 5
-            tmin_max: 15
-          - model: 1-exp
-            tmin_min: 1
-            tmin_max: 12
-            ratio: True
-          - model: 2-exp
-            tmin_min: 2
-            tmin_max: 7
-
-        - fit_infos:
-          - model: 1-exp
-            tmin_min: 5
-            tmin_max: 12
-          - model: 1-exp
-            tmin_min: 1
-            tmin_max: 12
-            ratio: True
-          - model: 2-exp
-            tmin_min: 2
-            tmin_max: 10
-
-        - fit_infos:
-          - model: 1-exp
-            tmin_min: 5
-            tmin_max: 13
-          - model: 1-exp
-            tmin_min: 1
-            tmin_max: 12
-            ratio: True
-          - model: 2-exp
-            tmin_min: 2
-            tmin_max: 10
-
-        - fit_infos:
-          - model: 1-exp
-            tmin_min: 5
-            tmin_max: 15
+            ratio: False
           - model: 1-exp
             tmin_min: 1
             tmin_max: 13
@@ -1760,11 +1849,13 @@ I0_S0_NN:
           - model: 2-exp
             tmin_min: 2
             tmin_max: 8
+            ratio: False
 
         - fit_infos:
           - model: 1-exp
             tmin_min: 5
             tmin_max: 15
+            ratio: False
           - model: 1-exp
             tmin_min: 1
             tmin_max: 13
@@ -1772,11 +1863,13 @@ I0_S0_NN:
           - model: 2-exp
             tmin_min: 2
             tmin_max: 10
+            ratio: False
 
         - fit_infos:
           - model: 1-exp
             tmin_min: 5
             tmin_max: 14
+            ratio: False
           - model: 1-exp
             tmin_min: 1
             tmin_max: 12
@@ -1784,11 +1877,13 @@ I0_S0_NN:
           - model: 2-exp
             tmin_min: 2
             tmin_max: 10
+            ratio: False
 
         - fit_infos:
           - model: 1-exp
             tmin_min: 5
             tmin_max: 15
+            ratio: False
           - model: 1-exp
             tmin_min: 1
             tmin_max: 12
@@ -1796,11 +1891,13 @@ I0_S0_NN:
           - model: 2-exp
             tmin_min: 2
             tmin_max: 7
+            ratio: False
 
         - fit_infos:
           - model: 1-exp
             tmin_min: 5
             tmin_max: 12
+            ratio: False
           - model: 1-exp
             tmin_min: 1
             tmin_max: 12
@@ -1808,11 +1905,13 @@ I0_S0_NN:
           - model: 2-exp
             tmin_min: 2
             tmin_max: 10
+            ratio: False
 
         - fit_infos:
           - model: 1-exp
             tmin_min: 5
             tmin_max: 13
+            ratio: False
           - model: 1-exp
             tmin_min: 1
             tmin_max: 12
@@ -1820,11 +1919,13 @@ I0_S0_NN:
           - model: 2-exp
             tmin_min: 2
             tmin_max: 10
+            ratio: False
 
         - fit_infos:
           - model: 1-exp
             tmin_min: 5
             tmin_max: 15
+            ratio: False
           - model: 1-exp
             tmin_min: 1
             tmin_max: 13
@@ -1832,11 +1933,13 @@ I0_S0_NN:
           - model: 2-exp
             tmin_min: 2
             tmin_max: 8
+            ratio: False
 
         - fit_infos:
           - model: 1-exp
             tmin_min: 5
             tmin_max: 15
+            ratio: False
           - model: 1-exp
             tmin_min: 1
             tmin_max: 13
@@ -1844,11 +1947,13 @@ I0_S0_NN:
           - model: 2-exp
             tmin_min: 2
             tmin_max: 10
+            ratio: False
 
         - fit_infos:
           - model: 1-exp
             tmin_min: 5
             tmin_max: 14
+            ratio: False
           - model: 1-exp
             tmin_min: 1
             tmin_max: 12
@@ -1856,11 +1961,13 @@ I0_S0_NN:
           - model: 2-exp
             tmin_min: 2
             tmin_max: 10
+            ratio: False
 
         - fit_infos:
           - model: 1-exp
             tmin_min: 5
             tmin_max: 15
+            ratio: False
           - model: 1-exp
             tmin_min: 1
             tmin_max: 12
@@ -1868,11 +1975,13 @@ I0_S0_NN:
           - model: 2-exp
             tmin_min: 2
             tmin_max: 7
+            ratio: False
 
         - fit_infos:
           - model: 1-exp
             tmin_min: 5
             tmin_max: 12
+            ratio: False
           - model: 1-exp
             tmin_min: 1
             tmin_max: 12
@@ -1880,6 +1989,91 @@ I0_S0_NN:
           - model: 2-exp
             tmin_min: 2
             tmin_max: 10
+            ratio: False
+
+        - fit_infos:
+          - model: 1-exp
+            tmin_min: 5
+            tmin_max: 13
+            ratio: False
+          - model: 1-exp
+            tmin_min: 1
+            tmin_max: 12
+            ratio: True
+          - model: 2-exp
+            tmin_min: 2
+            tmin_max: 10
+            ratio: False
+
+        - fit_infos:
+          - model: 1-exp
+            tmin_min: 5
+            tmin_max: 15
+            ratio: False
+          - model: 1-exp
+            tmin_min: 1
+            tmin_max: 13
+            ratio: True
+          - model: 2-exp
+            tmin_min: 2
+            tmin_max: 8
+            ratio: False
+
+        - fit_infos:
+          - model: 1-exp
+            tmin_min: 5
+            tmin_max: 15
+            ratio: False
+          - model: 1-exp
+            tmin_min: 1
+            tmin_max: 13
+            ratio: True
+          - model: 2-exp
+            tmin_min: 2
+            tmin_max: 10
+            ratio: False
+
+        - fit_infos:
+          - model: 1-exp
+            tmin_min: 5
+            tmin_max: 14
+            ratio: False
+          - model: 1-exp
+            tmin_min: 1
+            tmin_max: 12
+            ratio: True
+          - model: 2-exp
+            tmin_min: 2
+            tmin_max: 10
+            ratio: False
+
+        - fit_infos:
+          - model: 1-exp
+            tmin_min: 5
+            tmin_max: 15
+            ratio: False
+          - model: 1-exp
+            tmin_min: 1
+            tmin_max: 12
+            ratio: True
+          - model: 2-exp
+            tmin_min: 2
+            tmin_max: 7
+            ratio: False
+
+        - fit_infos:
+          - model: 1-exp
+            tmin_min: 5
+            tmin_max: 12
+            ratio: False
+          - model: 1-exp
+            tmin_min: 1
+            tmin_max: 12
+            ratio: True
+          - model: 2-exp
+            tmin_min: 2
+            tmin_max: 10
+            ratio: False
 
     - name: isosinglet_S0_A1_P2
       pivot_info:
@@ -1957,6 +2151,7 @@ I0_S0_NN:
           - model: 1-exp
             tmin_min: 5
             tmin_max: 14
+            ratio: False
           - model: 1-exp
             tmin_min: 1
             tmin_max: 12
@@ -1964,11 +2159,13 @@ I0_S0_NN:
           - model: 2-exp
             tmin_min: 2
             tmin_max: 10
+            ratio: False
 
         - fit_infos:
           - model: 1-exp
             tmin_min: 5
             tmin_max: 14
+            ratio: False
           - model: 1-exp
             tmin_min: 1
             tmin_max: 12
@@ -1976,11 +2173,13 @@ I0_S0_NN:
           - model: 2-exp
             tmin_min: 2
             tmin_max: 10
+            ratio: False
 
         - fit_infos:
           - model: 1-exp
             tmin_min: 5
             tmin_max: 12
+            ratio: False
           - model: 1-exp
             tmin_min: 1
             tmin_max: 12
@@ -1988,11 +2187,13 @@ I0_S0_NN:
           - model: 2-exp
             tmin_min: 2
             tmin_max: 7
+            ratio: False
 
         - fit_infos:
           - model: 1-exp
             tmin_min: 5
             tmin_max: 14
+            ratio: False
           - model: 1-exp
             tmin_min: 1
             tmin_max: 12
@@ -2000,11 +2201,13 @@ I0_S0_NN:
           - model: 2-exp
             tmin_min: 2
             tmin_max: 10
+            ratio: False
 
         - fit_infos:
           - model: 1-exp
             tmin_min: 5
             tmin_max: 15
+            ratio: False
           - model: 1-exp
             tmin_min: 1
             tmin_max: 12
@@ -2012,23 +2215,27 @@ I0_S0_NN:
           - model: 2-exp
             tmin_min: 2
             tmin_max: 8
+            ratio: False
             
         - fit_infos:
           - model: 1-exp
             tmin_min: 5
             tmin_max: 14
+            ratio: False
           - model: 1-exp
             tmin_min: 1
             tmin_max: 12
             ratio: True
           - model: 2-exp
             tmin_min: 2
+            ratio: False
             tmin_max: 10
 
         - fit_infos:
           - model: 1-exp
             tmin_min: 5
             tmin_max: 12
+            ratio: False
           - model: 1-exp
             tmin_min: 1
             tmin_max: 12
@@ -2036,11 +2243,13 @@ I0_S0_NN:
           - model: 2-exp
             tmin_min: 2
             tmin_max: 7
+            ratio: False
 
         - fit_infos:
           - model: 1-exp
             tmin_min: 5
             tmin_max: 14
+            ratio: False
           - model: 1-exp
             tmin_min: 1
             tmin_max: 12
@@ -2048,11 +2257,13 @@ I0_S0_NN:
           - model: 2-exp
             tmin_min: 2
             tmin_max: 10
+            ratio: False
 
         - fit_infos:
           - model: 1-exp
             tmin_min: 5
             tmin_max: 15
+            ratio: False
           - model: 1-exp
             tmin_min: 1
             tmin_max: 12
@@ -2060,11 +2271,13 @@ I0_S0_NN:
           - model: 2-exp
             tmin_min: 2
             tmin_max: 8
+            ratio: False
             
         - fit_infos:
           - model: 1-exp
             tmin_min: 5
             tmin_max: 14
+            ratio: False
           - model: 1-exp
             tmin_min: 1
             tmin_max: 12
@@ -2072,11 +2285,13 @@ I0_S0_NN:
           - model: 2-exp
             tmin_min: 2
             tmin_max: 10
+            ratio: False
 
         - fit_infos:
           - model: 1-exp
             tmin_min: 5
             tmin_max: 12
+            ratio: False
           - model: 1-exp
             tmin_min: 1
             tmin_max: 12
@@ -2084,11 +2299,13 @@ I0_S0_NN:
           - model: 2-exp
             tmin_min: 2
             tmin_max: 7
+            ratio: False
 
         - fit_infos:
           - model: 1-exp
             tmin_min: 5
             tmin_max: 14
+            ratio: False
           - model: 1-exp
             tmin_min: 1
             tmin_max: 12
@@ -2096,11 +2313,13 @@ I0_S0_NN:
           - model: 2-exp
             tmin_min: 2
             tmin_max: 10
+            ratio: False
 
         - fit_infos:
           - model: 1-exp
             tmin_min: 5
             tmin_max: 15
+            ratio: False
           - model: 1-exp
             tmin_min: 1
             tmin_max: 12
@@ -2108,6 +2327,7 @@ I0_S0_NN:
           - model: 2-exp
             tmin_min: 2
             tmin_max: 8
+            ratio: False
             
     - name: isosinglet_S0_A2_P2
       pivot_info:
@@ -2195,6 +2415,7 @@ I0_S0_NN:
           - model: 1-exp
             tmin_min: 5
             tmin_max: 13
+            ratio: False
           - model: 1-exp
             tmin_min: 1
             tmin_max: 13
@@ -2202,11 +2423,13 @@ I0_S0_NN:
           - model: 2-exp
             tmin_min: 2
             tmin_max: 10
+            ratio: False
 
         - fit_infos:
           - model: 1-exp
             tmin_min: 5
             tmin_max: 13
+            ratio: False
           - model: 1-exp
             tmin_min: 1
             tmin_max: 10
@@ -2214,11 +2437,13 @@ I0_S0_NN:
           - model: 2-exp
             tmin_min: 2
             tmin_max: 10
+            ratio: False
 
         - fit_infos:
           - model: 1-exp
             tmin_min: 5
             tmin_max: 14
+            ratio: False
           - model: 1-exp
             tmin_min: 1
             tmin_max: 12
@@ -2226,11 +2451,13 @@ I0_S0_NN:
           - model: 2-exp
             tmin_min: 2
             tmin_max: 10
+            ratio: False
             
         - fit_infos:
           - model: 1-exp
             tmin_min: 5
             tmin_max: 15
+            ratio: False
           - model: 1-exp
             tmin_min: 1
             tmin_max: 13
@@ -2238,11 +2465,13 @@ I0_S0_NN:
           - model: 2-exp
             tmin_min: 2
             tmin_max: 7
+            ratio: False
 
         - fit_infos:
           - model: 1-exp
             tmin_min: 5
             tmin_max: 13
+            ratio: False
           - model: 1-exp
             tmin_min: 1
             tmin_max: 12
@@ -2250,11 +2479,13 @@ I0_S0_NN:
           - model: 2-exp
             tmin_min: 2
             tmin_max: 10
+            ratio: False
 
         - fit_infos:
           - model: 1-exp
             tmin_min: 5
             tmin_max: 13
+            ratio: False
           - model: 1-exp
             tmin_min: 1
             tmin_max: 10
@@ -2262,11 +2493,13 @@ I0_S0_NN:
           - model: 2-exp
             tmin_min: 2
             tmin_max: 10
+            ratio: False
 
         - fit_infos:
           - model: 1-exp
             tmin_min: 5
             tmin_max: 13
+            ratio: False
           - model: 1-exp
             tmin_min: 1
             tmin_max: 10
@@ -2274,11 +2507,13 @@ I0_S0_NN:
           - model: 2-exp
             tmin_min: 2
             tmin_max: 10
+            ratio: False
 
         - fit_infos:
           - model: 1-exp
             tmin_min: 5
             tmin_max: 14
+            ratio: False
           - model: 1-exp
             tmin_min: 1
             tmin_max: 12
@@ -2286,11 +2521,83 @@ I0_S0_NN:
           - model: 2-exp
             tmin_min: 2
             tmin_max: 10
+            ratio: False
             
         - fit_infos:
           - model: 1-exp
             tmin_min: 5
             tmin_max: 15
+            ratio: False
+          - model: 1-exp
+            tmin_min: 1
+            tmin_max: 13
+            ratio: True
+          - model: 2-exp
+            tmin_min: 2
+            ratio: False
+            tmin_max: 7
+
+        - fit_infos:
+          - model: 1-exp
+            tmin_min: 5
+            tmin_max: 13
+            ratio: False
+          - model: 1-exp
+            tmin_min: 1
+            tmin_max: 12
+            ratio: True
+          - model: 2-exp
+            tmin_min: 2
+            tmin_max: 10
+            ratio: False
+
+        - fit_infos:
+          - model: 1-exp
+            tmin_min: 5
+            tmin_max: 13
+            ratio: False
+          - model: 1-exp
+            tmin_min: 1
+            tmin_max: 10
+            ratio: True
+          - model: 2-exp
+            tmin_min: 2
+            tmin_max: 10
+            ratio: False
+
+        - fit_infos:
+          - model: 1-exp
+            tmin_min: 5
+            tmin_max: 13
+            ratio: False
+          - model: 1-exp
+            tmin_min: 1
+            tmin_max: 10
+            ratio: True
+          - model: 2-exp
+            tmin_min: 2
+            tmin_max: 10
+            ratio: False
+
+        - fit_infos:
+          - model: 1-exp
+            tmin_min: 5
+            tmin_max: 14
+            ratio: False
+          - model: 1-exp
+            tmin_min: 1
+            tmin_max: 12
+            ratio: True
+          - model: 2-exp
+            tmin_min: 2
+            tmin_max: 10
+            ratio: False
+            
+        - fit_infos:
+          - model: 1-exp
+            tmin_min: 5
+            tmin_max: 15
+            ratio: False
           - model: 1-exp
             tmin_min: 1
             tmin_max: 13
@@ -2298,11 +2605,13 @@ I0_S0_NN:
           - model: 2-exp
             tmin_min: 2
             tmin_max: 7
+            ratio: False
 
         - fit_infos:
           - model: 1-exp
             tmin_min: 5
             tmin_max: 13
+            ratio: False
           - model: 1-exp
             tmin_min: 1
             tmin_max: 12
@@ -2310,66 +2619,7 @@ I0_S0_NN:
           - model: 2-exp
             tmin_min: 2
             tmin_max: 10
-
-        - fit_infos:
-          - model: 1-exp
-            tmin_min: 5
-            tmin_max: 13
-          - model: 1-exp
-            tmin_min: 1
-            tmin_max: 10
-            ratio: True
-          - model: 2-exp
-            tmin_min: 2
-            tmin_max: 10
-
-        - fit_infos:
-          - model: 1-exp
-            tmin_min: 5
-            tmin_max: 13
-          - model: 1-exp
-            tmin_min: 1
-            tmin_max: 10
-            ratio: True
-          - model: 2-exp
-            tmin_min: 2
-            tmin_max: 10
-
-        - fit_infos:
-          - model: 1-exp
-            tmin_min: 5
-            tmin_max: 14
-          - model: 1-exp
-            tmin_min: 1
-            tmin_max: 12
-            ratio: True
-          - model: 2-exp
-            tmin_min: 2
-            tmin_max: 10
-            
-        - fit_infos:
-          - model: 1-exp
-            tmin_min: 5
-            tmin_max: 15
-          - model: 1-exp
-            tmin_min: 1
-            tmin_max: 13
-            ratio: True
-          - model: 2-exp
-            tmin_min: 2
-            tmin_max: 7
-
-        - fit_infos:
-          - model: 1-exp
-            tmin_min: 5
-            tmin_max: 13
-          - model: 1-exp
-            tmin_min: 1
-            tmin_max: 12
-            ratio: True
-          - model: 2-exp
-            tmin_min: 2
-            tmin_max: 10
+            ratio: False
 
     - name: isosinglet_S0_B1_P2
       pivot_info:
@@ -2477,6 +2727,7 @@ I0_S0_NN:
           - model: 1-exp
             tmin_min: 5
             tmin_max: 14
+            ratio: False
           - model: 1-exp
             tmin_min: 1
             tmin_max: 13
@@ -2484,11 +2735,13 @@ I0_S0_NN:
           - model: 2-exp
             tmin_min: 2
             tmin_max: 8
+            ratio: False
             
         - fit_infos:
           - model: 1-exp
             tmin_min: 5
             tmin_max: 15
+            ratio: False
           - model: 1-exp
             tmin_min: 1
             tmin_max: 12
@@ -2496,11 +2749,13 @@ I0_S0_NN:
           - model: 2-exp
             tmin_min: 2
             tmin_max: 10
+            ratio: False
 
         - fit_infos:
           - model: 1-exp
             tmin_min: 5
             tmin_max: 12
+            ratio: False
           - model: 1-exp
             tmin_min: 1
             tmin_max: 11
@@ -2508,11 +2763,13 @@ I0_S0_NN:
           - model: 2-exp
             tmin_min: 2
             tmin_max: 8
+            ratio: False
 
         - fit_infos:
           - model: 1-exp
             tmin_min: 5
             tmin_max: 14
+            ratio: False
           - model: 1-exp
             tmin_min: 1
             tmin_max: 12
@@ -2520,11 +2777,13 @@ I0_S0_NN:
           - model: 2-exp
             tmin_min: 2
             tmin_max: 8
+            ratio: False
 
         - fit_infos:
           - model: 1-exp
             tmin_min: 5
             tmin_max: 14
+            ratio: False
           - model: 1-exp
             tmin_min: 1
             tmin_max: 10
@@ -2532,11 +2791,13 @@ I0_S0_NN:
           - model: 2-exp
             tmin_min: 2
             tmin_max: 8
+            ratio: False
             
         - fit_infos:
           - model: 1-exp
             tmin_min: 5
             tmin_max: 15
+            ratio: False
           - model: 1-exp
             tmin_min: 1
             tmin_max: 12
@@ -2544,11 +2805,13 @@ I0_S0_NN:
           - model: 2-exp
             tmin_min: 2
             tmin_max: 10
+            ratio: False
 
         - fit_infos:
           - model: 1-exp
             tmin_min: 5
             tmin_max: 12
+            ratio: False
           - model: 1-exp
             tmin_min: 1
             tmin_max: 11
@@ -2556,11 +2819,13 @@ I0_S0_NN:
           - model: 2-exp
             tmin_min: 2
             tmin_max: 8
+            ratio: False
 
         - fit_infos:
           - model: 1-exp
             tmin_min: 5
             tmin_max: 14
+            ratio: False
           - model: 1-exp
             tmin_min: 1
             tmin_max: 12
@@ -2568,11 +2833,13 @@ I0_S0_NN:
           - model: 2-exp
             tmin_min: 2
             tmin_max: 8
+            ratio: False
 
         - fit_infos:
           - model: 1-exp
             tmin_min: 5
             tmin_max: 14
+            ratio: False
           - model: 1-exp
             tmin_min: 1
             tmin_max: 10
@@ -2580,11 +2847,13 @@ I0_S0_NN:
           - model: 2-exp
             tmin_min: 2
             tmin_max: 8
+            ratio: False
             
         - fit_infos:
           - model: 1-exp
             tmin_min: 5
             tmin_max: 15
+            ratio: False
           - model: 1-exp
             tmin_min: 1
             tmin_max: 12
@@ -2592,11 +2861,13 @@ I0_S0_NN:
           - model: 2-exp
             tmin_min: 2
             tmin_max: 10
+            ratio: False
 
         - fit_infos:
           - model: 1-exp
             tmin_min: 5
             tmin_max: 12
+            ratio: False
           - model: 1-exp
             tmin_min: 1
             tmin_max: 11
@@ -2604,11 +2875,13 @@ I0_S0_NN:
           - model: 2-exp
             tmin_min: 2
             tmin_max: 8
+            ratio: False
 
         - fit_infos:
           - model: 1-exp
             tmin_min: 5
             tmin_max: 14
+            ratio: False
           - model: 1-exp
             tmin_min: 1
             tmin_max: 12
@@ -2616,11 +2889,13 @@ I0_S0_NN:
           - model: 2-exp
             tmin_min: 2
             tmin_max: 8
+            ratio: False
 
         - fit_infos:
           - model: 1-exp
             tmin_min: 5
             tmin_max: 14
+            ratio: False
           - model: 1-exp
             tmin_min: 1
             tmin_max: 10
@@ -2628,11 +2903,13 @@ I0_S0_NN:
           - model: 2-exp
             tmin_min: 2
             tmin_max: 8
+            ratio: False
             
         - fit_infos:
           - model: 1-exp
             tmin_min: 5
             tmin_max: 15
+            ratio: False
           - model: 1-exp
             tmin_min: 1
             tmin_max: 12
@@ -2640,11 +2917,13 @@ I0_S0_NN:
           - model: 2-exp
             tmin_min: 2
             tmin_max: 10
+            ratio: False
 
         - fit_infos:
           - model: 1-exp
             tmin_min: 5
             tmin_max: 12
+            ratio: False
           - model: 1-exp
             tmin_min: 1
             tmin_max: 11
@@ -2652,11 +2931,13 @@ I0_S0_NN:
           - model: 2-exp
             tmin_min: 2
             tmin_max: 8
+            ratio: False
 
         - fit_infos:
           - model: 1-exp
             tmin_min: 5
             tmin_max: 14
+            ratio: False
           - model: 1-exp
             tmin_min: 1
             tmin_max: 12
@@ -2664,11 +2945,13 @@ I0_S0_NN:
           - model: 2-exp
             tmin_min: 2
             tmin_max: 8
+            ratio: False
 
         - fit_infos:
           - model: 1-exp
             tmin_min: 5
             tmin_max: 14
+            ratio: False
           - model: 1-exp
             tmin_min: 1
             tmin_max: 10
@@ -2676,11 +2959,13 @@ I0_S0_NN:
           - model: 2-exp
             tmin_min: 2
             tmin_max: 8
+            ratio: False
             
         - fit_infos:
           - model: 1-exp
             tmin_min: 5
             tmin_max: 15
+            ratio: False
           - model: 1-exp
             tmin_min: 1
             tmin_max: 12
@@ -2688,11 +2973,13 @@ I0_S0_NN:
           - model: 2-exp
             tmin_min: 2
             tmin_max: 10
+            ratio: False
 
         - fit_infos:
           - model: 1-exp
             tmin_min: 5
             tmin_max: 12
+            ratio: False
           - model: 1-exp
             tmin_min: 1
             tmin_max: 11
@@ -2700,6 +2987,7 @@ I0_S0_NN:
           - model: 2-exp
             tmin_min: 2
             tmin_max: 8
+            ratio: False
 
     - name: isosinglet_S0_B2_P2
       pivot_info:
@@ -2817,6 +3105,7 @@ I0_S0_NN:
           - model: 1-exp
             tmin_min: 5
             tmin_max: 14
+            ratio: False
           - model: 1-exp
             tmin_min: 1
             tmin_max: 13
@@ -2824,11 +3113,13 @@ I0_S0_NN:
           - model: 2-exp
             tmin_min: 2
             tmin_max: 10
+            ratio: False
             
         - fit_infos:
           - model: 1-exp
             tmin_min: 5
             tmin_max: 14
+            ratio: False
           - model: 1-exp
             tmin_min: 1
             tmin_max: 12
@@ -2836,11 +3127,13 @@ I0_S0_NN:
           - model: 2-exp
             tmin_min: 2
             tmin_max: 10
+            ratio: False
             
         - fit_infos:
           - model: 1-exp
             tmin_min: 5
             tmin_max: 14
+            ratio: False
           - model: 1-exp
             tmin_min: 1
             tmin_max: 12
@@ -2848,16 +3141,19 @@ I0_S0_NN:
           - model: 2-exp
             tmin_min: 2
             tmin_max: 10
+            ratio: False
 
         - fit_infos:
           - model: 1-exp
             tmin_min: 5
             tmin_max: 13
+            ratio: False
           - model: 1-exp
             tmin_min: 1
             tmin_max: 12
             ratio: True
           - model: 2-exp
+            ratio: False
             tmin_min: 2
             tmin_max: 10
             
@@ -2865,6 +3161,7 @@ I0_S0_NN:
           - model: 1-exp
             tmin_min: 5
             tmin_max: 15
+            ratio: False
           - model: 1-exp
             tmin_min: 1
             tmin_max: 11
@@ -2872,11 +3169,13 @@ I0_S0_NN:
           - model: 2-exp
             tmin_min: 2
             tmin_max: 7
+            ratio: False
 
         - fit_infos:
           - model: 1-exp
             tmin_min: 5
             tmin_max: 14
+            ratio: False
           - model: 1-exp
             tmin_min: 1
             tmin_max: 12
@@ -2884,11 +3183,13 @@ I0_S0_NN:
           - model: 2-exp
             tmin_min: 2
             tmin_max: 8
+            ratio: False
 
         - fit_infos:
           - model: 1-exp
             tmin_min: 5
             tmin_max: 14
+            ratio: False
           - model: 1-exp
             tmin_min: 1
             tmin_max: 12
@@ -2896,11 +3197,13 @@ I0_S0_NN:
           - model: 2-exp
             tmin_min: 2
             tmin_max: 10
+            ratio: False
             
         - fit_infos:
           - model: 1-exp
             tmin_min: 5
             tmin_max: 14
+            ratio: False
           - model: 1-exp
             tmin_min: 1
             tmin_max: 12
@@ -2908,11 +3211,13 @@ I0_S0_NN:
           - model: 2-exp
             tmin_min: 2
             tmin_max: 10
+            ratio: False
 
         - fit_infos:
           - model: 1-exp
             tmin_min: 5
             tmin_max: 13
+            ratio: False
           - model: 1-exp
             tmin_min: 1
             tmin_max: 12
@@ -2920,11 +3225,13 @@ I0_S0_NN:
           - model: 2-exp
             tmin_min: 2
             tmin_max: 10
+            ratio: False
             
         - fit_infos:
           - model: 1-exp
             tmin_min: 5
             tmin_max: 15
+            ratio: False
           - model: 1-exp
             tmin_min: 1
             tmin_max: 11
@@ -2932,11 +3239,13 @@ I0_S0_NN:
           - model: 2-exp
             tmin_min: 2
             tmin_max: 7
+            ratio: False
 
         - fit_infos:
           - model: 1-exp
             tmin_min: 5
             tmin_max: 14
+            ratio: False
           - model: 1-exp
             tmin_min: 1
             tmin_max: 12
@@ -2944,11 +3253,13 @@ I0_S0_NN:
           - model: 2-exp
             tmin_min: 2
             tmin_max: 8
+            ratio: False
 
         - fit_infos:
           - model: 1-exp
             tmin_min: 5
             tmin_max: 14
+            ratio: False
           - model: 1-exp
             tmin_min: 1
             tmin_max: 12
@@ -2956,11 +3267,13 @@ I0_S0_NN:
           - model: 2-exp
             tmin_min: 2
             tmin_max: 10
+            ratio: False
             
         - fit_infos:
           - model: 1-exp
             tmin_min: 5
             tmin_max: 14
+            ratio: False
           - model: 1-exp
             tmin_min: 1
             tmin_max: 12
@@ -2968,11 +3281,13 @@ I0_S0_NN:
           - model: 2-exp
             tmin_min: 2
             tmin_max: 10
+            ratio: False
 
         - fit_infos:
           - model: 1-exp
             tmin_min: 5
             tmin_max: 13
+            ratio: False
           - model: 1-exp
             tmin_min: 1
             tmin_max: 12
@@ -2980,11 +3295,13 @@ I0_S0_NN:
           - model: 2-exp
             tmin_min: 2
             tmin_max: 10
+            ratio: False
             
         - fit_infos:
           - model: 1-exp
             tmin_min: 5
             tmin_max: 15
+            ratio: False
           - model: 1-exp
             tmin_min: 1
             tmin_max: 11
@@ -2992,11 +3309,13 @@ I0_S0_NN:
           - model: 2-exp
             tmin_min: 2
             tmin_max: 7
+            ratio: False
 
         - fit_infos:
           - model: 1-exp
             tmin_min: 5
             tmin_max: 14
+            ratio: False
           - model: 1-exp
             tmin_min: 1
             tmin_max: 12
@@ -3004,11 +3323,13 @@ I0_S0_NN:
           - model: 2-exp
             tmin_min: 2
             tmin_max: 8
+            ratio: False
 
         - fit_infos:
           - model: 1-exp
             tmin_min: 5
             tmin_max: 14
+            ratio: False
           - model: 1-exp
             tmin_min: 1
             tmin_max: 12
@@ -3016,11 +3337,13 @@ I0_S0_NN:
           - model: 2-exp
             tmin_min: 2
             tmin_max: 10
+            ratio: False
             
         - fit_infos:
           - model: 1-exp
             tmin_min: 5
             tmin_max: 14
+            ratio: False
           - model: 1-exp
             tmin_min: 1
             tmin_max: 12
@@ -3028,11 +3351,13 @@ I0_S0_NN:
           - model: 2-exp
             tmin_min: 2
             tmin_max: 10
+            ratio: False
 
         - fit_infos:
           - model: 1-exp
             tmin_min: 5
             tmin_max: 13
+            ratio: False
           - model: 1-exp
             tmin_min: 1
             tmin_max: 12
@@ -3040,11 +3365,13 @@ I0_S0_NN:
           - model: 2-exp
             tmin_min: 2
             tmin_max: 10
+            ratio: False
             
         - fit_infos:
           - model: 1-exp
             tmin_min: 5
             tmin_max: 15
+            ratio: False
           - model: 1-exp
             tmin_min: 1
             tmin_max: 11
@@ -3052,11 +3379,13 @@ I0_S0_NN:
           - model: 2-exp
             tmin_min: 2
             tmin_max: 7
+            ratio: False
 
         - fit_infos:
           - model: 1-exp
             tmin_min: 5
             tmin_max: 14
+            ratio: False
           - model: 1-exp
             tmin_min: 1
             tmin_max: 12
@@ -3064,6 +3393,7 @@ I0_S0_NN:
           - model: 2-exp
             tmin_min: 2
             tmin_max: 8
+            ratio: False
 
     - name: isosinglet_S0_A1_P3
       pivot_info:
@@ -3121,6 +3451,7 @@ I0_S0_NN:
           - model: 1-exp
             tmin_min: 5
             tmin_max: 15
+            ratio: False
           - model: 1-exp
             tmin_min: 1
             tmin_max: 13
@@ -3128,11 +3459,13 @@ I0_S0_NN:
           - model: 2-exp
             tmin_min: 2
             tmin_max: 10
+            ratio: False
 
         - fit_infos:
           - model: 1-exp
             tmin_min: 5
             tmin_max: 14
+            ratio: False
           - model: 1-exp
             tmin_min: 1
             tmin_max: 10
@@ -3140,11 +3473,13 @@ I0_S0_NN:
           - model: 2-exp
             tmin_min: 2
             tmin_max: 10
+            ratio: False
 
         - fit_infos:
           - model: 1-exp
             tmin_min: 5
             tmin_max: 14
+            ratio: False
           - model: 1-exp
             tmin_min: 1
             tmin_max: 12
@@ -3152,11 +3487,13 @@ I0_S0_NN:
           - model: 2-exp
             tmin_min: 2
             tmin_max: 10
+            ratio: False
             
         - fit_infos:
           - model: 1-exp
             tmin_min: 5
             tmin_max: 12
+            ratio: False
           - model: 1-exp
             tmin_min: 1
             tmin_max: 10
@@ -3164,11 +3501,13 @@ I0_S0_NN:
           - model: 2-exp
             tmin_min: 2
             tmin_max: 10
+            ratio: False
 
         - fit_infos:
           - model: 1-exp
             tmin_min: 5
             tmin_max: 15
+            ratio: False
           - model: 1-exp
             tmin_min: 1
             tmin_max: 13
@@ -3176,11 +3515,13 @@ I0_S0_NN:
           - model: 2-exp
             tmin_min: 2
             tmin_max: 10
+            ratio: False
 
         - fit_infos:
           - model: 1-exp
             tmin_min: 5
             tmin_max: 14
+            ratio: False
           - model: 1-exp
             tmin_min: 1
             tmin_max: 10
@@ -3188,11 +3529,13 @@ I0_S0_NN:
           - model: 2-exp
             tmin_min: 2
             tmin_max: 10
+            ratio: False
 
         - fit_infos:
           - model: 1-exp
             tmin_min: 5
             tmin_max: 14
+            ratio: False
           - model: 1-exp
             tmin_min: 1
             tmin_max: 12
@@ -3200,11 +3543,13 @@ I0_S0_NN:
           - model: 2-exp
             tmin_min: 2
             tmin_max: 10
+            ratio: False
             
         - fit_infos:
           - model: 1-exp
             tmin_min: 5
             tmin_max: 12
+            ratio: False
           - model: 1-exp
             tmin_min: 1
             tmin_max: 10
@@ -3212,11 +3557,13 @@ I0_S0_NN:
           - model: 2-exp
             tmin_min: 2
             tmin_max: 10
+            ratio: False
 
         - fit_infos:
           - model: 1-exp
             tmin_min: 5
             tmin_max: 12
+            ratio: False
           - model: 1-exp
             tmin_min: 1
             tmin_max: 10
@@ -3224,6 +3571,7 @@ I0_S0_NN:
           - model: 2-exp
             tmin_min: 2
             tmin_max: 6
+            ratio: False
 
     - name: isosinglet_S0_A2_P3
       pivot_info:
@@ -3281,6 +3629,7 @@ I0_S0_NN:
           - model: 1-exp
             tmin_min: 5
             tmin_max: 14
+            ratio: False
           - model: 1-exp
             tmin_min: 1
             tmin_max: 13
@@ -3288,11 +3637,13 @@ I0_S0_NN:
           - model: 2-exp
             tmin_min: 2
             tmin_max: 6
+            ratio: False
 
         - fit_infos:
           - model: 1-exp
             tmin_min: 5
             tmin_max: 13
+            ratio: False
           - model: 1-exp
             tmin_min: 1
             tmin_max: 12
@@ -3300,11 +3651,13 @@ I0_S0_NN:
           - model: 2-exp
             tmin_min: 2
             tmin_max: 10
+            ratio: False
 
         - fit_infos:
           - model: 1-exp
             tmin_min: 5
             tmin_max: 14
+            ratio: False
           - model: 1-exp
             tmin_min: 1
             tmin_max: 12
@@ -3312,11 +3665,13 @@ I0_S0_NN:
           - model: 2-exp
             tmin_min: 2
             tmin_max: 10
+            ratio: False
             
         - fit_infos:
           - model: 1-exp
             tmin_min: 5
             tmin_max: 12
+            ratio: False
           - model: 1-exp
             tmin_min: 1
             tmin_max: 9
@@ -3324,11 +3679,13 @@ I0_S0_NN:
           - model: 2-exp
             tmin_min: 2
             tmin_max: 6
+            ratio: False
 
         - fit_infos:
           - model: 1-exp
             tmin_min: 5
             tmin_max: 14
+            ratio: False
           - model: 1-exp
             tmin_min: 1
             tmin_max: 12
@@ -3336,11 +3693,13 @@ I0_S0_NN:
           - model: 2-exp
             tmin_min: 2
             tmin_max: 6
+            ratio: False
 
         - fit_infos:
           - model: 1-exp
             tmin_min: 5
             tmin_max: 13
+            ratio: False
           - model: 1-exp
             tmin_min: 1
             tmin_max: 12
@@ -3348,11 +3707,13 @@ I0_S0_NN:
           - model: 2-exp
             tmin_min: 2
             tmin_max: 10
+            ratio: False
 
         - fit_infos:
           - model: 1-exp
             tmin_min: 5
             tmin_max: 14
+            ratio: False
           - model: 1-exp
             tmin_min: 1
             tmin_max: 12
@@ -3360,11 +3721,13 @@ I0_S0_NN:
           - model: 2-exp
             tmin_min: 2
             tmin_max: 10
+            ratio: False
             
         - fit_infos:
           - model: 1-exp
             tmin_min: 5
             tmin_max: 12
+            ratio: False
           - model: 1-exp
             tmin_min: 1
             tmin_max: 9
@@ -3372,11 +3735,13 @@ I0_S0_NN:
           - model: 2-exp
             tmin_min: 2
             tmin_max: 6
+            ratio: False
 
         - fit_infos:
           - model: 1-exp
             tmin_min: 5
             tmin_max: 12
+            ratio: False
           - model: 1-exp
             tmin_min: 1
             tmin_max: 10
@@ -3384,6 +3749,7 @@ I0_S0_NN:
           - model: 2-exp
             tmin_min: 2
             tmin_max: 8
+            ratio: False
 
     - name: isosinglet_S0_E_P3
       pivot_info:
@@ -3481,6 +3847,7 @@ I0_S0_NN:
           - model: 1-exp
             tmin_min: 5
             tmin_max: 14
+            ratio: False
           - model: 1-exp
             tmin_min: 1
             tmin_max: 14
@@ -3488,11 +3855,13 @@ I0_S0_NN:
           - model: 2-exp
             tmin_min: 2
             tmin_max: 10
+            ratio: False
             
         - fit_infos:
           - model: 1-exp
             tmin_min: 5
             tmin_max: 14
+            ratio: False
           - model: 1-exp
             tmin_min: 1
             tmin_max: 12
@@ -3500,11 +3869,13 @@ I0_S0_NN:
           - model: 2-exp
             tmin_min: 2
             tmin_max: 10
+            ratio: False
             
         - fit_infos:
           - model: 1-exp
             tmin_min: 5
             tmin_max: 14
+            ratio: False
           - model: 1-exp
             tmin_min: 1
             tmin_max: 14
@@ -3512,11 +3883,13 @@ I0_S0_NN:
           - model: 2-exp
             tmin_min: 2
             tmin_max: 10
+            ratio: False
             
         - fit_infos:
           - model: 1-exp
             tmin_min: 5
             tmin_max: 14
+            ratio: False
           - model: 1-exp
             tmin_min: 1
             tmin_max: 12
@@ -3524,11 +3897,13 @@ I0_S0_NN:
           - model: 2-exp
             tmin_min: 2
             tmin_max: 10
+            ratio: False
             
         - fit_infos:
           - model: 1-exp
             tmin_min: 5
             tmin_max: 13
+            ratio: False
           - model: 1-exp
             tmin_min: 1
             tmin_max: 12
@@ -3536,11 +3911,13 @@ I0_S0_NN:
           - model: 2-exp
             tmin_min: 2
             tmin_max: 10
+            ratio: False
             
         - fit_infos:
           - model: 1-exp
             tmin_min: 5
             tmin_max: 12
+            ratio: False
           - model: 1-exp
             tmin_min: 1
             tmin_max: 10
@@ -3548,11 +3925,13 @@ I0_S0_NN:
           - model: 2-exp
             tmin_min: 2
             tmin_max: 10
+            ratio: False
             
         - fit_infos:
           - model: 1-exp
             tmin_min: 5
             tmin_max: 14
+            ratio: False
           - model: 1-exp
             tmin_min: 1
             tmin_max: 10
@@ -3560,11 +3939,13 @@ I0_S0_NN:
           - model: 2-exp
             tmin_min: 2
             tmin_max: 10
+            ratio: False
             
         - fit_infos:
           - model: 1-exp
             tmin_min: 5
             tmin_max: 14
+            ratio: False
           - model: 1-exp
             tmin_min: 1
             tmin_max: 14
@@ -3572,11 +3953,13 @@ I0_S0_NN:
           - model: 2-exp
             tmin_min: 2
             tmin_max: 10
+            ratio: False
             
         - fit_infos:
           - model: 1-exp
             tmin_min: 5
             tmin_max: 14
+            ratio: False
           - model: 1-exp
             tmin_min: 1
             tmin_max: 12
@@ -3584,11 +3967,13 @@ I0_S0_NN:
           - model: 2-exp
             tmin_min: 2
             tmin_max: 10
+            ratio: False
             
         - fit_infos:
           - model: 1-exp
             tmin_min: 5
             tmin_max: 13
+            ratio: False
           - model: 1-exp
             tmin_min: 1
             tmin_max: 12
@@ -3596,11 +3981,13 @@ I0_S0_NN:
           - model: 2-exp
             tmin_min: 2
             tmin_max: 10
+            ratio: False
             
         - fit_infos:
           - model: 1-exp
             tmin_min: 5
             tmin_max: 12
+            ratio: False
           - model: 1-exp
             tmin_min: 1
             tmin_max: 10
@@ -3608,11 +3995,13 @@ I0_S0_NN:
           - model: 2-exp
             tmin_min: 2
             tmin_max: 10
+            ratio: False
             
         - fit_infos:
           - model: 1-exp
             tmin_min: 5
             tmin_max: 14
+            ratio: False
           - model: 1-exp
             tmin_min: 1
             tmin_max: 10
@@ -3620,11 +4009,13 @@ I0_S0_NN:
           - model: 2-exp
             tmin_min: 2
             tmin_max: 10
+            ratio: False
             
         - fit_infos:
           - model: 1-exp
             tmin_min: 5
             tmin_max: 14
+            ratio: False
           - model: 1-exp
             tmin_min: 1
             tmin_max: 14
@@ -3632,11 +4023,13 @@ I0_S0_NN:
           - model: 2-exp
             tmin_min: 2
             tmin_max: 10
+            ratio: False
             
         - fit_infos:
           - model: 1-exp
             tmin_min: 5
             tmin_max: 14
+            ratio: False
           - model: 1-exp
             tmin_min: 1
             tmin_max: 12
@@ -3644,11 +4037,13 @@ I0_S0_NN:
           - model: 2-exp
             tmin_min: 2
             tmin_max: 10
+            ratio: False
             
         - fit_infos:
           - model: 1-exp
             tmin_min: 5
             tmin_max: 13
+            ratio: False
           - model: 1-exp
             tmin_min: 1
             tmin_max: 12
@@ -3656,11 +4051,13 @@ I0_S0_NN:
           - model: 2-exp
             tmin_min: 2
             tmin_max: 10
+            ratio: False
             
         - fit_infos:
           - model: 1-exp
             tmin_min: 5
             tmin_max: 12
+            ratio: False
           - model: 1-exp
             tmin_min: 1
             tmin_max: 10
@@ -3668,11 +4065,13 @@ I0_S0_NN:
           - model: 2-exp
             tmin_min: 2
             tmin_max: 10
+            ratio: False
             
         - fit_infos:
           - model: 1-exp
             tmin_min: 5
             tmin_max: 14
+            ratio: False
           - model: 1-exp
             tmin_min: 1
             tmin_max: 10
@@ -3680,6 +4079,7 @@ I0_S0_NN:
           - model: 2-exp
             tmin_min: 2
             tmin_max: 10
+            ratio: False
             
     - name: isosinglet_S0_A1_P4
       pivot_info:
@@ -3707,6 +4107,7 @@ I0_S0_NN:
           - model: 1-exp
             tmin_min: 5
             tmin_max: 13
+            ratio: False
           - model: 1-exp
             tmin_min: 1
             tmin_max: 12
@@ -3714,11 +4115,13 @@ I0_S0_NN:
           - model: 2-exp
             tmin_min: 2
             tmin_max: 8
+            ratio: False
 
         - fit_infos:
           - model: 1-exp
             tmin_min: 5
             tmin_max: 13
+            ratio: False
           - model: 1-exp
             tmin_min: 1
             tmin_max: 12
@@ -3726,11 +4129,13 @@ I0_S0_NN:
           - model: 2-exp
             tmin_min: 2
             tmin_max: 8
+            ratio: False
 
         - fit_infos:
           - model: 1-exp
             tmin_min: 5
             tmin_max: 13
+            ratio: False
           - model: 1-exp
             tmin_min: 1
             tmin_max: 12
@@ -3738,6 +4143,7 @@ I0_S0_NN:
           - model: 2-exp
             tmin_min: 2
             tmin_max: 8
+            ratio: False
 
 
     - name: isosinglet_S0_A2_P4
@@ -3786,6 +4192,7 @@ I0_S0_NN:
           - model: 1-exp
             tmin_min: 5
             tmin_max: 13
+            ratio: False
           - model: 1-exp
             tmin_min: 1
             tmin_max: 13
@@ -3793,11 +4200,13 @@ I0_S0_NN:
           - model: 2-exp
             tmin_min: 2
             tmin_max: 10
+            ratio: False
 
         - fit_infos:
           - model: 1-exp
             tmin_min: 5
             tmin_max: 13
+            ratio: False
           - model: 1-exp
             tmin_min: 1
             tmin_max: 13
@@ -3805,11 +4214,13 @@ I0_S0_NN:
           - model: 2-exp
             tmin_min: 2
             tmin_max: 10
+            ratio: False
             
         - fit_infos:
           - model: 1-exp
             tmin_min: 5
             tmin_max: 13
+            ratio: False
           - model: 1-exp
             tmin_min: 1
             tmin_max: 12
@@ -3817,11 +4228,13 @@ I0_S0_NN:
           - model: 2-exp
             tmin_min: 2
             tmin_max: 10
+            ratio: False
 
         - fit_infos:
           - model: 1-exp
             tmin_min: 5
             tmin_max: 13
+            ratio: False
           - model: 1-exp
             tmin_min: 1
             tmin_max: 10
@@ -3829,11 +4242,13 @@ I0_S0_NN:
           - model: 2-exp
             tmin_min: 2
             tmin_max: 10
+            ratio: False
 
         - fit_infos:
           - model: 1-exp
             tmin_min: 5
             tmin_max: 13
+            ratio: False
           - model: 1-exp
             tmin_min: 1
             tmin_max: 13
@@ -3841,11 +4256,13 @@ I0_S0_NN:
           - model: 2-exp
             tmin_min: 2
             tmin_max: 10
+            ratio: False
             
         - fit_infos:
           - model: 1-exp
             tmin_min: 5
             tmin_max: 13
+            ratio: False
           - model: 1-exp
             tmin_min: 1
             tmin_max: 12
@@ -3853,11 +4270,13 @@ I0_S0_NN:
           - model: 2-exp
             tmin_min: 2
             tmin_max: 10
+            ratio: False
 
         - fit_infos:
           - model: 1-exp
             tmin_min: 5
             tmin_max: 12
+            ratio: False
           - model: 1-exp
             tmin_min: 1
             tmin_max: 12
@@ -3865,6 +4284,7 @@ I0_S0_NN:
           - model: 2-exp
             tmin_min: 2
             tmin_max: 10
+            ratio: False
 
     - name: isosinglet_S0_B1_P4
       pivot_info:
@@ -3892,6 +4312,7 @@ I0_S0_NN:
           - model: 1-exp
             tmin_min: 5
             tmin_max: 13
+            ratio: False
           - model: 1-exp
             tmin_min: 1
             tmin_max: 11
@@ -3899,11 +4320,13 @@ I0_S0_NN:
           - model: 2-exp
             tmin_min: 2
             tmin_max: 8
+            ratio: False
 
         - fit_infos:
           - model: 1-exp
             tmin_min: 5
             tmin_max: 13
+            ratio: False
           - model: 1-exp
             tmin_min: 1
             tmin_max: 11
@@ -3911,11 +4334,13 @@ I0_S0_NN:
           - model: 2-exp
             tmin_min: 2
             tmin_max: 8
+            ratio: False
 
         - fit_infos:
           - model: 1-exp
             tmin_min: 5
             tmin_max: 13
+            ratio: False
           - model: 1-exp
             tmin_min: 1
             tmin_max: 11
@@ -3923,6 +4348,7 @@ I0_S0_NN:
           - model: 2-exp
             tmin_min: 2
             tmin_max: 8
+            ratio: False
 
 
     - name: isosinglet_S0_B2_P4
@@ -3956,6 +4382,7 @@ I0_S0_NN:
           - model: 1-exp
             tmin_min: 5
             tmin_max: 13
+            ratio: False
           - model: 1-exp
             tmin_min: 1
             tmin_max: 13
@@ -3963,11 +4390,13 @@ I0_S0_NN:
           - model: 2-exp
             tmin_min: 2
             tmin_max: 10
+            ratio: False
 
         - fit_infos:
           - model: 1-exp
             tmin_min: 5
             tmin_max: 13
+            ratio: False
           - model: 1-exp
             tmin_min: 1
             tmin_max: 13
@@ -3975,11 +4404,13 @@ I0_S0_NN:
           - model: 2-exp
             tmin_min: 2
             tmin_max: 10
+            ratio: False
 
         - fit_infos:
           - model: 1-exp
             tmin_min: 5
             tmin_max: 13
+            ratio: False
           - model: 1-exp
             tmin_min: 1
             tmin_max: 13
@@ -3987,11 +4418,13 @@ I0_S0_NN:
           - model: 2-exp
             tmin_min: 2
             tmin_max: 10
+            ratio: False
 
         - fit_infos:
           - model: 1-exp
             tmin_min: 5
             tmin_max: 13
+            ratio: False
           - model: 1-exp
             tmin_min: 1
             tmin_max: 13
@@ -3999,6 +4432,7 @@ I0_S0_NN:
           - model: 2-exp
             tmin_min: 2
             tmin_max: 10
+            ratio: False
 
 
 
@@ -4088,6 +4522,7 @@ I0_S0_NN:
           - model: 1-exp
             tmin_min: 5
             tmin_max: 13
+            ratio: False
           - model: 1-exp
             tmin_min: 1
             tmin_max: 13
@@ -4095,11 +4530,13 @@ I0_S0_NN:
           - model: 2-exp
             tmin_min: 2
             tmin_max: 10
+            ratio: False
 
         - fit_infos:
           - model: 1-exp
             tmin_min: 5
             tmin_max: 14
+            ratio: False
           - model: 1-exp
             tmin_min: 1
             tmin_max: 13
@@ -4107,11 +4544,13 @@ I0_S0_NN:
           - model: 2-exp
             tmin_min: 2
             tmin_max: 10
+            ratio: False
 
         - fit_infos:
           - model: 1-exp
             tmin_min: 5
             tmin_max: 12
+            ratio: False
           - model: 1-exp
             tmin_min: 1
             tmin_max: 11
@@ -4119,11 +4558,13 @@ I0_S0_NN:
           - model: 2-exp
             tmin_min: 2
             tmin_max: 7
+            ratio: False
 
         - fit_infos:
           - model: 1-exp
             tmin_min: 5
             tmin_max: 14
+            ratio: False
           - model: 1-exp
             tmin_min: 1
             tmin_max: 10
@@ -4131,11 +4572,13 @@ I0_S0_NN:
           - model: 2-exp
             tmin_min: 2
             tmin_max: 10
+            ratio: False
 
         - fit_infos:
           - model: 1-exp
             tmin_min: 5
             tmin_max: 16
+            ratio: False
           - model: 1-exp
             tmin_min: 1
             tmin_max: 16
@@ -4143,22 +4586,26 @@ I0_S0_NN:
           - model: 2-exp
             tmin_min: 2
             tmin_max: 10
+            ratio: False
         - fit_infos:
           - model: 1-exp
             tmin_min: 5
             tmin_max: 13
+            ratio: False
           - model: 1-exp
             tmin_min: 1
             tmin_max: 12
             ratio: True
           - model: 2-exp
             tmin_min: 2
+            ratio: False
             tmin_max: 10
 
         - fit_infos:
           - model: 1-exp
             tmin_min: 5
             tmin_max: 14
+            ratio: False
           - model: 1-exp
             tmin_min: 1
             tmin_max: 13
@@ -4166,11 +4613,13 @@ I0_S0_NN:
           - model: 2-exp
             tmin_min: 2
             tmin_max: 10
+            ratio: False
 
         - fit_infos:
           - model: 1-exp
             tmin_min: 5
             tmin_max: 12
+            ratio: False
           - model: 1-exp
             tmin_min: 1
             tmin_max: 11
@@ -4178,11 +4627,13 @@ I0_S0_NN:
           - model: 2-exp
             tmin_min: 2
             tmin_max: 7
+            ratio: False
 
         - fit_infos:
           - model: 1-exp
             tmin_min: 5
             tmin_max: 14
+            ratio: False
           - model: 1-exp
             tmin_min: 1
             tmin_max: 10
@@ -4190,11 +4641,13 @@ I0_S0_NN:
           - model: 2-exp
             tmin_min: 2
             tmin_max: 10
+            ratio: False
 
         - fit_infos:
           - model: 1-exp
             tmin_min: 5
             tmin_max: 16
+            ratio: False
           - model: 1-exp
             tmin_min: 1
             tmin_max: 16
@@ -4202,10 +4655,12 @@ I0_S0_NN:
           - model: 2-exp
             tmin_min: 2
             tmin_max: 10
+            ratio: False
         - fit_infos:
           - model: 1-exp
             tmin_min: 5
             tmin_max: 13
+            ratio: False
           - model: 1-exp
             tmin_min: 1
             tmin_max: 12
@@ -4213,11 +4668,13 @@ I0_S0_NN:
           - model: 2-exp
             tmin_min: 2
             tmin_max: 10
+            ratio: False
 
         - fit_infos:
           - model: 1-exp
             tmin_min: 5
             tmin_max: 14
+            ratio: False
           - model: 1-exp
             tmin_min: 1
             tmin_max: 13
@@ -4225,11 +4682,13 @@ I0_S0_NN:
           - model: 2-exp
             tmin_min: 2
             tmin_max: 10
+            ratio: False
 
         - fit_infos:
           - model: 1-exp
             tmin_min: 5
             tmin_max: 12
+            ratio: False
           - model: 1-exp
             tmin_min: 1
             tmin_max: 11
@@ -4237,11 +4696,13 @@ I0_S0_NN:
           - model: 2-exp
             tmin_min: 2
             tmin_max: 7
+            ratio: False
 
         - fit_infos:
           - model: 1-exp
             tmin_min: 5
             tmin_max: 14
+            ratio: False
           - model: 1-exp
             tmin_min: 1
             tmin_max: 10
@@ -4249,11 +4710,13 @@ I0_S0_NN:
           - model: 2-exp
             tmin_min: 2
             tmin_max: 10
+            ratio: False
 
         - fit_infos:
           - model: 1-exp
             tmin_min: 5
             tmin_max: 16
+            ratio: False
           - model: 1-exp
             tmin_min: 1
             tmin_max: 16
@@ -4261,3 +4724,4 @@ I0_S0_NN:
           - model: 2-exp
             tmin_min: 2
             tmin_max: 10
+            ratio: False
