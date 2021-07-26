@@ -270,7 +270,7 @@ def create_doc(title, with_tikz=False):
   doc.packages.append(pylatex.Package('amsmath'))
   doc.packages.append(pylatex.Package('float'))
   doc.packages.append(pylatex.Package('caption', {'labelformat': 'empty', 'justification': 'centering'}))
-  doc.packages.append(pylatex.Package('todonotes'))
+  #doc.packages.append(pylatex.Package('todonotes'))
 
   # I don't think these are needed
   #doc.packages.append(pylatex.Package('needspace'))
@@ -433,9 +433,14 @@ def add_image(figure, rel_dir, pdf_file, width="1.0", caption="", view=True):
 
 def compile_pdf(doc, filename, compiler=None):
   logging.info(f"Compiling LaTeX: {filename}.tex")
-  doc.generate_pdf(filename, clean=True, clean_tex=False, compiler=compiler, compiler_args=['-f'])
-  logging.info(f"Created PDF: {filename}.pdf")
-
+  doc.generate_tex(filename)
+  try:
+    doc.generate_pdf(filename, clean=True, clean_tex=False, compiler=compiler, compiler_args=['-f'])
+    logging.info(f"Created PDF: {filename}.pdf")
+  except subprocess.CalledProcessError as err:
+    print(err)
+    logging.info(f"Unable to create PDF: {filename}.pdf")
+    
 def write_tikz(tikz, filename):
   with open(filename, 'w', encoding='utf-8') as f_hand:
     tikz.dump(f_hand)
