@@ -1043,6 +1043,10 @@ class Spectrum(tasks.task.Task):
     non_interacting_levels = list()
     for fit_info in self.spectrum[operator_basis]:
       single_particles = list()
+
+      if fit_info.non_interacting_operators is None:
+        continue
+
       for scattering_particle in fit_info.non_interacting_operators.non_interacting_level:
         at_rest_scattering_particle = sigmond_info.sigmond_info.ScatteringParticle(scattering_particle.name, 0)
         energy_obs = sigmond.MCObsInfo(f"{self.sh_name}/{at_rest_scattering_particle!r}", 0)
