@@ -168,6 +168,8 @@ def read_config(config_filenames):
       task_type = task_options.pop("task_type")
     except KeyError:
       logging.error(f"Task '{task_name}' missing task_type")
+    except TypeError:
+      logging.error(f"Task '{task_name}' has invalid task_type: '{task_options[-1]}'")
 
     if task_type not in task_map:
       logging.error(f"Task type '{task_type}' not recognized")
