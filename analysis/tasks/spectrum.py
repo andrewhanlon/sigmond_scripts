@@ -1101,8 +1101,9 @@ class Spectrum(tasks.task.Task):
     plot_directory = os.path.join(self.results_dir, "spectrum_plot")
     os.makedirs(plot_directory, exist_ok=True)
     plot_filename = os.path.join(plot_directory, "spectrum")
+    relative_plot_directory = os.path.join("spectrum_plot","spectrum")
     utils.plotting.spectrum(thresholds, energies, non_interacting_energies, self.latex_map,
                             self.rotate_labels, self.plot_width_factor, self.ref_name, plot_filename,
                             self.latex_compiler)
-    return plot_filename
+    return relative_plot_directory
 
