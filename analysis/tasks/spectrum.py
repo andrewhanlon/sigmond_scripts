@@ -77,6 +77,7 @@ class Spectrum(tasks.task.Task):
     self.bar_color = extra_options.pop('bar_color', sigmond_info.sigmond_info.SymbolColor.cyan)
     self.rotate_labels = extra_options.pop('rotate_labels', False)
     self.plot_width_factor = extra_options.pop('plot_width_factor', 1.)
+    self.non_interacting_energy_labels = extra_options.pop('non_interacting_energy_labels', False)
 
     util.check_extra_keys(extra_options, 'Spectrum.initialize')
 
@@ -85,7 +86,7 @@ class Spectrum(tasks.task.Task):
 
     YAML:
       subtractvev: true   # optional
-
+      non_interacting_energy_labels: true #optiona;
       reorder: false   # optional
       
       # optional
@@ -724,6 +725,7 @@ class Spectrum(tasks.task.Task):
         doc.append(pylatex.NoEscape(rf"\input{{{spectrum_tikz_file}.tikz}}"))
         doc.append(pylatex.NoEscape(r"}"))
         self._addFitTable(doc)
+        #if non interacting levels add Noninteracting levels fit table
         doc.append(pylatex.NoEscape(r"\newpage"))
 
     self._addFittedEnergies(doc)
@@ -1040,8 +1042,11 @@ class Spectrum(tasks.task.Task):
     data_files.addSamplingFiles(self.samplings_filename)
     obs_handler, _ = util.get_obs_handlers(data_files, self.bins_info, self.sampling_info)
 
-    non_interacting_levels = list()
+    non_interacting_levels = list()      #    level 0     ,   level 1...
+    non_interacting_level_names = list() #[ [[N,pi].[0,0]], [[N,pi].[1,0]], ...
     for fit_info in self.spectrum[operator_basis]:
+      single_particle_names = list()
+      single_particle_moms = list()
       single_particles = list()
 
       if fit_info.non_interacting_operators is None:
@@ -1052,6 +1057,8 @@ class Spectrum(tasks.task.Task):
         energy_obs = sigmond.MCObsInfo(f"{self.sh_name}/{at_rest_scattering_particle!r}", 0)
         single_particle = util.boost_obs(obs_handler, energy_obs, scattering_particle.psq, self.ensemble_spatial_extent)
         single_particles.append(single_particle)
+        single_particle_names.append(scattering_particle.name)
+        single_particle_moms.append(scattering_particle.psq)
 
       total = util.linear_superposition_obs(obs_handler, single_particles, [1.0]*len(single_particles))
       total_cm = util.boost_obs_to_cm(obs_handler, total, fit_info.operator.psq, self.ensemble_spatial_extent)
@@ -1061,8 +1068,9 @@ class Spectrum(tasks.task.Task):
         total_cm = util.ratio_obs(obs_handler, total_cm, ref_obs)
 
       non_interacting_levels.append(obs_handler.getEstimate(total_cm))
+      non_interacting_level_names.append([single_particle_names,single_particle_moms])
 
-    return non_interacting_levels
+    return non_interacting_levels,non_interacting_level_names
 
   def _makePlot(self):
 
@@ -1071,6 +1079,7 @@ class Spectrum(tasks.task.Task):
     # get energies and non_interacting energies
     energies = dict()
     non_interacting_energies = dict()
+    non_interacting_energy_names = dict()
 
     for operator_set, fit_infos in self.spectrum.items():
       if operator_set.is_rotated:
@@ -1096,14 +1105,21 @@ class Spectrum(tasks.task.Task):
 
           energies[label].append(energy)
 
-      non_interacting_energies[label] = self._getNonInteractingLevels(operator_set)
+      non_interacting_energies[label],non_interacting_energy_names[label] = self._getNonInteractingLevels(operator_set)
 
     plot_directory = os.path.join(self.results_dir, "spectrum_plot")
     os.makedirs(plot_directory, exist_ok=True)
     plot_filename = os.path.join(plot_directory, "spectrum")
     relative_plot_directory = os.path.join("spectrum_plot","spectrum")
-    utils.plotting.spectrum(thresholds, energies, non_interacting_energies, self.latex_map,
+    
+    if self.non_interacting_energy_labels:
+      utils.plotting.spectrum(thresholds, energies, non_interacting_energies, self.latex_map,
+                            self.rotate_labels, self.plot_width_factor, self.ref_name, plot_filename,
+                            self.latex_compiler, non_interacting_energy_names)
+    else:
+      utils.plotting.spectrum(thresholds, energies, non_interacting_energies, self.latex_map,
                             self.rotate_labels, self.plot_width_factor, self.ref_name, plot_filename,
                             self.latex_compiler)
     return relative_plot_directory
+
 
