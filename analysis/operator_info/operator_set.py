@@ -181,7 +181,7 @@ class RotatedOperatorSet(NamedOperatorSet):
       original_operators = SortedSet([operator_info.operator.Operator(op) for op in sigmond.getOperatorBasis(pivot_file)])
 
     if pivot_exists and operators and original_operators != operators:
-      logging.error("RotatedOperatorSet operators do not match operators on disk")
+      logging.error(f"RotatedOperatorSet operators do not match operators on disk in {pivot_file}")
     elif pivot_exists and operators:
       return operators
     elif pivot_exists and not operators:
