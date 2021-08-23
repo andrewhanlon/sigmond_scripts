@@ -67,6 +67,7 @@ class RotationLog(SigmondLog):
     self.analyze_metric_xml = pivot_xml.find("AnalyzeMetric")
     self.analyze_matrix_xml = pivot_xml.find("AnalyzeMatrix")
     self.do_rotation_xml = rotation_task_xml.find("DoRotation")
+    self.transformation_matrix_xml = rotation_task_xml.find("SinglePivot/InitiateNew/TransformationMatrix")
 
   @property
   def metric_null_space_message(self):
@@ -145,6 +146,19 @@ class RotationLog(SigmondLog):
   @property
   def number_levels(self):
     return len(list(self.analyze_matrix_xml.find("GMatrixRetainedEigenvalues")))
+
+  @property
+  def improved_operators(self):
+    improved_ops = list()
+    for op in self.transformation_matrix_xml.find("ImprovedOperators").iter("ImprovedOperator"):
+      op_info = list()
+      op_info.append( op.find("OpName").findtext("GIOperatorString") )
+      for term in op.iter("OpTerm"):
+        op_info.append( term.findtext("GIOperatorString") )
+        op_info.append( term.findtext("Coefficient").replace('(', '').replace(')', '').split(',') )
+      improved_ops.append( op_info )
+    # [ [name, term1, coeff1, term2, coeff2...], [name, term1, coeff1...  
+    return improved_ops
 
 
 class FitResult(NamedTuple):
