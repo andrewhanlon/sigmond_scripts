@@ -94,7 +94,6 @@ class RotateCorrelators(tasks.task.Task):
 
     task_options['plot_info'] = sigmond_info.sigmond_info.PlotInfo.createFromConfig(task_options)
     task_options['rotate_mode'] = sigmond_info.sigmond_info.RotateMode(task_options.pop('rotate_mode', 'samplings_all'))
-
     self.initialize(operator_bases, **task_options)
 
   def energy_plotdir(self, rotated_basis):
@@ -160,6 +159,7 @@ class RotateCorrelators(tasks.task.Task):
       mintime, maxtime = self.data_handler.getOperatorSetSmallestTRange(operator_basis)
       logging.info(f"  Time separations [{mintime},{maxtime}]")
       data_files = self.data_handler.getChannelDataFiles(operator_basis.channel)
+      #Sarah
 
       project_name = self.project_name(repr(operator_basis))
       logfile = self.logfile(repr(operator_basis))
@@ -195,9 +195,9 @@ class RotateCorrelators(tasks.task.Task):
       logfile = self.logfile(repr(operator_basis))
       rotation_log = sigmond_info.sigmond_log.RotationLog(logfile)
       if rotation_log.failed:
-        logging.warning(f"Rotation {operator_basis.name} failed")
+        logging.warning(f"Rotation {operator_basis.name} failed: log located in {logfile}")
         continue
-
+      
       corr_plotsdir = self.correlator_plotdir(operator_basis)
       energy_plotsdir = self.energy_plotdir(operator_basis)
       util.dirGrace2pdf(corr_plotsdir)
