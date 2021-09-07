@@ -4,6 +4,7 @@ import logging
 import xml.etree.ElementTree as ET
 import h5py
 import pylatex
+import numpy as np
 
 import tasks.task
 import utils.plotting
@@ -390,6 +391,11 @@ class Spectrum(tasks.task.Task):
   def hdf5_filename(self):
     filename = f"energy_samplings_{self.task_name}_rebin{self.rebin}.hdf5"
     return os.path.join(self.samplings_dir, filename)
+
+  @property
+  def estimates_filename(self):
+    filename = f"energy_estimates_{self.task_name}_rebin{self.rebin}_{self.sampling_mode}.csv"
+    return os.path.join(self.results_dir, filename)
   
   @property
   def samplings_filename(self):
@@ -965,15 +971,24 @@ class Spectrum(tasks.task.Task):
         self.bins_info, self.sampling_info, set([self.samplings_filename]))
 
     hdf5_filename = self.hdf5_filename
+    est_filename = self.estimates_filename
     if os.path.exists(hdf5_filename):
       os.remove(hdf5_filename)
+    if os.path.exists(est_filename):
+      os.remove(est_filename)
     hdf5_h = h5py.File(hdf5_filename, 'w')
+    fests = open(est_filename, 'w+')
+    fests.write(f"obs,val,err\n")
 
     for obs_info in samplings_handler.getKeys():
       np_data = util.get_samplings(obs_handler, obs_info)
       hdf5_h.create_dataset(obs_info.getObsName(), data=np_data)
+      val = obs_handler.getEstimate(sigmond.MCObsInfo(obs_info.getObsName(),0)).getFullEstimate()
+      err = obs_handler.getEstimate(sigmond.MCObsInfo(obs_info.getObsName(),0)).getSymmetricError()
+      fests.write(f"{obs_info.getObsName()},{val},{err}\n")
 
     hdf5_h.close()
+    fests.close()
 
     self.energies = dict()
     for operator_set, fit_infos in self.spectrum.items():
@@ -1111,7 +1126,7 @@ class Spectrum(tasks.task.Task):
     os.makedirs(plot_directory, exist_ok=True)
     plot_filename = os.path.join(plot_directory, "spectrum")
     relative_plot_directory = os.path.join("spectrum_plot","spectrum")
-    
+
     if self.non_interacting_energy_labels:
       utils.plotting.spectrum(thresholds, energies, non_interacting_energies, self.latex_map,
                             self.rotate_labels, self.plot_width_factor, self.ref_name, plot_filename,
