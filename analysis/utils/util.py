@@ -435,7 +435,8 @@ def compile_pdf(doc, filename, compiler=None):
   doc.generate_tex(filename)
   logging.info(f"Created LaTeX file: {filename}.tex")
   try:
-    doc.generate_pdf(filename, clean=True, clean_tex=False, compiler=compiler, compiler_args=['-f'])
+    doc.generate_pdf(filename, clean=False, clean_tex=False, compiler=compiler, compiler_args=['-synctex=1'])
+    doc.generate_pdf(filename, clean=True, clean_tex=False, compiler=compiler, compiler_args=['-synctex=1'])
     logging.info(f"Created PDF: {filename}.pdf")
   except subprocess.CalledProcessError as err:
     print(err)
