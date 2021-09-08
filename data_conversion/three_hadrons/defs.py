@@ -1,7 +1,7 @@
 from typing import NamedTuple
 
-base_data_dir = "/media/ext2/research/data/raw_three_hadrons/"
-output_dir = "data"
+base_data_dir = "/disk2/research/data/raw_three_hadrons"
+output_dir = "/disk1/research/projects/KKp_Kpp/data"
 
 class Ensemble(NamedTuple):
   name: str
@@ -13,11 +13,13 @@ class Ensemble(NamedTuple):
 ensembles = [
     Ensemble("cls21_n203", ['r000', 'r001'], [32, 52], ['kaons', 'pions', 'KKp_Kpp']),
     Ensemble("cls21_n200", ['r000', 'r001'], [32, 52], ['kaons', 'pions', 'KKp_Kpp']),
-    Ensemble("cls21_d200", ['r000'], [35], ['kaons', 'pions', 'KKp_Kpp']),
+    Ensemble("cls21_d200", ['r000'], [35, 92], ['kaons', 'pions', 'KKp_Kpp']),
 ]
 '''
 ensembles = [
-    Ensemble("cls21_d200", ['r000'], [35, 92], ['kaons', 'pions']),
+    Ensemble("cls21_n203", ['r000', 'r001'], [32, 52], ['KKp_Kpp']),
+    Ensemble("cls21_n200", ['r000', 'r001'], [32, 52], ['KKp_Kpp']),
+    Ensemble("cls21_d200", ['r000'], [35, 92], ['KKp_Kpp']),
 ]
 
 omissions = {
