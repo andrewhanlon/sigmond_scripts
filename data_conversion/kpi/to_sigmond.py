@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 import os
+import sys
 
 import numpy as np
 import xml.etree.ElementTree as ET
@@ -18,56 +19,65 @@ def main():
     ensemble_name = ensemble.name
     print(f"Ensemble: {ensemble_name}")
 
-    for flavor_channel in ensemble.flavor_channels:
-      print(f"Flavor: {flavor_channel}")
+    corr_files = dict()
+    correlators = list()
+    for replica in ensemble.replica:
+      replica_ensemble_name = f"{ensemble_name}_{replica}"
+      corr_files[replica] = dict()
+      for tsrc in ensemble.sources:
+        data_dir = os.path.join(ensemble_name, replica, f"src{tsrc[0]}", tsrc[1])
+        print(f"Searching {data_dir}...", end='', flush=True)
+        search_dir = os.path.join(defs.base_data_dir, data_dir)
+        corr_files[replica][tsrc] = get_corr_files(replica_ensemble_name, search_dir)
+        correlators.append(corr_files[replica][tsrc].keys())
+        print("done")
 
-      corr_files = dict()
-      correlators = list()
+    # TODO: check all elements of correlators have same keys
+    all_equal = all(corrs==correlators[0] for corrs in correlators)
+    if not all_equal:
+      print("not all equal\n\n")
+      max_set = -1
+      max_corrs = 0
+      for corrs_num, corrs in enumerate(correlators):
+        print(f"corrs num {corrs_num}: size {len(corrs)}")
+        if len(corrs) > max_corrs:
+          max_corrs = len(corrs)
+          max_set = corrs_num
+
+      max_set = 1
+      for corrs_num, corrs_comp in enumerate(correlators):
+        if corrs_num == max_set:
+          continue
+        
+        for corr in correlators[max_set]:
+          if corr not in corrs_comp:
+            print()
+            print(f"Missing from {corrs_num}: {corr}")
+
+      sys.exit()
+
+    correlators = correlators[0]
+
+    for correlator in tqdm.tqdm(correlators):
+      corrs_to_extend = list()
       for replica in ensemble.replica:
         replica_ensemble_name = f"{ensemble_name}_{replica}"
-        corr_files[replica] = dict()
+        corrs_to_average = list()
         for tsrc in ensemble.sources:
-          data_dir = os.path.join(ensemble_name, replica, f"{flavor_channel}_t0{tsrc[0]}", tsrc[1])
-          print(f"Searching {data_dir}...", end='', flush=True)
-          search_dir = os.path.join(defs.base_data_dir, data_dir)
-          corr_files[replica][tsrc] = get_corr_files(replica_ensemble_name, search_dir)
-          correlators.append(corr_files[replica][tsrc].keys())
-          print("done")
+          data_file, data_file_opposite, is_backwards = corr_files[replica][tsrc][correlator]
+          correlator_data = get_data(correlator, data_file, data_file_opposite, is_backwards, replica_ensemble_name)
+          corrs_to_average.append(correlator_data)
 
-      # TODO: check all elements of correlators have same keys
-      all_equal = all(corrs==correlators[0] for corrs in correlators)
-      if not all_equal:
-        print("not all equal\n\n")
-        for corrs_num, corrs in enumerate(correlators):
-          print(f"corrs num {corrs_num}")
-          print("--------------------")
-          for corr in sorted(corrs):
-            print(f"\t{corr}")
+        averaged_corr_data = average_data(corrs_to_average)
+        corrs_to_extend.append(averaged_corr_data)
 
-          print()
-
-      correlators = correlators[0]
-
-      for correlator in tqdm.tqdm(correlators):
-        corrs_to_extend = list()
-        for replica in ensemble.replica:
-          replica_ensemble_name = f"{ensemble_name}_{replica}"
-          corrs_to_average = list()
-          for tsrc in ensemble.sources:
-            data_file, data_file_opposite, is_backwards = corr_files[replica][tsrc][correlator]
-            correlator_data = get_data(correlator, data_file, data_file_opposite, is_backwards, replica_ensemble_name)
-            corrs_to_average.append(correlator_data)
-
-          averaged_corr_data = average_data(corrs_to_average)
-          corrs_to_extend.append(averaged_corr_data)
-
-        extended_corr_data = extend_data(corrs_to_extend)
-        channel = get_channel(correlator)
-        write_data(extended_corr_data, ensemble_name, channel, flavor_channel)
+      extended_corr_data = extend_data(corrs_to_extend)
+      channel = get_channel(correlator)
+      write_data(extended_corr_data, ensemble_name, channel)
 
 
-def write_data(data, ensemble_name, channel, flavor_channel):
-  output_dir = os.path.join(defs.output_dir, ensemble_name, flavor_channel)
+def write_data(data, ensemble_name, channel):
+  output_dir = os.path.join(defs.output_dir, ensemble_name)
   os.makedirs(output_dir, exist_ok=True)
 
   ensemble_info = sigmond.MCEnsembleInfo(ensemble_name, 'ensembles.xml')
@@ -121,15 +131,16 @@ def get_data(correlator, data_file, data_file_opposite, is_backwards, ensemble_n
   if is_backwards:
     correlator.setBackwards()
 
+  correlator_opposite = sigmond.CorrelatorInfo(correlator.getSource(), correlator.getSink())
+
   mcobs_xml = ET.Element("MCObservables")
   corr_data_xml = ET.SubElement(mcobs_xml, "BLCorrelatorData")
 
   file_list_infos = list()
+  data_files = [d for d in [data_file, data_file_opposite] if d is not None]
+
+  has_not_opposite = data_file is not None
   has_opposite = data_file_opposite is not None
-  if has_opposite:
-    data_files = [data_file, data_file_opposite]
-  else:
-    data_files = [data_file]
 
   for d_file in data_files:
     stub, ext = os.path.splitext(d_file)
@@ -149,28 +160,32 @@ def get_data(correlator, data_file, data_file_opposite, is_backwards, ensemble_n
 
   corr_handler = sigmond.BLCorrelatorDataHandler(file_list_infos, set(), set(), ensemble_info)
 
-  keys = corr_handler.getOrderedKeys(correlator)
-  tmin = keys[0].getTimeIndex()
-  tmax = keys[-1].getTimeIndex()
+  if has_opposite and has_not_opposite:
+    keys = corr_handler.getOrderedKeys(correlator)
+    tmin = keys[0].getTimeIndex()
+    tmax = keys[-1].getTimeIndex()
 
-  if has_opposite:
-    correlator_opposite = sigmond.CorrelatorInfo(correlator.getSource(), correlator.getSink())
     keys = corr_handler.getOrderedKeys(correlator_opposite)
     tmin_opp = keys[0].getTimeIndex()
     tmax_opp = keys[-1].getTimeIndex()
 
-    if tmin != tmin_opp:
+    if tmin != tmin_opp or tmax != tmax_opp:
       print("mismatch between tmin on corresponding correlators")
-      exit()
+      sys.exit()
 
-    if tmax != tmax_opp:
-      print("mismatch between tmax on corresponding correlators")
-      exit()
+  elif has_not_opposite:
+    keys = corr_handler.getOrderedKeys(correlator)
+    tmin = keys[0].getTimeIndex()
+    tmax = keys[-1].getTimeIndex()
+
+  elif has_opposite:
+    keys = corr_handler.getOrderedKeys(correlator_opposite)
+    tmin = keys[0].getTimeIndex()
+    tmax = keys[-1].getTimeIndex()
 
   correlator_data = dict()
   corr_time_info = sigmond.CorrelatorAtTimeInfo(correlator, 0, False, False)
-  if has_opposite:
-    corr_time_info_opp = sigmond.CorrelatorAtTimeInfo(correlator_opposite, 0, False, False)
+  corr_time_info_opp = sigmond.CorrelatorAtTimeInfo(correlator_opposite, 0, False, False)
 
   corr_time_info_herm = sigmond.CorrelatorAtTimeInfo(correlator, 0, True, False)
   for tsep in range(tmin, tmax+1):
@@ -180,13 +195,20 @@ def get_data(correlator, data_file, data_file_opposite, is_backwards, ensemble_n
 
       corr_time_info.resetTimeSeparation(tsep)
       corr_time_info_obs_info = sigmond.MCObsInfo(corr_time_info, complex_arg)
-      data = np.array(obs_handler.getBins(corr_time_info_obs_info).array())
+      corr_time_info_opp.resetTimeSeparation(tsep)
+      corr_time_info_opp_obs_info = sigmond.MCObsInfo(corr_time_info_opp, complex_arg)
 
-      if has_opposite:
-        corr_time_info_opp.resetTimeSeparation(tsep)
-        corr_time_info_opp_obs_info = sigmond.MCObsInfo(corr_time_info_opp, complex_arg)
+      if has_opposite and has_not_opposite:
+        data = np.array(obs_handler.getBins(corr_time_info_obs_info).array())
         data_opp = np.array(obs_handler.getBins(corr_time_info_opp_obs_info).array())
         data = 0.5*(data + np.conj(data_opp))
+      elif has_not_opposite:
+        data = np.array(obs_handler.getBins(corr_time_info_obs_info).array())
+      elif has_opposite:
+        data = np.array(obs_handler.getBins(corr_time_info_opp_obs_info).array())
+      else:
+        print("has neither?")
+        sys.exit()
 
       corr_time_info_herm.resetTimeSeparation(tsep)
       if is_backwards:
@@ -246,17 +268,21 @@ def get_corr_files(ensemble_name, search_dir):
   corr_handler = sigmond.BLCorrelatorDataHandler(file_list_infos, set(), set(), ensemble_info)
 
   corr_files = dict()
-  for corr in corr_handler.getCorrelatorSet():
+  for corr in sorted(corr_handler.getCorrelatorSet()):
     corr_file_name = corr_handler.getFileName(corr)
     is_backwards = corr.isBackwards()
     if is_backwards:
       corr.setForwards()
 
     corr_opposite = sigmond.CorrelatorInfo(corr.getSource(), corr.getSink())
-    if corr_opposite in corr_files:
-      corr_files[corr_opposite][1] = corr_file_name
-    else:
+    if corr == corr_opposite:
       corr_files[corr] = (corr_file_name, None, is_backwards)
+    elif corr < corr_opposite:
+      corr_opposite_file_name = corr_files[corr][1] if corr in corr_files else None
+      corr_files[corr] = (corr_file_name, corr_opposite_file_name, is_backwards)
+    else:
+      corr_opposite_file_name = corr_files[corr_opposite][0] if corr_opposite in corr_files else None
+      corr_files[corr_opposite] = (corr_opposite_file_name, corr_file_name, is_backwards)
 
   return corr_files
 
