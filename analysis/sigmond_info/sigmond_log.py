@@ -155,7 +155,7 @@ class RotationLog(SigmondLog):
       op_info.append( op.find("OpName").findtext("GIOperatorString") )
       for term in op.iter("OpTerm"):
         op_info.append( term.findtext("GIOperatorString") )
-        op_info.append( term.findtext("Coefficient").replace('(', '').replace(')', '').split(',') )
+        op_info.append( term.findtext("Coefficient") ) #.replace('(', '').replace(')', '').split(',') )
       improved_ops.append( op_info )
     # [ [name, term1, coeff1, term2, coeff2...], [name, term1, coeff1...  
     return improved_ops

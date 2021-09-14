@@ -73,6 +73,8 @@ class RotateCorrelators(tasks.task.Task):
             metric_time: 18
             diagonalize_time: 22
             max_condition_number: 100
+          optimized_operators:
+            - basis_name_of_opops (uses name to retrieve information from logfile in same project directory)
           operators:       # optional (if basis_name already defined)
             - op_string1
             - op_string2
@@ -91,6 +93,8 @@ class RotateCorrelators(tasks.task.Task):
 
     except KeyError as err:
       logging.error(f"Invalid key '{err}' in task '{self.task_name}'")
+    except AttributeError as err:
+      logging.error(f"Rotated basis needs a pivot tag")
 
     task_options['plot_info'] = sigmond_info.sigmond_info.PlotInfo.createFromConfig(task_options)
     task_options['rotate_mode'] = sigmond_info.sigmond_info.RotateMode(task_options.pop('rotate_mode', 'samplings_all'))
@@ -159,7 +163,7 @@ class RotateCorrelators(tasks.task.Task):
       mintime, maxtime = self.data_handler.getOperatorSetSmallestTRange(operator_basis)
       logging.info(f"  Time separations [{mintime},{maxtime}]")
       data_files = self.data_handler.getChannelDataFiles(operator_basis.channel)
-      #Sarah
+
 
       project_name = self.project_name(repr(operator_basis))
       logfile = self.logfile(repr(operator_basis))
@@ -181,7 +185,8 @@ class RotateCorrelators(tasks.task.Task):
           file_mode=sigmond.WriteMode.Overwrite, corr_plotstub=corr_plotstub, 
           energy_plotstub=energy_plotstub, eff_energy_type=self.plot_info.eff_energy_type, 
           timestep=self.plot_info.timestep, symbol_color=self.plot_info.symbol_color,
-          symbol_type=self.plot_info.symbol_type, rescale=self.plot_info.rescale)
+          symbol_type=self.plot_info.symbol_type, rescale=self.plot_info.rescale
+          ,improved_ops=operator_basis.verifyOptimizedOps(self.logdir))
 
       sigmond_input.write()
       sigmond_inputs.append(sigmond_input)
@@ -243,27 +248,28 @@ class RotateCorrelators(tasks.task.Task):
 
           doc.append(pylatex.NoEscape(r"\textbf{Metric Null Space Check:} " + \
                                       rotation_log.metric_null_space_message))
-
-          with doc.create(pylatex.Subsubsection("Input Operators")):
-            with doc.create(pylatex.Center()) as centered:
-              with centered.create(
-                  pylatex.LongTabu("X[2,c] X[c] X[c]", row_height=1.5)) as op_table:
-                header_row = [
-                    "Operator",
-                    pylatex.NoEscape(r"$\delta C(\tau_0)$"),
-                    pylatex.NoEscape(r"$\delta C(\tau_D)$")
-                ]
-                op_table.add_row(header_row, mapper=[pylatex.utils.bold])
-                op_table.add_hline()
-                op_table.end_table_header()
-                for op, errors in rotation_log.diagonal_correlator_errors.items():
-                  row = [
-                      op,
-                      errors.metric,
-                      errors.matrix,
+          
+          if not operator_basis._optimized_ops:
+            with doc.create(pylatex.Subsubsection("Input Operators")):
+              with doc.create(pylatex.Center()) as centered:
+                with centered.create(
+                    pylatex.LongTabu("X[2,c] X[c] X[c]", row_height=1.5)) as op_table:
+                  header_row = [
+                      "Operator",
+                      pylatex.NoEscape(r"$\delta C(\tau_0)$"),
+                      pylatex.NoEscape(r"$\delta C(\tau_D)$")
                   ]
-                  op_table.add_row
-                  op_table.add_row(row)
+                  op_table.add_row(header_row, mapper=[pylatex.utils.bold])
+                  op_table.add_hline()
+                  op_table.end_table_header()
+                  for op, errors in rotation_log.diagonal_correlator_errors.items():
+                    row = [
+                        op,
+                        errors.metric,
+                        errors.matrix,
+                    ]
+                    op_table.add_row
+                    op_table.add_row(row)
 
           with doc.create(pylatex.Subsubsection("Diagonal Deviations From Zero")):
             with doc.create(pylatex.Center()) as centered:
