@@ -894,6 +894,7 @@ class Spectrum(tasks.task.Task):
 
 
   def _addFitTable(self, doc):
+    #make table for spectrum fits
     with doc.create(pylatex.Center()) as centered:
       long_tabu = "X[0.1,c] X[c] X[c] X[2,c] X[4,c] X[4,c] X[4,c] X[3,c] X[2,c] X[2,c]"
       with centered.create(pylatex.LongTabu(long_tabu, to=r"\linewidth")) as data_table:
@@ -960,6 +961,53 @@ class Spectrum(tasks.task.Task):
 
             data_table.add_row(data_row)
             new_level += 1
+    
+    #make table for scattering particles
+    if self.scattering_particles:
+      with doc.create(pylatex.Center()) as centered:
+        long_tabu = "X[8,c] X[4,c] X[4,c] X[4,c] X[3,c] X[2,c] X[2,c]"
+        with centered.create(pylatex.LongTabu(long_tabu, to=r"\linewidth")) as data_table2:
+          header_row = [
+                pylatex.NoEscape(r"Scattering Particles($d^2$)"),
+                pylatex.NoEscape(ref_energy_header),
+                pylatex.NoEscape(r"$a_t (\Delta) E_{\rm lab}$"),
+                pylatex.NoEscape("Fit model"),
+                pylatex.NoEscape(r"$(t_{\rm min}, t_{\rm max})$"),
+                pylatex.NoEscape(r"$\chi^2/\text{dof}$"),
+                pylatex.NoEscape(r"$p$-val."),
+          ]
+
+          data_table2.add_row(header_row, mapper=[pylatex.utils.bold])
+          data_table2.end_table_header()
+          
+          data_table2.add_hline()
+          new_level = 0
+          scattering_particles = list(self.scattering_particles.keys())
+          grouped_scattering_particles = [scattering_particles[n:n+2] for n in range(0, len(scattering_particles), 2)]
+          logfile = self.logfile('single_hadrons')
+          fit_log = sigmond_info.sigmond_log.FitLog(logfile)
+          for scattering_particles_group in grouped_scattering_particles:
+            for scattering_particle in scattering_particles_group:
+              fit_info = self.scattering_particles[scattering_particle]
+              energy = self.ni_energies[scattering_particle]
+              energy = util.nice_value(energy.getFullEstimate(), energy.getSymmetricError())
+              fit_result = fit_log.fits[fit_info]
+              at_energy = fit_result.energy
+              fit_model = fit_info.model.short_name
+              if fit_info.ratio:
+                fit_model += " - ratio"
+              data_row = [
+                      scattering_particle,
+                      energy,
+                      at_energy,
+                      fit_model,
+                      pylatex.NoEscape(rf"$({fit_info.tmin}, {fit_info.tmax})$"),
+                      round(fit_result.chisq,2),
+                      round(fit_result.quality,2),
+              ]
+    
+              data_table2.add_row(data_row)
+              new_level += 1
 
 
   def _setEnergies(self):
@@ -990,6 +1038,7 @@ class Spectrum(tasks.task.Task):
     hdf5_h.close()
     fests.close()
 
+    # save energies to self
     self.energies = dict()
     for operator_set, fit_infos in self.spectrum.items():
       self.energies[operator_set] = dict()
@@ -1020,7 +1069,20 @@ class Spectrum(tasks.task.Task):
             logging.critical(f"Failed to get samplings for {obs_name}")
 
           self.energies[operator_set][level] = energy
-
+   
+    #save single hadrons
+    if self.scattering_particles:
+      self.ni_energies = dict()
+      for operator, fit_info in self.scattering_particles.items():
+        #operator = fit_info.operator
+        obs_name = f"single_hadrons/{operator}"
+        if self.reference_fit_info is not None:
+          obs_name += f"_{self.ref_name}"
+        try:
+          energy = obs_handler.getEstimate(sigmond.MCObsInfo(obs_name, 0))
+        except RuntimeError:
+          logging.critical(f"Failed to get samplings for {obs_name}")
+        self.ni_energies[operator] = energy
 
   def _getThresholds(self):
     data_files = data_handling.data_files.DataFiles()
