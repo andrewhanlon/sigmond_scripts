@@ -20,7 +20,7 @@ class SigmondLog(metaclass=ABCMeta):
     try:
       log_xml_root = ET.parse(logfile).getroot()
     except ET.ParseError:
-      logging.warning("Bad logfile: {}".format(logfile))
+      logging.critical("Bad logfile: {}".format(logfile))
       return
 
     self.parse(log_xml_root)
