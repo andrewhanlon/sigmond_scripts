@@ -282,10 +282,38 @@ class AverageCorrelators(tasks.task.Task):
     filename = os.path.join(self.results_dir, f"{util.str_to_file(self.task_name)}.yml")
     return filename
 
+  def _suggest_rotation_yml_file(self):
+    yaml_file = os.path.join(self.results_dir, "rotate_suggestion.yml")
+    file_mode = 'w+'
+    f_handler = open(yaml_file, file_mode)
+    
+    f_handler.write(f"#fill/alter the necessary header information\n")
+    f_handler.write("Execute:\n\n")
+    proj_name = self.project_dir.split('/')[-2]
+    f_handler.write(f"rotate_{proj_name}:\n")
+    f_handler.write(f"  task_type: rotate_corrs\n  show_transformation: true\n  negative_eigenvalue_alarm: -0.10\n  subtractvev: false\n\n")
+    f_handler.write(f"  plot_info:\n    corrname: standard\n    symbol_color: blue\n    symbol_type: circle\n    eff_energy_type: time_forward\n    timestep: 1\n\n")
+    f_handler.write(f"  operator_bases:\n")
+    
+    for channel in self.averaged_channels:
+      data_files = self.data_files + self.data_handler.getChannelDataFiles(channel)
+      operators = self.data_handler.getChannelOperators(channel)
+      if len(operators) > 1:
+        f_handler.write(f"    - name: {repr(channel)}\n")
+        f_handler.write(f"      pivot_info:\n")
+        f_handler.write(f"        <<: *PIVOT_INFO\n")
+        f_handler.write(f"      operators:\n")
+        for operator in operators:
+          f_handler.write(f"        - {operator.op_str()}\n")
+        f_handler.write("\n")
+
+    f_handler.close()
+    logging.info(f"Suggested rotation yaml: {yaml_file}")
+    return None
+
   def finalize(self):
     if self.write_operators and os.path.isfile(self.op_yaml_file):
-      os.remove(self.op_yaml_file)
-      
+      os.remove(self.op_yaml_file)  
 
     self.data_handler.findAveragedData()
     doc = util.create_doc(
@@ -299,7 +327,6 @@ class AverageCorrelators(tasks.task.Task):
         operator_info.operator_set.write_operators_to_yaml(self.op_yaml_file, repr(channel), operators, True)
 
       result_operators, original_operators, coefficients = self.final_info[channel]
-
       with doc.create(pylatex.Section(str(channel))):
         with doc.create(pylatex.Subsection("Operators averaged")):
           for result_operator in result_operators:
@@ -315,6 +342,7 @@ class AverageCorrelators(tasks.task.Task):
 
         self.addPlotsToPDF(doc, data_files, operators, repr(channel))
 
+    self._suggest_rotation_yml_file()
     filename = os.path.join(self.results_dir, util.str_to_file(self.task_name))
     util.compile_pdf(doc, filename, self.latex_compiler)
 
@@ -358,7 +386,6 @@ def _getAveragedOperator(operator, averaged_channel, get_had_spat=False, get_had
     obs_id = op_info.getLGClebschGordonIdNum()
 
   return operator_info.operator.Operator(averaged_channel.getGIOperator(obs_name, obs_id))
-  
 
 # TODO: use flavor_map in operator_info/operator.py
 NAME_MAP = {
