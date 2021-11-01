@@ -1,0 +1,19 @@
+<KnownEnsembles>
+
+ <!-- Information about ensembles for SigMonD.  First tag <Infos>
+      contains the information.  Second tag <Weights> contains the
+      weights needed for CLS ensembles.   -->
+
+  <Infos>
+
+     <EnsembleInfo>
+        <Id>cls21_A654</Id>
+        <NStreams>1</NStreams>
+        <NMeas>5068</NMeas>
+        <NSpace>24</NSpace>
+        <NTime>48</NTime>
+     </EnsembleInfo>
+
+  </Infos>
+
+</KnownEnsembles>
