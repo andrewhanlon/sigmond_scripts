@@ -8,19 +8,15 @@ import xml.etree.ElementTree as ET
 
 import defs
 
-import sigmondbind as sig
-
-base_data_dir = "/disk2/research/data/kpi/raw/"
+import sigmond as sig
 
 FORCE_HERM = True
 
 def main():
   for ensemble in defs.ensembles:
-    ensemble_info = defs.data_info[ensemble]
-    for ensemble_name in ensemble_info["ensemble_name"]:
-      replica = ensemble_name.split('_')[-1]
+    for replica in ensemble.replica:
       for isospin in defs.isospsins:
-        search_dir = os.path.join(base_data_dir, ensemble, f"{isospin}_{replica}")
+        search_dir = os.path.join(defs.base_data_dir, ensemble, f"{isospin}_{replica}")
 
         sources = list()
         for source in ensemble_info["sources"]:
@@ -32,7 +28,7 @@ def main():
         write_to_file(averaged_data, ensemble_name, isospin)
         print("done")
       for single_hadron in defs.single_hadrons:
-        search_dir = os.path.join(base_data_dir, ensemble, f"{single_hadron}_{replica}")
+        search_dir = os.path.join(defs.base_data_dir, ensemble, f"{single_hadron}_{replica}")
 
         sources = list()
         for source in ensemble_info["sources"]:

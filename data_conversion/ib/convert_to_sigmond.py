@@ -117,9 +117,7 @@ def do_ama(ensemble, smearings, data_infos):
           for exact_source_i, sloppy_source_i in enumerate(exact_sources_sloppy_indices):
             bias_correction_data[exact_source_i,:] = exact_data[exact_source_i,:] - sloppy_data[sloppy_source_i,:]
 
-          bias_correction_data = np.mean(bias_correction_data, axis=0)
-
-          final_data = bias_correction_data + np.mean(sloppy_data, axis=0)
+          final_data = np.mean(bias_correction_data, axis=0) + np.mean(sloppy_data, axis=0)
 
           ave_fh.create_dataset(f"/{contribution}/{diagram}", data=final_data)
 
