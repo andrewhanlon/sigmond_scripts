@@ -90,19 +90,21 @@ class AveragedChannel(NamedTuple):
   isospin: str
   strangeness: int
 
+  def iso_strange_str(self):
+    strangeness_str = f"S{self.strangeness}".replace('-', 'm')
+    return f"{self.isospin}_{strangeness_str}"
+
+  def data_channel_str(self):
+    return f"PSQ{self.psq}_{self.irrep}"
+
   def __str__(self):
     return f"(psq={self.psq}, irrep={self.irrep}, isospin={self.isospin}, S={self.strangeness})"
 
   def __repr__(self):
-    return f"pSq{self.psq}-{self.irrep}-{self.isospin}-{self.strangeness}"
+    return f"PSQ{self.psq}-{self.irrep}-{self.isospin}-{self.strangeness}"
 
-class EquivalentFrame(NamedTuple):
-  mom: tuple
-  row: int
+  def __hash__(self):
+    return hash(repr(self))
 
-  def __str__(self):
-    return f"(P={self.mom}, row={self.row})"
-
-  def __repr__(self):
-    return f"P{''.join(list(map(str, self.mom)))}_{self.row}".replace('-', 'm')
-
+  def __eq__(self, other):
+    return repr(self) == repr(other)

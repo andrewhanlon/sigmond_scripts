@@ -9,8 +9,8 @@ class Ensemble(NamedTuple):
   sources: list
 
 ensembles = [
-    Ensemble("cls21_d200", ['r000'], [35]),
-    #Ensemble("cls21_d200", ['r000'], [35, 92]),
+    #Ensemble("cls21_d200", ['r000'], [35]),
+    Ensemble("cls21_d200", ['r000'], [35, 92]),
     #Ensemble("cls21_n200", ['r000'], [32, 52]),
     #Ensemble("cls21_n203", ['r000', 'r001'], [32, 52]),
 ]
