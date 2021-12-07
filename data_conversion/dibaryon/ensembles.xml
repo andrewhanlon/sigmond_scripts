@@ -15,25 +15,25 @@
      </EnsembleInfo>
 
      <EnsembleInfo>
-        <Id>cls_N300</Id>
-        <NStreams>2</NStreams>
-        <NMeas>2047</NMeas>
-        <NSpace>48</NSpace>
-        <NTime>128</NTime>
-     </EnsembleInfo>
-
-     <EnsembleInfo>
-        <Id>cls_N202</Id>
-        <NStreams>1</NStreams>
-        <NMeas>899</NMeas>
-        <NSpace>48</NSpace>
-        <NTime>128</NTime>
-     </EnsembleInfo>
-
-     <EnsembleInfo>
         <Id>cls_B450</Id>
         <NStreams>1</NStreams>
         <NMeas>1612</NMeas>
+        <NSpace>32</NSpace>
+        <NTime>64</NTime>
+     </EnsembleInfo>
+
+     <EnsembleInfo>
+        <Id>cls_B451</Id>
+        <NStreams>1</NStreams>
+        <NMeas>2008</NMeas>
+        <NSpace>32</NSpace>
+        <NTime>64</NTime>
+     </EnsembleInfo>
+
+     <EnsembleInfo>
+        <Id>cls_B452</Id>
+        <NStreams>1</NStreams>
+        <NMeas>1944</NMeas>
         <NSpace>32</NSpace>
         <NTime>64</NTime>
      </EnsembleInfo>
@@ -47,11 +47,67 @@
      </EnsembleInfo>
 
      <EnsembleInfo>
+        <Id>cls_H102</Id>
+        <NStreams>2</NStreams>
+        <NMeas>2037</NMeas>
+        <NSpace>32</NSpace>
+        <NTime>96</NTime>
+     </EnsembleInfo>
+
+     <EnsembleInfo>
+        <Id>cls_H107</Id>
+        <NStreams>2</NStreams>
+        <NMeas>1564</NMeas>
+        <NSpace>32</NSpace>
+        <NTime>96</NTime>
+     </EnsembleInfo>
+
+     <EnsembleInfo>
         <Id>cls_H200</Id>
         <NStreams>2</NStreams>
         <NMeas>2000</NMeas>
         <NSpace>32</NSpace>
         <NTime>96</NTime>
+     </EnsembleInfo>
+
+     <EnsembleInfo>
+        <Id>cls_J500</Id>
+        <NStreams>1</NStreams>
+        <NMeas>1341</NMeas>
+        <NSpace>64</NSpace>
+        <NTime>192</NTime>
+     </EnsembleInfo>
+
+     <EnsembleInfo>
+        <Id>cls_N200</Id>
+        <NStreams>1</NStreams>
+        <NMeas>1712</NMeas>
+        <NSpace>48</NSpace>
+        <NTime>128</NTime>
+     </EnsembleInfo>
+
+     <EnsembleInfo>
+        <Id>cls_N202</Id>
+        <NStreams>1</NStreams>
+        <NMeas>899</NMeas>
+        <NSpace>48</NSpace>
+        <NTime>128</NTime>
+     </EnsembleInfo>
+
+     <EnsembleInfo>
+        <Id>cls_N300</Id>
+        <NStreams>2</NStreams>
+        <NMeas>2047</NMeas>
+        <NSpace>48</NSpace>
+        <NTime>128</NTime>
+     </EnsembleInfo>
+
+     <EnsembleInfo>
+        <Id>cls_U102</Id>
+        <NStreams>2</NStreams>
+        <NMeas>4861</NMeas>
+        <NSpace>24</NSpace>
+        <NTime>128</NTime>
      </EnsembleInfo>
 
      <EnsembleInfo>
@@ -74,14 +130,6 @@
         <Id>cls_U103_4</Id>
         <NStreams>3</NStreams>
         <NMeas>1432</NMeas>
-        <NSpace>24</NSpace>
-        <NTime>128</NTime>
-     </EnsembleInfo>
-
-     <EnsembleInfo>
-        <Id>cls_U102</Id>
-        <NStreams>2</NStreams>
-        <NMeas>4861</NMeas>
         <NSpace>24</NSpace>
         <NTime>128</NTime>
      </EnsembleInfo>

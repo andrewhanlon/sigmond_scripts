@@ -148,6 +148,7 @@ class RotationLog(SigmondLog):
 
 
 class FitResult(NamedTuple):
+  tmax: int
   chisq: float
   quality: float
   energy: str
@@ -170,6 +171,9 @@ class FitLog(SigmondLog):
         eigenvalues = list()
         for eigenvalue in fit_xml.find("CovarianceMatrixEigenvalues"):
           eigenvalues.append(float(eigenvalue.text))
+
+        time_seps = list(map(int, fit_xml.findtext("*/TimeSeparations").split()))
+        tmax = max(time_seps)
 
         eigenvalues.sort()
         cov_cond = float(fit_xml.findtext("CovarianceMatrixConditionNumber"))
@@ -208,7 +212,7 @@ class FitLog(SigmondLog):
           const_err = float(const_fit.findtext("MCEstimate/SymmetricError"))
           const = util.nice_value(const_value, const_err)
 
-        fit_result = FitResult(chisq_dof, quality, energy, amplitude, gap, const, cov_cond)
+        fit_result = FitResult(tmax, chisq_dof, quality, energy, amplitude, gap, const, cov_cond)
 
         if fit_info in self.fits:
           logging.warning(f"Found two identical fits in {self.logfile}, ignoring...")

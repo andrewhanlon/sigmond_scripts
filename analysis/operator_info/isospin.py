@@ -12,3 +12,10 @@ class Isospin(MultiValueEnum):
   def to_int(self):
     return self.values[1]
 
+  def to_str(self):
+    val = self.to_int()-1
+    if (val % 2) == 0:
+      return str(val/2)
+    else:
+      return f"{str(val)}h"
+

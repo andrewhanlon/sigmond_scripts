@@ -56,6 +56,8 @@ FIT_MODEL_SHORT_NAMES = {
 
 class FitInfo:
 
+  NOISE_CUTOFF = 100
+
   PARAMETERS = {
       FitModel.TimeForwardSingleExponential: [
           "Energy",
@@ -134,9 +136,9 @@ class FitInfo:
       tmin (int): minimum time slice
       tmax (int): maximum time slice
       subtractvev (bool): whether the subtracted vev should be used
+      noise_cutoff (float): A error cutoff in the fit
       exclude_times (list of ints): A list of times to exclude from
           the fit
-      noise_cutoff (float): A error cutoff in the fit
       tmin_max (int): If doing a TminVary Fit, this is needed
     """
 
@@ -172,7 +174,7 @@ class FitInfo:
 
     noise_cutoff = 0.0
     if matches.group('cutoff') is not None:
-      noise_cutoff = float(matches.group('cutoff')) / 10.
+      noise_cutoff = float(matches.group('cutoff')) / cls.NOISE_CUTOFF
 
     id_index = obs_info.getObsIndex()
     model_num = id_index % 100
@@ -293,7 +295,8 @@ class FitInfo:
     if self.exclude_times:
       ET.SubElement(xml, "ExcludeTimes").text = " ".join(str(t) for t in self.exclude_times)
 
-    if self.noise_cutoff and not self.is_tmin_vary:
+    #if self.noise_cutoff and not self.is_tmin_vary:
+    if self.noise_cutoff:
       ET.SubElement(xml, "LargeTimeNoiseCutoff").text = str(self.noise_cutoff)
 
     if self.is_log_fit:
@@ -325,8 +328,11 @@ class FitInfo:
       name += "R"
 
     if self.noise_cutoff > 0.0:
-      noise_cutoff = self.noise_cutoff * 10
+      noise_cutoff = self.noise_cutoff * self.NOISE_CUTOFF
       name += "C{val:.0f}".format(val=noise_cutoff)
+
+    if len(name) > 64:
+      logging.critical("obs name cannot exceed 64")
 
     return name
 
@@ -335,7 +341,10 @@ class FitInfo:
     if self.exclude_times:
       id_index += "0".join(map(str, self.exclude_times))
     id_index += f"{param_num}{self.model_value:02d}"
-    return int(id_index)
+    id_index = int(id_index)
+    if id_index >= 2**29:
+      logging.critical("highest IDIndex exceeded")
+    return id_index
 
   @property
   def energy_observable(self):

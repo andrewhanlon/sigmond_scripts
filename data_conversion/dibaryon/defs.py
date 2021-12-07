@@ -1,19 +1,26 @@
 from collections import namedtuple
 
 Ensemble = namedtuple('Ensemble', ['name', 'dir_name', 'su3', 'open', 'Nt', 'replica', 'replica_str', 'modes', 'srcs', 't0', 'ts'])
-Channel = namedtuple('Channel', ['P', 'irrep', 'isospin', 'strangeness', 'flavor'])
+Channel = namedtuple('Channel', ['P', 'irrep', 'flavor'])
 
+# ensemble info
 ensembles = [
     Ensemble("A653", "A653", True, False, 48, ('r000',), 'r000', 32, 4, 0, 24),
     Ensemble("B450", "B450", True, False, 64, ('r000',), 'r000', 32, 8, 0, 32),
+    Ensemble("B451", "B451", False, False, 64, ('r000',), 'r000', 32, 4, 0, 32),
+    Ensemble("B452", "B452", False, False, 64, ('r000',), 'r000', 32, 4, 0, 32),
     Ensemble("H101", "H101", True, True, 96, ('r000','r001',), 'r000-001', 48, 4, 0, 24),
+    Ensemble("H102", "H102", False, True, 96, ('r001','r002',), 'r001-002', 48, 4, 0, 24),
+    Ensemble("H107", "H107", False, True, 96, ('r000','r001','r002','r003','r004','r005'), 'r000-005', 48, 4, 0, 24),
+    Ensemble("H200", "H200", True, True, 96, ('r000','r001'), 'r000-001', 20, 8, 0, 32),
+    Ensemble("J500", "J500", True, True, 192, ('r004','r005'), 'r004-005', 36, 12, 0, 56),
+    Ensemble("N200", "N200", False, True, 128, ('r000','r001'), 'r000-001', 68, 8, 0, 32),
+    Ensemble("N202", "N202", True, True, 128, ('r001',), 'r001', 68, 8, 0, 32),
+    Ensemble("N300", "N300", True, True, 128, ('r001','r002'), 'r001-002', 32, 12, 0, 40),
+    Ensemble("U102", "U102", False, True, 128, ('r001', 'r002',), 'r001-002', 20, 5, 0, 24),
     Ensemble("U103", "U103", True, True, 128, ('r001','r002','r003',), 'r001-003', 20, 5, 0, 24),
     Ensemble("U103_60modes", "U103", True, True, 128, ('r001','r002','r003',), 'r001-003', 60, 5, 0, 24),
     Ensemble("U103_4", "U103", True, True, 128, ('r001','r002','r003',), 'r001-003', 20, 5, 0, 24),
-    Ensemble("H200", "H200", True, True, 96, ('r000','r001'), 'r000-001', 20, 8, 0, 32),
-    Ensemble("N300", "N300", True, True, 128, ('r001','r002'), 'r001-002', 32, 12, 0, 40),
-    Ensemble("N202", "N202", True, True, 128, ('r001',), 'r001', 68, 8, 0, 32),
-    Ensemble("U102", "U102", False, True, 128, ('r001', 'r002',), 'r001-002', 20, 5, 0, 24),
     Ensemble("E1", "E1", True, False, 64, ('',), '', 30, 8, 0, 32),
     Ensemble("E5", "E5_SU3", True, False, 64, ('f', 'g',), 'fg', 30, 4, 0, 32),
 ]
@@ -21,14 +28,20 @@ ensembles = [
 backward_prop_skip = {
     'A653': [],
     'B450': [],
+    'B451': [],
+    'B452': [],
     'H101': [0],
+    'H102': [0],
+    'H107': [0],
     'H200': [0,1,2,3],
-    'N300': [0,1,2,3,4,5],
+    'J500': [0,1,2,3],
+    'N200': [0,1],
     'N202': [0,1],
+    'N300': [0,1,2,3,4,5],
+    'U102': [0],
     'U103': [0],
     'U103_60modes': [0],
     'U103_4': [0],
-    'U102': [0],
     'E1':   [],
     'E5':   [],
 }
@@ -36,14 +49,20 @@ backward_prop_skip = {
 forward_prop_skip = {
     'A653': [],
     'B450': [],
+    'B451': [],
+    'B452': [],
     'H101': [3],
+    'H102': [3],
+    'H107': [3],
     'H200': [4,5,6,7],
-    'N300': [6,7,8,9,10,11],
+    'J500': [8,9,10,11],
+    'N200': [6,7],
     'N202': [6,7],
+    'N300': [6,7,8,9,10,11],
+    'U102': [4],
     'U103': [4],
     'U103_60modes': [4],
     'U103_4': [4],
-    'U102': [4],
     'E1':   [],
     'E5':   [],
 }
@@ -51,14 +70,20 @@ forward_prop_skip = {
 pseudoscalar_backward_prop_skip = {
     'A653': [],
     'B450': [],
+    'B451': [],
+    'B452': [],
     'H101': [0,1],
+    'H102': [0,1],
+    'H107': [0,1],
     'H200': [0,1,2,3,4,5],
-    'N300': [0,1,2,3,4,5,6,7],
+    'J500': [0,1,2,3,4,5],
+    'N200': [0,1,2],
     'N202': [0,1,2],
+    'N300': [0,1,2,3,4,5,6,7],
+    'U102': [0,1],
     'U103': [0,1],
     'U103_60modes': [0,1],
     'U103_4': [0,1],
-    'U102': [0,1],
     'E1':   [],
     'E5':   [],
 }
@@ -66,14 +91,20 @@ pseudoscalar_backward_prop_skip = {
 pseudoscalar_forward_prop_skip = {
     'A653': [],
     'B450': [],
+    'B451': [],
+    'B452': [],
     'H101': [2,3],
+    'H102': [2,3],
+    'H107': [2,3],
     'H200': [2,3,4,5,6,7],
-    'N300': [4,5,6,7,8,9,10,11],
+    'J500': [6,7,8,9,10,11],
+    'N200': [5,6,7],
     'N202': [5,6,7],
+    'N300': [4,5,6,7,8,9,10,11],
+    'U102': [3,4],
     'U103': [3,4],
     'U103_60modes': [3,4],
     'U103_4': [3,4],
-    'U102': [3,4],
     'E1':   [],
     'E5':   [],
 }
@@ -82,14 +113,20 @@ pseudoscalar_forward_prop_skip = {
 pseudoscalar_modes = {
     'A653': 32,
     'B450': 32,
+    'B451': 32,
+    'B452': 32,
     'H101': 144,
+    'H102': 72,
+    'H107': 48,
     'H200': 20,
+    'J500': 36,
+    'N200': 68,
+    'N202': 68,
+    'N300': 32,
+    'U102': 20,
     'U103': 20,
     'U103_60modes': 60,
     'U103_4': 20,
-    'N300': 32,
-    'N202': 68,
-    'U102': 20,
     'E1':   56,
     'E5':   60,
 }
@@ -97,14 +134,20 @@ pseudoscalar_modes = {
 pseudoscalar_sources = {
     'A653': [0, 0, 0, 0],
     'B450': [0, 0, 0, 0, 0, 0, 0, 0],
+    'B451': [0, 0, 0, 0],
+    'B452': [0, 0, 0, 0],
     'H101': [24, 40, 55, 71],
+    'H102': [24, 40, 55, 71],
+    'H107': [24, 40, 55, 71],
     'H200': [0, 4, 8, 12, 16, 20, 24, 28],
-    'N300': [0, 4, 8, 12, 16, 20, 24, 28, 32, 36, 40, 44],
+    'J500': [0, 7, 14, 21, 28, 35, 42, 49, 56, 63, 70, 77],
+    'N200': [0, 6, 12, 18, 24, 30, 36, 42],
     'N202': [0, 6, 12, 18, 24, 30, 36, 42],
+    'N300': [0, 4, 8, 12, 16, 20, 24, 28, 32, 36, 40, 44],
+    'U102': [32, 48, 64, 79, 95],
     'U103': [32, 48, 64, 79, 95],
     'U103_60modes': [32, 48, 64, 79, 95],
     'U103_4': [32, 48, 64, 79, 95],
-    'U102': [32, 48, 64, 79, 95],
     'E1':   [0, 0, 0, 0, 0, 0, 0, 0],
     'E5':   [0, 0, 0, 0],
 }
@@ -112,89 +155,138 @@ pseudoscalar_sources = {
 pseudoscalar_names = {
     'A653': ['ps'],
     'B450': ['ps'],
+    'B451': ['pion', 'kaon', 'eta_s'],
+    'B452': ['pion', 'kaon', 'eta_s'],
     'H101': ['ps'],
+    'H102': ['pion', 'kaon', 'eta_s'],
+    'H107': ['pion', 'kaon', 'eta_s'],
     'H200': ['ps'],
-    'N300': ['ps'],
+    'J500': ['ps'],
+    'N200': ['pion', 'kaon', 'eta_s'],
     'N202': ['ps'],
+    'N300': ['ps'],
+    'U102': ['pion', 'kaon', 'eta_s'],
     'U103': ['ps'],
     'U103_60modes': ['ps'],
     'U103_4': ['ps'],
-    'U102': ['pion', 'kaon', 'eta_s'],
     'E1':   ['ps'],
     'E5':   ['pion'],
 }
 
 pseudoscalar_op_strs = {
     'A653': {
-      'ps': "isotriplet S=0 PSQ=0 A1um pion 0",
+      'ps': "Pref=(0,0,0) A1um flavor=1,0 pion 0",
     },
     'B450': {
-      'ps': "isotriplet S=0 PSQ=0 A1um pion 0",
+      'ps': "Pref=(0,0,0) A1um flavor=1,0 pion 0",
+    },
+    'B451': {
+      'pion': "Pref=(0,0,0) A1um flavor=1,0 pion 0",
+      'kaon': "Pref=(0,0,0) A1u flavor=1h,1 kaon 0",
+      'eta_s': "Pref=(0,0,0) A1up flavor=0,0 eta_s 0",
+    },
+    'B452': {
+      'pion': "Pref=(0,0,0) A1um flavor=1,0 pion 0",
+      'kaon': "Pref=(0,0,0) A1u flavor=1h,1 kaon 0",
+      'eta_s': "Pref=(0,0,0) A1up flavor=0,0 eta_s 0",
     },
     'H101': {
-      'ps': "isotriplet S=0 PSQ=0 A1um pion 0",
+      'ps': "Pref=(0,0,0) A1um flavor=1,0 pion 0",
+    },
+    'H102': {
+      'pion': "Pref=(0,0,0) A1um flavor=1,0 pion 0",
+      'kaon': "Pref=(0,0,0) A1u flavor=1h,1 kaon 0",
+      'eta_s': "Pref=(0,0,0) A1up flavor=0,0 eta_s 0",
+    },
+    'H107': {
+      'pion': "Pref=(0,0,0) A1um flavor=1,0 pion 0",
+      'kaon': "Pref=(0,0,0) A1u flavor=1h,1 kaon 0",
+      'eta_s': "Pref=(0,0,0) A1up flavor=0,0 eta_s 0",
     },
     'H200': {
-      'ps': "isotriplet S=0 PSQ=0 A1um pion 0",
+      'ps': "Pref=(0,0,0) A1um flavor=1,0 pion 0",
     },
-    'N300': {
-      'ps': "isotriplet S=0 PSQ=0 A1um pion 0",
+    'J500': {
+      'ps': "Pref=(0,0,0) A1um flavor=1,0 pion 0",
+    },
+    'N200': {
+      'pion': "Pref=(0,0,0) A1um flavor=1,0 pion 0",
+      'kaon': "Pref=(0,0,0) A1u flavor=1h,1 kaon 0",
+      'eta_s': "Pref=(0,0,0) A1up flavor=0,0 eta_s 0",
     },
     'N202': {
-      'ps': "isotriplet S=0 PSQ=0 A1um pion 0",
+      'ps': "Pref=(0,0,0) A1um flavor=1,0 pion 0",
     },
-    'U103': {
-      'ps': "isotriplet S=0 PSQ=0 A1um pion 0",
-    },
-    'U103_60modes': {
-      'ps': "isotriplet S=0 PSQ=0 A1um pion 0",
-    },
-    'U103_4': {
-      'ps': "isotriplet S=0 PSQ=0 A1um pion 0",
+    'N300': {
+      'ps': "Pref=(0,0,0) A1um flavor=1,0 pion 0",
     },
     'U102': {
-      'pion': "isotriplet S=0 PSQ=0 A1um pion 0",
-      'kaon': "isodoublet S=1 PSQ=0 A1u kaon 0",
-      'eta_s': "isosinglet S=0 PSQ=0 A1up eta 0",
+      'pion': "Pref=(0,0,0) A1um flavor=1,0 pion 0",
+      'kaon': "Pref=(0,0,0) A1u flavor=1h,1 kaon 0",
+      'eta_s': "Pref=(0,0,0) A1up flavor=0,0 eta_s 0",
+    },
+    'U103': {
+      'ps': "Pref=(0,0,0) A1um flavor=1,0 pion 0",
+    },
+    'U103_60modes': {
+      'ps': "Pref=(0,0,0) A1um flavor=1,0 pion 0",
+    },
+    'U103_4': {
+      'ps': "Pref=(0,0,0) A1um flavor=1,0 pion 0",
     },
     'E1': {
-      'ps': "isotriplet S=0 PSQ=0 A1um pion 0",
+      'ps': "Pref=(0,0,0) A1um flavor=1,0 pion 0",
     },
     'E5': {
-      'pion': "isotriplet S=0 PSQ=0 A1um pion 0",
+      'pion': "Pref=(0,0,0) A1um flavor=1,0 pion 0",
     },
 }
 
 tsrc_files = {
     'H200': 'tsrc_list_H200',
-    'N300': 'tsrc_list_N300',
+    'J500': 'tsrc_list_J500',
+    'N200': 'tsrc_list_N200',
     'N202': 'tsrc_list_N202',
+    'N300': 'tsrc_list_N300',
 }
 
 decuplet_ensembles = [
     'A653',
     'B450',
     'H101',
+    'H102',
+    'H107',
     'H200',
-    'U103',
-    'N300',
+    'J500',
+    'N200',
     'N202',
+    'N300',
+    'U103',
 ]
 
-baryon_strangeness = {
-    'nucleon':  '0',
-    'lambda':  '-1',
-    'sigma':   '-1',
-    'xi':      '-2',
-    'decuplet': '-2',
+# operator info
+SU3_flavors = ["1", "27", "10", "10b", "8"]
+SU2_flavors = ["I0_S0", "I1_S0", "I0_S-2", "I1_S-2", "I2_S-2"]
+irrep_spin_ordering = "I0_S-2"
+symmetric_SU3_flavors = ["1", "27", "8"]
+anti_symmetric_SU3_flavors = ["10", "10b", "8"]
+symmetric_SU2_flavor = "I1_S0"
+anti_symmetric_SU2_flavor = "I0_S0"
+symmetric_SU3_flavor_dibaryon = "NNs"
+anti_symmetric_SU3_flavor_dibaryon = "NNa"
+
+op_files = {
+    'S0': "operators_S0",
+    'S-2': "operators_S-2",
 }
 
-baryon_isospin = {
-    'nucleon': 'isodoublet',
-    'lambda':  'isosinglet',
-    'sigma':   'isotriplet',
-    'xi':      'isodoublet',
-    'decuplet': 'isodoublet',
+baryon_flavor = {
+    'nucleon':  '1h,0',
+    'lambda':   '0,-1',
+    'sigma':    '1,-1',
+    'xi':       '1h,-2',
+    'octet':    '8',
+    'decuplet': '10',
 }
 
 spin_half_irreps = {
@@ -209,233 +301,35 @@ spin_three_half_irreps = {
     0: 'Hg',
 }
 
-dibaryon_ops = {
-    Channel('P000', 'A1+', 'I0', 'S-2', None) : [
-        "isosinglet S=-2 PSQ=0 A1g L(0)L(0)s_S0 0",
-        "isosinglet S=-2 PSQ=0 A1g S(0)S(0)s_S0 0",
-        "isosinglet S=-2 PSQ=0 A1g N(0)X(0)s_S0 0",
-        "isosinglet S=-2 PSQ=0 A1g L(1)L(1)s_S0 0",
-        "isosinglet S=-2 PSQ=0 A1g S(1)S(1)s_S0 0",
-        "isosinglet S=-2 PSQ=0 A1g N(1)X(1)s_S0 0",
-        "isosinglet S=-2 PSQ=0 A1g L(2)L(2)s_S0 0",
-        "isosinglet S=-2 PSQ=0 A1g S(2)S(2)s_S0 0",
-        "isosinglet S=-2 PSQ=0 A1g N(2)X(2)s_S0 0",
-    ],
-    Channel('P001', 'A1', 'I0', 'S-2',  None) : [
-        "isosinglet S=-2 PSQ=1 A1 L(1)L(0)s_S0 0",
-        "isosinglet S=-2 PSQ=1 A1 S(1)S(0)s_S0 0",
-        "isosinglet S=-2 PSQ=1 A1 N(1)X(0)s_S0 0",
-        "isosinglet S=-2 PSQ=1 A1 N(1)X(0)a_S0 0",
-        "isosinglet S=-2 PSQ=1 A1 L(2)L(1)s_S0 0",
-        "isosinglet S=-2 PSQ=1 A1 S(2)S(1)s_S0 0",
-        "isosinglet S=-2 PSQ=1 A1 N(2)X(1)s_S0 0",
-        "isosinglet S=-2 PSQ=1 A1 N(2)X(1)a_S0 0",
-        "isosinglet S=-2 PSQ=1 A1 L(2)L(1)s_S1 0",
-        "isosinglet S=-2 PSQ=1 A1 S(2)S(1)s_S1 0",
-        "isosinglet S=-2 PSQ=1 A1 N(2)X(1)s_S1 0",
-        "isosinglet S=-2 PSQ=1 A1 N(2)X(1)a_S1 0",
-    ],
-    Channel('P011', 'A1', 'I0', 'S-2',  None) : [
-        "isosinglet S=-2 PSQ=2 A1 L(2)L(0)s_S0 0",
-        "isosinglet S=-2 PSQ=2 A1 S(2)S(0)s_S0 0",
-        "isosinglet S=-2 PSQ=2 A1 N(2)X(0)s_S0 0",
-        "isosinglet S=-2 PSQ=2 A1 N(2)X(0)a_S0 0",
-        "isosinglet S=-2 PSQ=2 A1 L(1)L(1)s_S0 0",
-        "isosinglet S=-2 PSQ=2 A1 S(1)S(1)s_S0 0",
-        "isosinglet S=-2 PSQ=2 A1 N(1)X(1)s_S0 0",
-        "isosinglet S=-2 PSQ=2 A1 L(1)L(1)s_S1 0",
-        "isosinglet S=-2 PSQ=2 A1 S(1)S(1)s_S1 0",
-        "isosinglet S=-2 PSQ=2 A1 N(1)X(1)s_S1 0",
-    ],
-    Channel('P111', 'A1', 'I0', 'S-2',  None) : [
-        "isosinglet S=-2 PSQ=3 A1 L(3)L(0)s_S0 0",
-        "isosinglet S=-2 PSQ=3 A1 S(3)S(0)s_S0 0",
-        "isosinglet S=-2 PSQ=3 A1 N(3)X(0)s_S0 0",
-        "isosinglet S=-2 PSQ=3 A1 N(3)X(0)a_S0 0",
-        "isosinglet S=-2 PSQ=3 A1 L(2)L(1)s_S0 0",
-        "isosinglet S=-2 PSQ=3 A1 S(2)S(1)s_S0 0",
-        "isosinglet S=-2 PSQ=3 A1 N(2)X(1)s_S0 0",
-        "isosinglet S=-2 PSQ=3 A1 N(2)X(1)a_S0 0",
-        "isosinglet S=-2 PSQ=3 A1 L(2)L(1)s_S1 0",
-        "isosinglet S=-2 PSQ=3 A1 S(2)S(1)s_S1 0",
-        "isosinglet S=-2 PSQ=3 A1 N(2)X(1)s_S1 0",
-        "isosinglet S=-2 PSQ=3 A1 N(2)X(1)a_S1 0",
-    ],
-    Channel('P002', 'A1', 'I0', 'S-2',  None) : [
-        "isosinglet S=-2 PSQ=4 A1 L(1)L(1)s_S0 0",
-        "isosinglet S=-2 PSQ=4 A1 S(1)S(1)s_S0 0",
-        "isosinglet S=-2 PSQ=4 A1 N(1)X(1)s_S0 0",
-    ],
-
-
-
-    Channel('P000', 'A1+', 'I0', 'S-2', '1') : [
-        "isosinglet S=-2 PSQ=0 A1g L(0)L(0)s_S0 1",
-        "isosinglet S=-2 PSQ=0 A1g L(1)L(1)s_S0 1",
-        "isosinglet S=-2 PSQ=0 A1g L(2)L(2)s_S0 1",
-    ],
-    Channel('P000', 'A1+', 'I0', 'S-2', '27') : [
-        "isosinglet S=-2 PSQ=0 A1g L(0)L(0)s_S0 27",
-        "isosinglet S=-2 PSQ=0 A1g L(1)L(1)s_S0 27",
-        "isosinglet S=-2 PSQ=0 A1g L(2)L(2)s_S0 27",
-    ],
-    Channel('P000', 'A1+', 'I0', 'S-2', '8') : [
-        "isosinglet S=-2 PSQ=0 A1g L(0)L(0)s_S0 8",
-        "isosinglet S=-2 PSQ=0 A1g L(1)L(1)s_S0 8",
-        "isosinglet S=-2 PSQ=0 A1g L(2)L(2)s_S0 8",
-    ],
-    Channel('P000', 'A2+', 'I0', 'S-2', '10')  : [],
-    Channel('P000', 'A2+', 'I0', 'S-2', '10b') : [],
-    Channel('P000', 'A2+', 'I0', 'S-2', '8')   : [],
-    Channel('P000', 'E+' , 'I0', 'S-2', '1')   : [],
-    Channel('P000', 'E+' , 'I0', 'S-2', '10')  : [],
-    Channel('P000', 'E+' , 'I0', 'S-2', '10b') : [],
-    Channel('P000', 'E+' , 'I0', 'S-2', '27')  : [],
-    Channel('P000', 'E+' , 'I0', 'S-2', '8')   : [],
-    Channel('P000', 'T1+', 'I0', 'S-2', '10')  : [],
-    Channel('P000', 'T1+', 'I0', 'S-2', '10b') : [],
-    Channel('P000', 'T1+', 'I0', 'S-2', '8')   : [],
-    Channel('P000', 'T2+', 'I0', 'S-2', '1')   : [],
-    Channel('P000', 'T2+', 'I0', 'S-2', '10')  : [],
-    Channel('P000', 'T2+', 'I0', 'S-2', '10b') : [],
-    Channel('P000', 'T2+', 'I0', 'S-2', '27')  : [],
-    Channel('P000', 'T2+', 'I0', 'S-2', '8')   : [],
-    Channel('P000', 'A1-', 'I0', 'S-2', '1')   : [],
-    Channel('P000', 'A1-', 'I0', 'S-2', '27')  : [],
-    Channel('P000', 'A1-', 'I0', 'S-2', '8')   : [],
-    Channel('P000', 'A2-', 'I0', 'S-2', '1')   : [],
-    Channel('P000', 'A2-', 'I0', 'S-2', '27')  : [],
-    Channel('P000', 'A2-', 'I0', 'S-2', '8')   : [],
-    Channel('P000', 'E-' , 'I0', 'S-2', '1')   : [],
-    Channel('P000', 'E-' , 'I0', 'S-2', '27')  : [],
-    Channel('P000', 'E-' , 'I0', 'S-2', '8')   : [],
-    Channel('P000', 'T1-', 'I0', 'S-2', '1')   : [],
-    Channel('P000', 'T1-', 'I0', 'S-2', '10')  : [],
-    Channel('P000', 'T1-', 'I0', 'S-2', '10b') : [],
-    Channel('P000', 'T1-', 'I0', 'S-2', '27')  : [],
-    Channel('P000', 'T1-', 'I0', 'S-2', '8')   : [],
-    Channel('P000', 'T2-', 'I0', 'S-2', '1')   : [],
-    Channel('P000', 'T2-', 'I0', 'S-2', '10')  : [],
-    Channel('P000', 'T2-', 'I0', 'S-2', '10b') : [],
-    Channel('P000', 'T2-', 'I0', 'S-2', '27')  : [],
-    Channel('P000', 'T2-', 'I0', 'S-2', '8')   : [],
-    Channel('P001', 'A1', 'I0', 'S-2',  '1')   : [
-        "isosinglet S=-2 PSQ=1 A1 L(1)L(0)s_S0 1",
-        "isosinglet S=-2 PSQ=1 A1 L(2)L(1)s_S0 1",
-        "isosinglet S=-2 PSQ=1 A1 L(2)L(1)s_S1 1",
-    ],
-    Channel('P001', 'A1', 'I0', 'S-2',  '10') : [],
-    Channel('P001', 'A1', 'I0', 'S-2',  '10b') : [],
-    Channel('P001', 'A1', 'I0', 'S-2',  '27')  : [
-        "isosinglet S=-2 PSQ=1 A1 L(1)L(0)s_S0 27",
-        "isosinglet S=-2 PSQ=1 A1 L(2)L(1)s_S0 27",
-        "isosinglet S=-2 PSQ=1 A1 L(2)L(1)s_S1 27",
-    ],
-    Channel('P001', 'A1', 'I0', 'S-2',  '8')   : [
-        "isosinglet S=-2 PSQ=1 A1 L(1)L(0)s_S0 8",
-        "isosinglet S=-2 PSQ=1 A1 L(1)L(0)a_S0 8",
-        "isosinglet S=-2 PSQ=1 A1 L(2)L(1)s_S0 8",
-        "isosinglet S=-2 PSQ=1 A1 L(2)L(1)a_S0 8",
-        "isosinglet S=-2 PSQ=1 A1 L(2)L(1)s_S1 8",
-        "isosinglet S=-2 PSQ=1 A1 L(2)L(1)a_S1 8",
-    ],
-    Channel('P001', 'A2', 'I0', 'S-2',  '1')   : [],
-    Channel('P001', 'A2', 'I0', 'S-2',  '10',) : [],
-    Channel('P001', 'A2', 'I0', 'S-2',  '10b') : [],
-    Channel('P001', 'A2', 'I0', 'S-2',  '27')  : [],
-    Channel('P001', 'A2', 'I0', 'S-2',  '8')   : [],
-    Channel('P001', 'B1', 'I0', 'S-2',  '1')   : [],
-    Channel('P001', 'B1', 'I0', 'S-2',  '10',) : [],
-    Channel('P001', 'B1', 'I0', 'S-2',  '10b') : [],
-    Channel('P001', 'B1', 'I0', 'S-2',  '27')  : [],
-    Channel('P001', 'B1', 'I0', 'S-2',  '8')   : [],
-    Channel('P001', 'B2', 'I0', 'S-2',  '1')   : [],
-    Channel('P001', 'B2', 'I0', 'S-2',  '10',) : [],
-    Channel('P001', 'B2', 'I0', 'S-2',  '10b') : [],
-    Channel('P001', 'B2', 'I0', 'S-2',  '27')  : [],
-    Channel('P001', 'B2', 'I0', 'S-2',  '8')   : [],
-    Channel('P001', 'E', 'I0', 'S-2',   '1')   : [],
-    Channel('P001', 'E', 'I0', 'S-2',   '10',) : [],
-    Channel('P001', 'E', 'I0', 'S-2',   '10b') : [],
-    Channel('P001', 'E', 'I0', 'S-2',   '27')  : [],
-    Channel('P001', 'E', 'I0', 'S-2',   '8')   : [],
-    Channel('P011', 'A1', 'I0', 'S-2',  '1')   : [
-        "isosinglet S=-2 PSQ=2 A1 L(2)L(0)s_S0 1",
-        "isosinglet S=-2 PSQ=2 A1 L(1)L(1)s_S0 1",
-        "isosinglet S=-2 PSQ=2 A1 L(1)L(1)s_S1 1",
-    ],
-    Channel('P011', 'A1', 'I0', 'S-2',  '10') : [],
-    Channel('P011', 'A1', 'I0', 'S-2',  '10b') : [],
-    Channel('P011', 'A1', 'I0', 'S-2',  '27')  : [
-        "isosinglet S=-2 PSQ=2 A1 L(2)L(0)s_S0 27",
-        "isosinglet S=-2 PSQ=2 A1 L(1)L(1)s_S0 27",
-        "isosinglet S=-2 PSQ=2 A1 L(1)L(1)s_S1 27",
-    ],
-    Channel('P011', 'A1', 'I0', 'S-2',  '8')   : [
-        "isosinglet S=-2 PSQ=2 A1 L(2)L(0)s_S0 8",
-        "isosinglet S=-2 PSQ=2 A1 L(2)L(0)a_S0 8",
-        "isosinglet S=-2 PSQ=2 A1 L(1)L(1)s_S0 8",
-        "isosinglet S=-2 PSQ=2 A1 L(1)L(1)s_S1 8",
-    ],
-    Channel('P011', 'A2', 'I0', 'S-2',  '1')   : [],
-    Channel('P011', 'A2', 'I0', 'S-2',  '10',) : [],
-    Channel('P011', 'A2', 'I0', 'S-2',  '10b') : [],
-    Channel('P011', 'A2', 'I0', 'S-2',  '27')  : [],
-    Channel('P011', 'A2', 'I0', 'S-2',  '8')   : [],
-    Channel('P011', 'B2', 'I0', 'S-2',  '1')   : [],
-    Channel('P011', 'B2', 'I0', 'S-2',  '10',) : [],
-    Channel('P011', 'B2', 'I0', 'S-2',  '10b') : [],
-    Channel('P011', 'B2', 'I0', 'S-2',  '27')  : [],
-    Channel('P011', 'B2', 'I0', 'S-2',  '8')   : [],
-    Channel('P011', 'B1', 'I0', 'S-2',  '1')   : [],
-    Channel('P011', 'B1', 'I0', 'S-2',  '10',) : [],
-    Channel('P011', 'B1', 'I0', 'S-2',  '10b') : [],
-    Channel('P011', 'B1', 'I0', 'S-2',  '27')  : [],
-    Channel('P011', 'B1', 'I0', 'S-2',  '8')   : [],
-    Channel('P111', 'A1', 'I0', 'S-2',  '1')   : [
-        "isosinglet S=-2 PSQ=3 A1 L(3)L(0)s_S0 1",
-        "isosinglet S=-2 PSQ=3 A1 L(2)L(1)s_S0 1",
-        "isosinglet S=-2 PSQ=3 A1 L(2)L(1)s_S1 1",
-    ],
-    Channel('P111', 'A1', 'I0', 'S-2',  '10') : [],
-    Channel('P111', 'A1', 'I0', 'S-2',  '10b') : [],
-    Channel('P111', 'A1', 'I0', 'S-2',  '27')  : [
-        "isosinglet S=-2 PSQ=3 A1 L(3)L(0)s_S0 27",
-        "isosinglet S=-2 PSQ=3 A1 L(2)L(1)s_S0 27",
-        "isosinglet S=-2 PSQ=3 A1 L(2)L(1)s_S1 27",
-    ],
-    Channel('P111', 'A1', 'I0', 'S-2',  '8')   : [
-        "isosinglet S=-2 PSQ=3 A1 L(3)L(0)s_S0 8",
-        "isosinglet S=-2 PSQ=3 A1 L(3)L(0)a_S0 8",
-        "isosinglet S=-2 PSQ=3 A1 L(2)L(1)s_S0 8",
-        "isosinglet S=-2 PSQ=3 A1 L(2)L(1)a_S0 8",
-        "isosinglet S=-2 PSQ=3 A1 L(2)L(1)s_S1 8",
-        "isosinglet S=-2 PSQ=3 A1 L(2)L(1)a_S1 8",
-    ],
-    Channel('P111', 'A2', 'I0', 'S-2',  '1')   : [],
-    Channel('P111', 'A2', 'I0', 'S-2',  '10',) : [],
-    Channel('P111', 'A2', 'I0', 'S-2',  '10b') : [],
-    Channel('P111', 'A2', 'I0', 'S-2',  '27')  : [],
-    Channel('P111', 'A2', 'I0', 'S-2',  '8')   : [],
-    Channel('P111', 'E', 'I0', 'S-2',   '1')   : [],
-    Channel('P111', 'E', 'I0', 'S-2',   '10',) : [],
-    Channel('P111', 'E', 'I0', 'S-2',   '10b') : [],
-    Channel('P111', 'E', 'I0', 'S-2',   '27')  : [],
-    Channel('P111', 'E', 'I0', 'S-2',   '8')   : [],
-    Channel('P002', 'A1', 'I0', 'S-2',  '1')   : [
-        "isosinglet S=-2 PSQ=4 A1 L(1)L(1)s_S0 1",
-    ],
-    Channel('P002', 'A1', 'I0', 'S-2',  '27')  : [
-        "isosinglet S=-2 PSQ=4 A1 L(1)L(1)s_S0 27",
-    ],
-    Channel('P002', 'A1', 'I0', 'S-2',  '8')   : [
-        "isosinglet S=-2 PSQ=4 A1 L(1)L(1)s_S0 8",
-    ],
-    Channel('P002', 'A2', 'I0', 'S-2',  '10',) : [],
-    Channel('P002', 'A2', 'I0', 'S-2',  '10b') : [],
-    Channel('P002', 'A2', 'I0', 'S-2',  '8')   : [],
-    Channel('P002', 'E', 'I0', 'S-2',   '10',) : [],
-    Channel('P002', 'E', 'I0', 'S-2',   '10b') : [],
-    Channel('P002', 'E', 'I0', 'S-2',   '8')   : [],
+total_prefs = {
+    0: '(0,0,0)',
+    1: '(0,0,1)',
+    2: '(0,1,1)',
+    3: '(1,1,1)',
 }
+
+def convert_irrep(irrep, psq):
+  if psq == 2 and irrep == "B1":
+    return "B2"
+  elif psq == 2 and irrep == "B2":
+    return "B1"
+  elif irrep == "E2":
+    return "E"
+
+  return irrep.replace("+", "g").replace("-", "u")
+
+
+def get_opstr(su3, pref, irrep, flavor, op_str):
+  psq = int(pref[1])**2 + int(pref[2])**2 + int(pref[3])**2
+  pref = f"Pref=({pref[1]},{pref[2]},{pref[3]})"
+  irrep = convert_irrep(irrep, psq)
+  if not su3:
+    isospin, strangeness = flavor.split('_')
+    isospin = isospin[1:]
+    strangeness = strangeness[1:]
+    flavor = f"{isospin},{strangeness}"
+
+  return f"{pref} {irrep} flavor={flavor} {op_str}"
+
+
 

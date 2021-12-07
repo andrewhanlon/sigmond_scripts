@@ -2,6 +2,8 @@ from typing import NamedTuple
 import copy
 import itertools
 
+import logging
+
 from data_handling.data_files import DataFiles, FileInfo
 from operator_info.operator_set import OperatorSet
 from operator_info.operator import Operator
@@ -41,7 +43,7 @@ class CorrelatorData:
       self._correlators[correlator_info] = CorrelatorDataInfo(tmin, tmax, fileinfo)
       self._addFileInfo(fileinfo, op_snk.channel)
     elif self._correlators[correlator_info].fileinfo != fileinfo:
-      logging.warning("Correlator {correlator_info} already added with different file, skipping...")
+      logging.warning(f"Correlator {correlator_info} already added with different file, skipping...")
     else:
       self._correlators[correlator_info] = self._correlators[correlator_info].getUpdatedTsepRange(tmin, tmax)
 
@@ -53,7 +55,7 @@ class CorrelatorData:
       self._vevs[vev] = fileinfo
       self._addFileInfo(fileinfo, op.channel)
     elif fileinfo != self._vevs[vev]:
-      logging.warning("VEV {vev} already added with different file, skipping...")
+      logging.warning(f"VEV {vev} already added with different file, skipping...")
 
   @property
   def channels(self):
@@ -154,7 +156,7 @@ class CorrelatorData:
     elif fileinfo.filetype is sigmond.FileType.Samplings:
       self._data_files[channel].addSamplingFiles(fileinfo.filename)
     else:
-      logging.error("Unrecognized filetype {fileinfo.filetype}")
+      logging.error(f"Unrecognized filetype {fileinfo.filetype}")
 
   def __add__(self, other):
     if isinstance(other, self.__class__):
