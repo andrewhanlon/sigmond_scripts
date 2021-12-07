@@ -404,6 +404,7 @@ class SigmondInput:
       **minimizer_info (sigmond_xml.MinimizerInfo): Specifies the
           info for the Minimizer.
       **subtractvev (bool): 
+      **priors (dict): priors mapping from param_name to ObsInfo
       **sampling_mode (sigmond_xml.SamplingMode): specifies a
           sampling mode to use for the fit.
       **cov_sampling_mode (sigmond_xml.SamplingMode): specifies the
@@ -433,7 +434,8 @@ class SigmondInput:
     if 'cov_sampling_mode' in extra_options:
       ET.SubElement(xml, "CovMatCalcSamplingMode").text = str(extra_options['cov_sampling_mode'])
 
-    fit_tag = fit_info.xml()
+    
+    fit_tag = fit_info.xml(extra_options.get('priors', dict()))
 
     if 'chosen_fit_info' in extra_options:
       chosen_fit_xml = ET.SubElement(xml, "ChosenFitInfo")
@@ -478,7 +480,7 @@ class SigmondInput:
           ET.SubElement(plot_tag, "CorrelatedThreshold").text = str(plot_info.correlated_threshold)
 
       else:
-        plot_tag = ET.SubElement(fit_tag, "DoEffectiveEnergyPlot")
+        plot_tag = ET.SubElement(xml, "DoEffectiveEnergyPlot")
         ET.SubElement(plot_tag, "PlotFile").text = extra_options['plotfile']
         if 'plot_info' in extra_options:
           plot_info = extra_options['plot_info']

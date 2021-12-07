@@ -70,8 +70,8 @@ class Operator:
   def createFromCompact(cls, compact_str):
     compact_str = compact_str.strip()
     if compact_str[0].isdigit(): # is gi_operator
-      pattern = r"^(?P<iso_int>\d)(?P<strange>-?\d)(?P<ref_mom>R)?(?P<px>-?\d)" \
-                r"(?P<py>-?\d)(?P<pz>-?\d)(?P<irrep>[A-Z]\d?[gu]?[mp]?)" \
+      pattern = r"^(?P<flavor>(\d+b?)|(\d+h?_-?\d+))F(?P<ref_mom>R)?(?P<px>-?\d+)_" \
+                r"(?P<py>-?\d+)_(?P<pz>-?\d+)(?P<irrep>[A-Z]\d?[gu]?[mp]?)?" \
                 r"(_(?P<irreprow>\d))?-(?P<id_name>\S+)-(?P<id_index>\d+)$"
 
       match = regex.match(pattern, compact_str)
@@ -79,16 +79,18 @@ class Operator:
         logging.critical(f"Invalid compact operator string passed: {compact_str}")
 
       matches = match.groupdict()
-      isospin = Isospin(int(matches['iso_int'])).name
-      op_str = f"iso{isospin} S={matches['strange']}"
-      op_str += " P"
+
+      op_str = "P"
       if matches['ref_mom'] is not None:
         op_str += "ref"
-      op_str += "=({matches['px']},{matches['py']},{matches['pz']})"
+      op_str += f"=({matches['px']},{matches['py']},{matches['pz']})"
 
-      op_str += f" {matches['irrep']}"
-      if matches['irreprow'] is not None:
-        op_str += f"_{matches['irreprow']}"
+      if matches['irrep'] is not None:
+        op_str += f" {matches['irrep']}"
+        if matches['irreprow'] is not None:
+          op_str += f"_{matches['irreprow']}"
+
+      op_str += " flavor=" + matches['flavor'].replace('_', ',')
 
       op_str += f" {matches['id_name']} {matches['id_index']}"
 
@@ -141,7 +143,7 @@ class Operator:
           op_str += f" CG_{matches['cg']}"
 
         for ind in range(iso_index):
-          op_str += " [P=({px},{py},{pz}) {irrep} {spat_type}".format(
+          op_str += f" [P=({px},{py},{pz}) {irrep} {spat_type}".format(
               px=matches[f'px{ind}'], py=matches[f'py{ind}'], pz=matches[f'pz{ind}'],
               irrep=matches[f'irrep{ind}'], spat_type=matches[f'spat_type{ind}'])
 
@@ -156,21 +158,20 @@ class Operator:
   def compact_str(self):
     if self.operator_type == sigmond.OpKind.GenIrrep:
       operator = self.operator_info.getGenIrrep()
-      if abs(operator.getStrangeness()) >= 10:
-        logging.critical("Strangeness >= 10 not supported")
+      flavor_list = operator.getFlavor()
+      if operator.isSU3flavor():
+        compact_str = f"{flavor_list[0]}F"
+      else:
+        compact_str = f"{flavor_list[0]}_{flavor_list[1]}F"
 
-      isospin_int = Isospin(operator.getIsospin()).to_int()
-      compact_str = f"{isospin_int}{operator.getStrangeness()}"
-      if not operator.hasDefiniteMomentum():
+      if operator.isReferenceMomentum():
         compact_str += "R"
+      compact_str += f"{operator.getXMomentum()}_{operator.getYMomentum()}_{operator.getZMomentum()}"
 
-      compact_str += f"{operator.getXMomentum()}" \
-                     f"{operator.getYMomentum()}" \
-                     f"{operator.getZMomentum()}"
-
-      compact_str += operator.getLGIrrep()
-      if operator.getLGIrrepRow():
-        compact_str += f"_{operator.getLGIrrepRow()}"
+      if operator.getLGIrrep() != "NONE":
+        compact_str += f"{operator.getLGIrrep()}"
+        if operator.getLGIrrepRow() > 0:
+          compact_str += f"_{operator.getLGIrrepRow()}"
 
       compact_str += f"-{operator.getIDName()}-{operator.getIDIndex()}"
 
@@ -215,8 +216,7 @@ class Operator:
 
   @staticmethod
   def operator_type(op_str):
-    isospin = op_str.split()[0]
-    if isospin.startswith("iso") and "_" not in isospin:
+    if op_str[0] == "P":
       return sigmond.OpKind.GenIrrep
     else:
       return sigmond.OpKind.BasicLapH
@@ -258,7 +258,7 @@ class Operator:
   def ratio_op(self):
     if self.operator_type is sigmond.OpKind.GenIrrep:
       op_str_tokens = self.op_str().split()
-      op_str_tokens[4] += "r"
+      op_str_tokens[-2] += "r"
       op_str = ' '.join(op_str_tokens)
       ratio_op = Operator(op_str)
       return ratio_op
@@ -270,6 +270,11 @@ class Operator:
   def refP(self):
     p = (self.getXMomentum(), self.getYMomentum(), self.getZMomentum())
     return tuple(sorted([abs(pi) for pi in p]))
+
+  @property
+  def refP_str(self):
+    ref_p = self.refP
+    return f"Pref{ref_p[0]}{ref_p[1]}{ref_p[2]}"
 
   @property
   def psq(self):
@@ -362,8 +367,7 @@ class Operator:
 
     else:
       _comp_list = [
-          self.getIsospin(),
-          self.getStrangeness(),
+          self.getFlavor(),
           self.psq,
           self.getLGIrrep(),
           self.getLGIrrepRow(),

@@ -526,10 +526,10 @@ class Spectrum(tasks.task.Task):
         if fit_info.non_interacting_operators is not None:
           for scattering_particle in fit_info.non_interacting_operators.non_interacting_level:
             scattering_particle_fit_info = self.scattering_particles[scattering_particle]
-            at_rest_scattering_particle = sigmond_info.sigmond_info.ScatteringParticle(scattering_particle.name, 0)
+            at_rest_scattering_particle = sigmond_info.sigmond_info.ScatteringParticle(scattering_particle.name, (0,0,0))
             at_rest_scattering_particle_fit_info = self.scattering_particles[at_rest_scattering_particle]
 
-            non_interacting_level.append((at_rest_scattering_particle_fit_info.energy_observable, scattering_particle.refP))
+            non_interacting_level.append((at_rest_scattering_particle_fit_info.energy_observable, scattering_particle.psq))
             non_interacting_amp.append(scattering_particle_fit_info.amplitude_observable)
 
         if tmin_fit_info is not None:
@@ -612,7 +612,7 @@ class Spectrum(tasks.task.Task):
       energy_samplings_obs = list()
       for level, fit_info in enumerate(fit_infos):
         channel = fit_info.operator.channel
-        samp_dir = f"Pref{channel.refP}/{channel.irrep}"
+        samp_dir = f"{channel.refP_str}/{channel.irrep}"
         
         ordered_energy = sigmond.MCObsInfo(self.ordered_energy, level)
         elab = sigmond.MCObsInfo(f"{samp_dir}/elab_{level}", 0)
@@ -647,8 +647,9 @@ class Spectrum(tasks.task.Task):
 
     return sigmond_inputs
 
-  def _addReferenceAndScatteringFits(self, sigmond_input, plot=True):
+  def _addReferenceAndScatteringFits(self, sigmond_input, plot=True, ref_prior=False):
     energy_samplings_obs = list()
+    priors = dict()
     if self.reference_fit_info is not None:
       if plot:
         plotfile = self.fit_sh_plotfile(self.ref_name, util.PlotExtension.grace)
@@ -665,6 +666,13 @@ class Spectrum(tasks.task.Task):
 
     sh_tmin_fit_infos = self.tmin_infos.get(self.sh_name)
     for scattering_particle, scat_fit_info in self.scattering_particles.items():
+
+      if ref_prior and self.reference_fit_info is not None:
+        boost_info = sigmond.MCObsInfo(f"boosted_ref", 0)
+        sigmond_input.doBoost(boost_info, scattering_particle.psq, self.ensemble_spatial_extent,
+                              ref_info, sampling_mode=self.sampling_mode, boost_to_cm=False)
+        priors['FirstEnergy'] = boost_info
+
       if scat_fit_info != self.reference_fit_info and plot:
         plotfile = self.fit_sh_plotfile(repr(scattering_particle), util.PlotExtension.grace)
         sigmond_input.doTemporalCorrelatorFit(
@@ -674,9 +682,15 @@ class Spectrum(tasks.task.Task):
         for tmin_fit_info in sh_tmin_fit_infos[scattering_particle]:
           tmin_plot_info = self.default_tmin_plot_info.setChosenFit(scat_fit_info)
           tmin_plotfile = self.tmin_sh_plotfile(tmin_fit_info, util.PlotExtension.grace)
-          sigmond_input.doTemporalCorrelatorFit(
-              tmin_fit_info, minimizer_info=self.minimizer_info, plotfile=tmin_plotfile,
-              plot_info=tmin_plot_info, chosen_fit_info=scat_fit_info.energy_observable)
+          if tmin_fit_info.has_gap:
+            sigmond_input.doTemporalCorrelatorFit(
+                tmin_fit_info, minimizer_info=self.minimizer_info, plotfile=tmin_plotfile,
+                plot_info=tmin_plot_info, chosen_fit_info=scat_fit_info.energy_observable,
+                priors=priors)
+          else:
+            sigmond_input.doTemporalCorrelatorFit(
+                tmin_fit_info, minimizer_info=self.minimizer_info, plotfile=tmin_plotfile,
+                plot_info=tmin_plot_info, chosen_fit_info=scat_fit_info.energy_observable)
 
       elif scat_fit_info != self.reference_fit_info:
         sigmond_input.doTemporalCorrelatorFit(scat_fit_info, minimizer_info=self.minimizer_info)
@@ -688,9 +702,15 @@ class Spectrum(tasks.task.Task):
         for tmin_fit_info in sh_tmin_fit_infos[scattering_particle]:
           tmin_plot_info = self.default_tmin_plot_info.setChosenFit(scat_fit_info)
           tmin_plotfile = self.tmin_sh_plotfile(tmin_fit_info, util.PlotExtension.grace)
-          sigmond_input.doTemporalCorrelatorFit(
-              tmin_fit_info, minimizer_info=self.minimizer_info, plotfile=tmin_plotfile,
-              plot_info=tmin_plot_info, chosen_fit_info=scat_fit_info.energy_observable)
+          if tmin_fit_info.has_gap:
+            sigmond_input.doTemporalCorrelatorFit(
+                tmin_fit_info, minimizer_info=self.minimizer_info, plotfile=tmin_plotfile,
+                plot_info=tmin_plot_info, chosen_fit_info=scat_fit_info.energy_observable,
+                priors=priors)
+          else:
+            sigmond_input.doTemporalCorrelatorFit(
+                tmin_fit_info, minimizer_info=self.minimizer_info, plotfile=tmin_plotfile,
+                plot_info=tmin_plot_info, chosen_fit_info=scat_fit_info.energy_observable)
 
 
       scat_info = sigmond.MCObsInfo(f"{self.sh_name}/{scattering_particle!r}", 0)
@@ -887,7 +907,7 @@ class Spectrum(tasks.task.Task):
 
   def _addFitTable(self, doc):
     with doc.create(pylatex.Center()) as centered:
-      long_tabu = "X[0.1,c] X[c] X[c] X[2,c] X[4,c] X[4,c] X[4,c] X[3,c] X[2,c] X[2,c]"
+      long_tabu = "X[0.1,c] X[3,c] X[c] X[3,c] X[4,c] X[4,c] X[4,c] X[3,c] X[2,c] X[2,c]"
       with centered.create(pylatex.LongTabu(long_tabu, to=r"\linewidth")) as data_table:
 
         if self.reference_fit_info is None:
@@ -979,7 +999,7 @@ class Spectrum(tasks.task.Task):
       if operator_set.is_rotated:
         for level, fit_info in self.spectrum_logs[operator_set].energies.items():
           operator = fit_info.operator
-          obs_name = f"Pref{operator.refP}/{operator.channel.irrep}/ecm_{level.new}"
+          obs_name = f"{operator.refP_str}/{operator.channel.irrep}/ecm_{level.new}"
           if self.reference_fit_info is not None:
             obs_name += f"_{self.ref_name}"
 
@@ -993,7 +1013,7 @@ class Spectrum(tasks.task.Task):
       else:
         for level, fit_info in enumerate(fit_infos):
           operator = fit_info.operator
-          obs_name = f"Pref{operator.refP}/{operator.channel.irrep}/ecm_{level}"
+          obs_name = f"{operator.refP_str}/{operator.channel.irrep}/ecm_{level}"
           if self.reference_fit_info is not None:
             obs_name += f"_{self.ref_name}"
 
@@ -1016,7 +1036,7 @@ class Spectrum(tasks.task.Task):
       coeffs = list()
       latexs = list()
       for scattering_particle_name in threshold:
-        scattering_particle = sigmond_info.sigmond_info.ScatteringParticle(scattering_particle_name, 0)
+        scattering_particle = sigmond_info.sigmond_info.ScatteringParticle(scattering_particle_name, (0,0,0))
         energy_obs = sigmond.MCObsInfo(f"{self.sh_name}/{scattering_particle!r}", 0)
         obs_infos.append(energy_obs)
         coeffs.append(1.0)
@@ -1044,7 +1064,7 @@ class Spectrum(tasks.task.Task):
     for fit_info in self.spectrum[operator_basis]:
       single_particles = list()
       for scattering_particle in fit_info.non_interacting_operators.non_interacting_level:
-        at_rest_scattering_particle = sigmond_info.sigmond_info.ScatteringParticle(scattering_particle.name, 0)
+        at_rest_scattering_particle = sigmond_info.sigmond_info.ScatteringParticle(scattering_particle.name, (0,0,0))
         energy_obs = sigmond.MCObsInfo(f"{self.sh_name}/{at_rest_scattering_particle!r}", 0)
         single_particle = util.boost_obs(obs_handler, energy_obs, scattering_particle.psq, self.ensemble_spatial_extent)
         single_particles.append(single_particle)

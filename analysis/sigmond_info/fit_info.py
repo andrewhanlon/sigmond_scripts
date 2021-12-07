@@ -256,7 +256,7 @@ class FitInfo:
   def plotfile(self):
     return f"fit_{self.operator!r}_{self.obs_name}_{self.obs_id(0)}"
 
-  def xml(self):
+  def xml(self, priors=dict()):
     xml = ET.Element(f"{self.fit_type}Fit")
 
     if self.ratio:
@@ -310,6 +310,13 @@ class FitInfo:
       ET.SubElement(param_xml, "IDIndex").text = str(self.obs_id(param_count))
       param_count += 1
 
+    if priors:
+      prior_xml = ET.SubElement(xml, "Priors")
+      for param_name, obs_info in priors.items():
+        prior_param_xml = ET.SubElement(prior_xml, param_name)
+        ET.SubElement(prior_param_xml, "Name").text = obs_info.getObsName()
+        ET.SubElement(prior_param_xml, "IDIndex").text = str(obs_info.getObsIndex())
+
     return xml
 
   @property
@@ -328,6 +335,9 @@ class FitInfo:
       noise_cutoff = self.noise_cutoff * 10
       name += "C{val:.0f}".format(val=noise_cutoff)
 
+    if len(name) > 64:
+      logging.critical("obs name cannot exceed 64")
+
     return name
 
   def obs_id(self, param_num):
@@ -335,7 +345,10 @@ class FitInfo:
     if self.exclude_times:
       id_index += "0".join(map(str, self.exclude_times))
     id_index += f"{param_num}{self.model_value:02d}"
-    return int(id_index)
+    id_index = int(id_index)
+    if id_index >= 2**29:
+      logging.critical("highest IDIndex exceeded")
+    return id_index
 
   @property
   def energy_observable(self):
@@ -344,6 +357,9 @@ class FitInfo:
   @property
   def amplitude_observable(self):
     return sigmond.MCObsInfo(self.obs_name, self.obs_id(1))
+
+  def second_energy_observable(self):
+    return sigmond.MCObsInfo(self.obs_name, self.obs_id(2))
 
   def __str__(self):
     return util.xmltostr(self.xml())
