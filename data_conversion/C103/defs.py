@@ -20,14 +20,14 @@ ensembles = [
       96,
       ['r005', 'r006', 'r007', 'r008'],
       [
-        (0, True), (0, False),
-        (12, True), (12, False),
-        (24, True), (24, False),
-        (36, True), (36, False),
-        (48, True), (48, False),
-        (60, True), (60, False),
-        (72, True), (72, False),
-        (84, True), (84, False),
+        (0, True), #(0, False),
+        (12, True), #(12, False),
+        (24, True), #(24, False),
+        (36, True), #(36, False),
+        (48, True), #(48, False),
+        (60, True), #(60, False),
+        (72, True), #(72, False),
+        (84, True), #(84, False),
       ]
     ),
 ]
