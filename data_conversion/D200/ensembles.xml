@@ -10,6 +10,14 @@
         <NTime>128</NTime>
      </EnsembleInfo>
 
+     <EnsembleInfo>
+        <Id>cls21_d200_r000</Id>
+        <NStreams>1</NStreams>
+        <NMeas>2001</NMeas>
+        <NSpace>64</NSpace>
+        <NTime>128</NTime>
+     </EnsembleInfo>
+
   </Infos>
 
 </KnownEnsembles>
