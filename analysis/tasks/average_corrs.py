@@ -360,7 +360,7 @@ class AverageCorrelators(tasks.task.Task):
         for op in these_ops:
           f_handler.write(f"        - operator: {op}\n")
           f_handler.write(f"          model: 1-exp\n          tmin: 15\n          tmax: 25\n          tmin_info:\n")
-          f_handler.write(f"            - model: 1-exp\n              tmin_min: 10\n              tmin_max: 20\n")
+          f_handler.write(f"            - model: 1-exp\n              tmin_min: 2\n              tmin_max: 20\n")
           f_handler.write(f"            - model: 2-exp\n              tmin_min: 2\n              tmin_max: 20\n")
     f_handler.write("\n")
 
@@ -395,18 +395,18 @@ class AverageCorrelators(tasks.task.Task):
         if len(operators) > 1:
           f_handler.write(f"      pivot_info:\n        <<: *PIVOT_INFO\n") 
         else:
-          f_handler.write(f"     operators:\n")
+          f_handler.write(f"      operators:\n")
           for operator in operators:
             f_handler.write(f"      - {operator.op_str()}\n")
-        f_handler.write(f"      non_interacting_levels:\n        *{repr(channel)}\n\n")
+        f_handler.write(f"      non_interacting_levels:\n        *{repr(channel).upper()}\n\n")
         f_handler.write(f"      levels:\n")
         for operator in operators:
           f_handler.write(f"        - model: 1-exp\n          tmin: 15\n          tmax: 25\n          ratio: false\n")
         f_handler.write(f"\n      tmin_info:\n")
         for operator in operators:
-          f_handler.write(f"        - fit_infos:\n          - model: 1-exp\n            tmin_min: 10\n            tmin_max: 20\n            ratio: False\n")
-          f_handler.write(f"          - model: 1-exp\n            tmin_min: 5\n            tmin_max: 15\n            ratio: True\n")
-          f_handler.write(f"          - model: 2-exp\n            tmin_min: 2\n            tmin_max: 16\n            ratio: True\n")
+          f_handler.write(f"        - fit_infos:\n          - model: 1-exp\n            tmin_min: 2\n            tmin_max: 20\n            ratio: False\n")
+          f_handler.write(f"          - model: 1-exp\n            tmin_min: 2\n            tmin_max: 20\n            ratio: True\n")
+          f_handler.write(f"          - model: 2-exp\n            tmin_min: 2\n            tmin_max: 20\n            ratio: False\n")
         f_handler.write(f"\n")
 
     
