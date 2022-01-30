@@ -62,6 +62,11 @@ class Spectrum(tasks.task.Task):
       **bar_color (SymbolColor): color for the zfactor plots
       **rotate_labels (bool): whether the irrep labels on the spectrum plot
           should be rotated
+      **non_interacting_energy_labels (bool): whether it prints the
+          non interacting levels on the spectrum tikz plot or not.
+      **single_hadrons (list): list of the two single hadron names that 
+          make up the correlators for this channel to calculate the q^2_cm.
+          Not set up for anything other than two operator interactions.
     """
 
     self.spectrum = spectrum
@@ -79,6 +84,7 @@ class Spectrum(tasks.task.Task):
     self.rotate_labels = extra_options.pop('rotate_labels', False)
     self.plot_width_factor = extra_options.pop('plot_width_factor', 1.)
     self.non_interacting_energy_labels = extra_options.pop('non_interacting_energy_labels', False)
+    self.single_hadrons = extra_options.pop('single_hadrons',list())
 
     util.check_extra_keys(extra_options, 'Spectrum.initialize')
 
@@ -390,6 +396,11 @@ class Spectrum(tasks.task.Task):
   @property
   def hdf5_filename(self):
     filename = f"energy_samplings_{self.task_name}_rebin{self.rebin}.hdf5"
+    return os.path.join(self.samplings_dir, filename)
+
+  @property
+  def qsqr_filename(self):
+    filename = f"qsqr_samplings_{self.task_name}_rebin{self.rebin}.hdf5"
     return os.path.join(self.samplings_dir, filename)
 
   @property
@@ -1019,24 +1030,44 @@ class Spectrum(tasks.task.Task):
         self.bins_info, self.sampling_info, set([self.samplings_filename]))
 
     hdf5_filename = self.hdf5_filename
-    est_filename = self.estimates_filename
     if os.path.exists(hdf5_filename):
       os.remove(hdf5_filename)
-    if os.path.exists(est_filename):
-      os.remove(est_filename)
     hdf5_h = h5py.File(hdf5_filename, 'w')
+    
+    est_filename = self.estimates_filename
     fests = open(est_filename, 'w+')
     fests.write(f"obs,val,err\n")
 
     for obs_info in samplings_handler.getKeys():
       np_data = util.get_samplings(obs_handler, obs_info)
       hdf5_h.create_dataset(obs_info.getObsName(), data=np_data)
-      val = obs_handler.getEstimate(sigmond.MCObsInfo(obs_info.getObsName(),0)).getFullEstimate()
-      err = obs_handler.getEstimate(sigmond.MCObsInfo(obs_info.getObsName(),0)).getSymmetricError()
+      val = obs_handler.getEstimate(obs_info).getFullEstimate()
+      err = obs_handler.getEstimate(obs_info).getSymmetricError()
       fests.write(f"{obs_info.getObsName()},{val},{err}\n")
 
     hdf5_h.close()
     fests.close()
+    
+    #generalize to two generic single hadrons using inputs
+    if len(self.single_hadrons)==2:
+        sh1ref_obs_info = sigmond.MCObsInfo(f'single_hadrons/{self.single_hadrons[0]}(0)_ref',0)
+        sh2ref_obs_info = sigmond.MCObsInfo(f'single_hadrons/{self.single_hadrons[1]}(0)_ref',0)
+        if sh1ref_obs_info in samplings_handler.getKeys() and sh2ref_obs_info in samplings_handler.getKeys():
+            qsqr_filename = self.qsqr_filename
+            if os.path.exists(qsqr_filename):
+              os.remove(qsqr_filename)
+            hdf5_qsqr = h5py.File(qsqr_filename, 'w')
+            sh1ref_data = util.get_samplings(obs_handler, sh1ref_obs_info)
+            sh2ref_data = util.get_samplings(obs_handler, sh2ref_obs_info)
+            for obs_info in samplings_handler.getKeys():
+                if '_ref' in obs_info.getObsName() and 'cm' in obs_info.getObsName():
+                    np_data = util.get_samplings(obs_handler, obs_info)
+                    qsqr_data = np_data*np_data/4.0-(sh1ref_data*sh1ref_data+sh2ref_data*sh2ref_data)/2.0 + (sh1ref_data*sh1ref_data-sh2ref_data*sh2ref_data)*(sh1ref_data*sh1ref_data-sh2ref_data*sh2ref_data)/(4.0*np_data*np_data)
+                    hdf5_qsqr.create_dataset(obs_info.getObsName().replace('ecm','q2cm'), data=qsqr_data)
+
+            hdf5_qsqr.close()
+    elif self.single_hadrons:
+        logging.warning("q^2 calculations are only set up for two operator correlators")
 
     # save energies to self
     self.energies = dict()
@@ -1051,7 +1082,8 @@ class Spectrum(tasks.task.Task):
 
           try:
             energy = obs_handler.getEstimate(sigmond.MCObsInfo(obs_name, 0))
-          except RuntimeError:
+          except RuntimeError as error:
+            logging.warning(f"{error}")
             logging.critical(f"Failed to get samplings for {obs_name}")
 
           self.energies[operator_set][level.original] = energy
@@ -1065,7 +1097,8 @@ class Spectrum(tasks.task.Task):
 
           try:
             energy = obs_handler.getEstimate(sigmond.MCObsInfo(obs_name, 0))
-          except RuntimeError:
+          except RuntimeError as error:
+            logging.warning(f"{error}")
             logging.critical(f"Failed to get samplings for {obs_name}")
 
           self.energies[operator_set][level] = energy
