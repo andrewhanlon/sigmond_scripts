@@ -282,139 +282,6 @@ class AverageCorrelators(tasks.task.Task):
     filename = os.path.join(self.results_dir, f"{util.str_to_file(self.task_name)}.yml")
     return filename
 
-  def _suggest_rotation_yml_file(self):
-    yaml_file = os.path.join(self.results_dir, "rotate_suggestion.yml")
-    file_mode = 'w+'
-    f_handler = open(yaml_file, file_mode)
-    
-    f_handler.write(f"#fill/alter the necessary header information\n")
-    f_handler.write("Execute:\n\n")
-    proj_name = self.project_dir.split('/')[-2]
-    f_handler.write(f"rotate_{proj_name}:\n")
-    f_handler.write(f"  task_type: rotate_corrs\n  show_transformation: true\n  negative_eigenvalue_alarm: -0.10\n  subtractvev: false\n\n")
-    f_handler.write(f"  plot_info:\n    corrname: standard\n    symbol_color: blue\n    symbol_type: circle\n    eff_energy_type: time_forward\n    timestep: 1\n\n")
-    f_handler.write(f"  operator_bases:\n")
-    
-    for channel in self.averaged_channels:
-      data_files = self.data_files + self.data_handler.getChannelDataFiles(channel)
-      operators = self.data_handler.getChannelOperators(channel)
-      if len(operators) > 1:
-        f_handler.write(f"    - name: {repr(channel)}\n")
-        f_handler.write(f"      pivot_info:\n")
-        f_handler.write(f"        <<: *PIVOT_INFO\n")
-        f_handler.write(f"      operators:\n")
-        for operator in operators:
-          f_handler.write(f"        - {operator.op_str()}\n")
-        f_handler.write("\n")
-
-    f_handler.close()
-    logging.info(f"Suggested rotation yaml: {yaml_file}")
-
-  def _suggest_spectum_yml_file(self):
-    yaml_file = os.path.join(self.results_dir, "spectrum_suggestion.yml")
-    file_mode = 'w+'
-    f_handler = open(yaml_file, file_mode)
-
-    f_handler.write(f"#fill/alter the necessary header information\n")
-    f_handler.write("Execute:\n")
-    f_handler.write("  #fill in executable info\n\n")
-    proj_name = self.project_dir.split('/')[-2]
-    f_handler.write(f"{proj_name}:\n")
-    f_handler.write(f"  task_type: spectrum\n  non_interacting_energy_labels: True\n  subtractvev: False\n")
-    f_handler.write(f"  minimizer_info:\n    <<: *MINIMIZER_INFO\n\n")
-    f_handler.write(f"  tmin_plot_info:\n    obsname: standard\n    symbol_type: circle\n    goodfit_color: blue\n    badfit_color: red\n")
-    f_handler.write(f"    correlatedfit_hollow: true\n    uncorrelatedfit_hollow: false\n    quality_threshold: 0.1\n    correlated_threshold: 1.0\n\n")
-    f_handler.write(f"  fit_plot_info:\n    timestep: 1\n    show_approach: true\n    goodness: chisq\n    corrname: standard")
-    f_handler.write(f"    symbol_color: blue\n    symbol_type: circle\n\n")
-    f_handler.write(f"  rotate_labels: true\n  plot_width_factor: 2.5\n\n")
-    f_handler.write(f"  reference_fit_info:\n    #fill in reference fit info from scat particle below (no tmin)\n\n")
-
-    #write scattering particles
-    f_handler.write(f"  scattering_particles:\n    #fill in scattering particles here. (Sorry, coding this one is a pain and i need to do other things)\n\n")
-    single_hadrons = list()
-    single_hadron_names = ['N-','pi-','X-','D-','S-','Kb-'] ##figure out how I can automatically get this list
-    for channel in self.averaged_channels:
-      data_files = self.data_files + self.data_handler.getChannelDataFiles(channel)
-      operators = self.data_handler.getChannelOperators(channel)
-      for operator in operators:
-        if operator.operator_type == sigmond.OpKind.GenIrrep:
-          if '(' in operator.operator_info.getGenIrrep().getIDName():
-            hadron_number = 2
-          else:
-            hadron_number = 1
-        else:
-          #untested because all of my operators are gen irreducible
-          hadron_number = operator.operator_info.getBasicLapH().getNumberOfHadrons() 
-        
-        if hadron_number==1:
-          single_hadrons.append(operator.op_str())
-
-    for single_hadron_name in single_hadron_names:
-      these_ops = list()
-      if single_hadrons:
-        for single_hadron in list(set(single_hadrons)):
-          if single_hadron_name in single_hadron:
-            these_ops.append(single_hadron)
-      if these_ops:
-        f_handler.write(f"    - name: {single_hadron_name}\n      fits:\n")
-        for op in these_ops:
-          f_handler.write(f"        - operator: {op}\n")
-          f_handler.write(f"          model: 1-exp\n          tmin: 15\n          tmax: 25\n          tmin_info:\n")
-          f_handler.write(f"            - model: 1-exp\n              tmin_min: 2\n              tmin_max: 20\n")
-          f_handler.write(f"            - model: 2-exp\n              tmin_min: 2\n              tmin_max: 20\n")
-    f_handler.write("\n")
-
-    #write threshholds and latex map
-    f_handler.write("  thresholds:\n    - [N, pi]\n    - [N, pi, pi]\n\n")
-    f_handler.write("  latex_map:\n    ref: '\\pi'\n    N: N\n    L: '\\lambda'\n    X: '\\xi'\n    S: '\\Sigma'\n")
-    f_handler.write("    kb: '\\overline{K}'\n    pi: '\\pi'\n    A1g: 'A_{1g}'\n    A2g: 'A_{2g}'\n    A2u: 'A_{2u}'\n")
-    f_handler.write("    Eg: 'E_g'\n    T1g: 'T_{1g}'\n    T1u: 'T_{1u}'\n")
-    f_handler.write("    T2g: 'T_{2g}'\n    T2u: 'T_{2u}'\n    A1: 'A_1'\n    A2: 'A_2'\n    E: 'E'\n    B1: 'B_1'\n    B2: 'B_2'\n\n")
-
-    #write the spectrums
-    f_handler.write("  spectrum:\n")
-    for channel in self.averaged_channels:
-      data_files = self.data_files + self.data_handler.getChannelDataFiles(channel)
-      operators = self.data_handler.getChannelOperators(channel)
-      any_multi_hadrons = False
-      for operator in operators:
-        if operator.operator_type == sigmond.OpKind.GenIrrep:
-          if '(' in operator.operator_info.getGenIrrep().getIDName():
-            hadron_number = 2
-          else:
-            hadron_number = 1
-        else:
-          #untested because all of my operators are gen irreducible
-          hadron_number = operator.operator_info.getBasicLapH().getNumberOfHadrons()
-
-        if hadron_number>1:
-          any_multi_hadrons = True
-
-      if any_multi_hadrons:
-        f_handler.write(f"    - name: {repr(channel)}\n")
-        if len(operators) > 1:
-          f_handler.write(f"      pivot_info:\n        <<: *PIVOT_INFO\n") 
-        else:
-          f_handler.write(f"      operators:\n")
-          for operator in operators:
-            f_handler.write(f"      - {operator.op_str()}\n")
-        f_handler.write(f"      non_interacting_levels:\n        *{repr(channel).upper()}\n\n")
-        f_handler.write(f"      levels:\n")
-        for operator in operators:
-          f_handler.write(f"        - model: 1-exp\n          tmin: 15\n          tmax: 25\n          ratio: false\n")
-        f_handler.write(f"\n      tmin_info:\n")
-        for operator in operators:
-          f_handler.write(f"        - fit_infos:\n          - model: 1-exp\n            tmin_min: 2\n            tmin_max: 20\n            ratio: False\n")
-          f_handler.write(f"          - model: 1-exp\n            tmin_min: 2\n            tmin_max: 20\n            ratio: True\n")
-          f_handler.write(f"          - model: 2-exp\n            tmin_min: 2\n            tmin_max: 20\n            ratio: False\n")
-        f_handler.write(f"\n")
-
-    
-    f_handler.close()
-    logging.info(f"Suggested spectrum yaml: {yaml_file}")
-
-
-
   def finalize(self):
     if self.write_operators and os.path.isfile(self.op_yaml_file):
       os.remove(self.op_yaml_file)  
@@ -446,8 +313,8 @@ class AverageCorrelators(tasks.task.Task):
 
         self.addPlotsToPDF(doc, data_files, operators, repr(channel))
 
-    self._suggest_rotation_yml_file()
-    self._suggest_spectum_yml_file()
+    #util._suggest_rotation_yml_file()
+    #util._suggest_spectum_yml_file()
     filename = os.path.join(self.results_dir, util.str_to_file(self.task_name))
     util.compile_pdf(doc, filename, self.latex_compiler)
 
