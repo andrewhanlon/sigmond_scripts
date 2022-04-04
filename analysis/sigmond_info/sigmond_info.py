@@ -275,6 +275,10 @@ class NonInteractingLevel:
   def __iter__(self):
     yield from self._particles
 
+  @property
+  def particles(self):
+    return self._particles
+
 
 class NonInteractingOperators(NamedTuple):
   non_interacting_level: NonInteractingLevel

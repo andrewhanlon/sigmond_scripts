@@ -20,7 +20,8 @@ sys.path.insert(1, "../../analysis/")
 import operator_info.operator
 
 
-data_type_dirs = ['isodoublet_strange_nucleonlambda', 'isosinglet_nonstrange_nucleonnucleon', 'isoquartet_strange_nucleonsigma', 'isodoublet_nonstrange', 'isoquartet_nonstrange_fermionic', 'isosinglet_strange_fermionic', 'single_hadrons', 'isotriplet_nonstrange_nucleonnucleon', 'isosinglet_doublystrange_lambdalambda', 'isoquintet_doublystrange_sigmasigma']
+#data_type_dirs = ['isodoublet_strange_nucleonlambda', 'isosinglet_nonstrange_nucleonnucleon', 'isoquartet_strange_nucleonsigma', 'isodoublet_nonstrange', 'isoquartet_nonstrange_fermionic', 'isosinglet_strange_fermionic', 'single_hadrons', 'isotriplet_nonstrange_nucleonnucleon', 'isosinglet_doublystrange_lambdalambda', 'isoquintet_doublystrange_sigmasigma']
+data_type_dirs = ['isosinglet_strange_fermionic', 'single_hadrons', 'isotriplet_nonstrange_nucleonnucleon', 'isosinglet_doublystrange_lambdalambda', 'isoquintet_doublystrange_sigmasigma']
 
 def main():
   parser = argparse.ArgumentParser(description="Convert D200 data")

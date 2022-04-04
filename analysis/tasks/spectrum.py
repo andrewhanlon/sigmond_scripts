@@ -959,19 +959,6 @@ class Spectrum(tasks.task.Task):
     data_files = data_handling.data_files.DataFiles()
     data_files.addSamplingFiles(self.samplings_filename)
     obs_handler, _ = util.get_obs_handlers(data_files, self.bins_info, self.sampling_info)
-    samplings_handler = sigmond.SamplingsGetHandler(
-        self.bins_info, self.sampling_info, set([self.samplings_filename]))
-
-    hdf5_filename = self.hdf5_filename
-    if os.path.exists(hdf5_filename):
-      os.remove(hdf5_filename)
-    hdf5_h = h5py.File(hdf5_filename, 'w')
-
-    for obs_info in samplings_handler.getKeys():
-      np_data = util.get_samplings(obs_handler, obs_info)
-      hdf5_h.create_dataset(obs_info.getObsName(), data=np_data)
-
-    hdf5_h.close()
 
     self.energies = dict()
     for operator_set, fit_infos in self.spectrum.items():
@@ -1003,6 +990,50 @@ class Spectrum(tasks.task.Task):
             logging.critical(f"Failed to get samplings for {obs_name}")
 
           self.energies[operator_set][level] = energy
+
+    samplings_handler = sigmond.SamplingsGetHandler(
+        self.bins_info, self.sampling_info, set([self.samplings_filename]))
+
+    hdf5_filename = self.hdf5_filename
+    if os.path.exists(hdf5_filename):
+      os.remove(hdf5_filename)
+    hdf5_h = h5py.File(hdf5_filename, 'w')
+
+    for obs_info in samplings_handler.getKeys():
+      np_data = util.get_samplings(obs_handler, obs_info)
+      hdf5_h.create_dataset(obs_info.getObsName(), data=np_data)
+
+    # Add non-interacting level
+    for operator_set, fit_infos in self.spectrum.items():
+      channel = operator_set.channel
+      group_name = f"/PSQ{channel.psq}/{channel.irrep}"
+      group = hdf5_h[group_name]
+      
+      # get reorder map
+      reorder = dict()
+      for new_level, level in enumerate(self.energies[operator_set].keys()):
+        reorder[level] = new_level
+
+      particles = set()
+      moms = [None]*len(fit_infos)
+      for level, fit_info in enumerate(fit_infos):
+        particle_set = list()
+        mom_set = list()
+
+        for scattering_particle in fit_info.non_interacting_operators.non_interacting_level.particles:
+          particle_set.append(scattering_particle.name)
+          mom_set.append(scattering_particle.psq)
+        
+        particles.add(tuple(particle_set))
+        moms[reorder[level]] = mom_set
+
+      if len(particles) != 1:
+        logging.critical("Ordering of particles is not constant")
+
+      group.attrs.create('particles', list(particles.pop()))
+      group.attrs.create('free_levels', moms)
+
+    hdf5_h.close()
 
 
   def _getThresholds(self):
