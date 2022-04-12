@@ -526,6 +526,7 @@ class Spectrum(tasks.task.Task):
 
       energies = list()
       amplitudes = list()
+      denergies = list()
       tmin_fit_infos = self.tmin_infos.get(operator_set, [None]*len(fit_infos))
       for level, (fit_info, tmin_fit_info) in enumerate(zip(fit_infos, tmin_fit_infos)):
         energy_obs = fit_info.energy_observable
@@ -591,16 +592,21 @@ class Spectrum(tasks.task.Task):
                     plot_info=tmin_plot_info, chosen_fit_info=noshift_energy_obs)
         
         if fit_info.ratio:
+          channel = fit_info.operator.channel
+          samp_dir = f"PSQ{channel.psq}/{channel.irrep}"
+          delab = sigmond.MCObsInfo(f"{samp_dir}/dElab_{level}", 0)
+          sigmond_input.doCopy(delab, energy_obs, sampling_mode=self.sampling_mode)
+          denergies.append(delab)
           sigmond_input.doReconstructEnergy(
               energy_obs, energy_obs, self.ensemble_spatial_extent, non_interacting_level,
               sampling_mode=self.sampling_mode)
 
           sigmond_input.doReconstructAmplitude(
               amplitude_obs, amplitude_obs, non_interacting_amp, sampling_mode=self.sampling_mode)
-
+        
         energies.append(energy_obs)
         amplitudes.append(amplitude_obs)
-
+        
       if operator_set.is_rotated:
         zfactor_plotdir = self.zfactor_plotdir(repr(operator_set))
         shutil.rmtree(zfactor_plotdir)
@@ -655,6 +661,8 @@ class Spectrum(tasks.task.Task):
 
           energy_samplings_obs.append(elab_ref)
           energy_samplings_obs.append(ecm_ref)
+            
+      energy_samplings_obs.extend(denergies)
 
       sigmond_input.writeToFile(
           self.samplings_filename, energy_samplings_obs,
@@ -1048,7 +1056,7 @@ class Spectrum(tasks.task.Task):
     hdf5_h.close()
     fests.close()
     
-    #generalize to two generic single hadrons using inputs
+    #write qsqr to file
     if len(self.single_hadrons)==2:
         sh1ref_obs_info = sigmond.MCObsInfo(f'single_hadrons/{self.single_hadrons[0]}(0)_ref',0)
         sh2ref_obs_info = sigmond.MCObsInfo(f'single_hadrons/{self.single_hadrons[1]}(0)_ref',0)
