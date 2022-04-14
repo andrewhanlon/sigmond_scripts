@@ -165,6 +165,7 @@ class FitResult(NamedTuple):
   chisq: float
   quality: float
   energy: str
+  reconstructed_energy: str #if ratio, otherwise it's just the energy
   amplitude: str
   gap: str
   const: str
@@ -221,8 +222,25 @@ class FitLog(SigmondLog):
           const_value = float(const_fit.findtext("MCEstimate/FullEstimate"))
           const_err = float(const_fit.findtext("MCEstimate/SymmetricError"))
           const = util.nice_value(const_value, const_err)
+        
+        if fit_info.ratio: #changing all output to be in the same lab frame units
+            reconstructed_energy = energy
+            for task_xml2 in log_xml_root.findall("Task"):
+                reconstructed_energy_xml = task_xml2.find("DoObsFunction")
+                if reconstructed_energy_xml is None or reconstructed_energy_xml.find("Error") is not None:
+                    continue
+                if reconstructed_energy_xml.findtext("Type") != "ReconstructEnergy":
+                    continue
+                if energy_obs_str != reconstructed_energy_xml.findtext("EnergyDifference/MCObservable/Info"):
+                    continue
+                reconstructed_value = float(reconstructed_energy_xml.findtext("MCEstimate/FullEstimate"))
+                reconstructed_err = float(reconstructed_energy_xml.findtext("MCEstimate/SymmetricError"))
+                reconstructed_energy = util.nice_value(reconstructed_value,reconstructed_err)
+                break
 
-        fit_result = FitResult(chisq_dof, quality, energy, amplitude, gap, const, cov_cond)
+            fit_result = FitResult(chisq_dof, quality, energy, reconstructed_energy, amplitude, gap, const, cov_cond)
+        else:
+            fit_result = FitResult(chisq_dof, quality, energy, energy, amplitude, gap, const, cov_cond)
 
         if fit_info in self.fits:
           logging.warning(f"Found two identical fits in {self.logfile}, ignoring...")

@@ -915,7 +915,7 @@ class Spectrum(tasks.task.Task):
   def _addFitTable(self, doc):
     #make table for spectrum fits
     with doc.create(pylatex.Center()) as centered:
-      long_tabu = "X[0.1,c] X[c] X[c] X[2,c] X[4,c] X[4,c] X[4,c] X[3,c] X[2,c] X[2,c]"
+      long_tabu = "X[0.1,c] X[0.5,c] X[0.5,c] X[2,c] X[3,c]  X[4,c] X[3,c] X[4,c] X[3,c] X[1.5,c] X[2,c]"
       with centered.create(pylatex.LongTabu(long_tabu, to=r"\linewidth")) as data_table:
 
         if self.reference_fit_info is None:
@@ -931,6 +931,7 @@ class Spectrum(tasks.task.Task):
             pylatex.NoEscape(r"Level"),
             pylatex.NoEscape(ref_energy_header),
             pylatex.NoEscape(r"$a_t (\Delta) E_{\rm lab}$"),
+            pylatex.NoEscape(r"$a_t E_{\rm lab}$"),
             pylatex.NoEscape("Fit model"),
             pylatex.NoEscape(r"$(t_{\rm min}, t_{\rm max})$"),
             pylatex.NoEscape(r"$\chi^2/\text{dof}$"),
@@ -957,6 +958,7 @@ class Spectrum(tasks.task.Task):
 
             energy = util.nice_value(energy.getFullEstimate(), energy.getSymmetricError())
             at_energy = fit_result.energy
+            recon_energy = fit_result.reconstructed_energy
             fit_model = fit_info.model.short_name
             if fit_info.ratio:
               fit_model += " - ratio"
@@ -972,6 +974,7 @@ class Spectrum(tasks.task.Task):
                 pylatex.NoEscape(rf"${level} \to {new_level}$"),
                 energy,
                 at_energy,
+                recon_energy,
                 fit_model,
                 pylatex.NoEscape(rf"$({fit_info.tmin}, {fit_info.tmax})$"),
                 round(fit_result.chisq,2),
