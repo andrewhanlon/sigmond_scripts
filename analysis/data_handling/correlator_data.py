@@ -1,6 +1,7 @@
 from typing import NamedTuple
 import copy
 import itertools
+import logging
 
 from data_handling.data_files import DataFiles, FileInfo
 from operator_info.operator_set import OperatorSet
@@ -41,7 +42,7 @@ class CorrelatorData:
       self._correlators[correlator_info] = CorrelatorDataInfo(tmin, tmax, fileinfo)
       self._addFileInfo(fileinfo, op_snk.channel)
     elif self._correlators[correlator_info].fileinfo != fileinfo:
-      logging.warning("Correlator {correlator_info} already added with different file, skipping...")
+      logging.warning(f"Correlator {correlator_info} already added with different file, skipping...")
     else:
       self._correlators[correlator_info] = self._correlators[correlator_info].getUpdatedTsepRange(tmin, tmax)
 

@@ -1,7 +1,7 @@
 from typing import NamedTuple
 
 base_data_dir = "/disk2/research/data/kpi/raw/"
-output_dir = "/disk2/research/data/kpi/hdf5/"
+output_dir = "/disk2/research/data/kpi/sigmond/"
 
 class Ensemble(NamedTuple):
   name: str
@@ -10,9 +10,9 @@ class Ensemble(NamedTuple):
 
 ensembles = [
     #Ensemble("cls21_d200", ['r000'], [35]),
-    Ensemble("cls21_d200", ['r000'], [35, 92]),
+    #Ensemble("cls21_d200", ['r000'], [35, 92]),
     #Ensemble("cls21_n200", ['r000'], [32, 52]),
-    #Ensemble("cls21_n203", ['r000', 'r001'], [32, 52]),
+    Ensemble("cls21_n203", ['r000', 'r001'], [(32,'fwd'), (52, 'fwd')]),
 ]
 
 omissions = {
@@ -20,6 +20,7 @@ omissions = {
     "cls21_n200_r000": set(range(1, 856, 2)),
     "cls21_n203_r000": set(range(1, 757, 2)),
     "cls21_n203_r001": set(range(0, 788, 2)),
+    "cls21_n203": set(range(1, 757, 2)) | set(range(756, 1544, 2)),
 }
 
 configs = {
@@ -67,12 +68,12 @@ allMom = {
     4: [(1, 1, 1), (1, -1, 1), (-1, 1, 1), (-1, -1, 1), (1, 1, -1), (1, -1, -1), (-1, 1, -1), (-1, -1, -1)],
 }
 
-phases = {}
-phases.update({'kaon P=('+','.join(map(str, aM))+') B1_1 SS_2' : -1.j for aM in allMom[2]})
-phases.update({'kaon P=('+','.join(map(str, aM))+') B1_1 SS_3' : 1.j for aM in allMom[2]})
-phases.update({'kaon P=('+','.join(map(str, aM))+') B2_1 SS_0' : 1.j for aM in allMom[2]})
-phases.update({'kaon P=('+','.join(map(str, aM))+') B2_1 SS_1' : 1.j for aM in allMom[2]})
-phases.update({'kaon P=('+','.join(map(str, aM))+') E_'+str(iR)+' SS_3' : 1.j for aM in allMom[3] for iR in [1,2]})
-phases.update({'kaon P=('+','.join(map(str, aM))+') E_'+str(iR)+' SS_2' : 1.j for aM in allMom[3] for iR in [1,2]})
-phases.update({'kaon P=('+','.join(map(str, aM))+') E_'+str(iR)+' SS_1' : 0.5**0.5*(1.+1.j) for aM in allMom[3] for iR in [1,2]})
-phases.update({'kaon P=('+','.join(map(str, aM))+') E_'+str(iR)+' SS_0' : 0.5**0.5*(1.+1.j) for aM in allMom[3] for iR in [1,2]})
+#phases = {}
+#phases.update({'kaon P=('+','.join(map(str, aM))+') B1_1 SS_2' : -1.j for aM in allMom[2]})
+#phases.update({'kaon P=('+','.join(map(str, aM))+') B1_1 SS_3' : 1.j for aM in allMom[2]})
+#phases.update({'kaon P=('+','.join(map(str, aM))+') B2_1 SS_0' : 1.j for aM in allMom[2]})
+#phases.update({'kaon P=('+','.join(map(str, aM))+') B2_1 SS_1' : 1.j for aM in allMom[2]})
+#phases.update({'kaon P=('+','.join(map(str, aM))+') E_'+str(iR)+' SS_3' : 1.j for aM in allMom[3] for iR in [1,2]})
+#phases.update({'kaon P=('+','.join(map(str, aM))+') E_'+str(iR)+' SS_2' : 1.j for aM in allMom[3] for iR in [1,2]})
+#phases.update({'kaon P=('+','.join(map(str, aM))+') E_'+str(iR)+' SS_1' : 0.5**0.5*(1.+1.j) for aM in allMom[3] for iR in [1,2]})
+#phases.update({'kaon P=('+','.join(map(str, aM))+') E_'+str(iR)+' SS_0' : 0.5**0.5*(1.+1.j) for aM in allMom[3] for iR in [1,2]})
