@@ -935,7 +935,7 @@ class Spectrum(tasks.task.Task):
             pylatex.NoEscape("Fit model"),
             pylatex.NoEscape(r"$(t_{\rm min}, t_{\rm max})$"),
             pylatex.NoEscape(r"$\chi^2/\text{dof}$"),
-            pylatex.NoEscape(r"$p$-val."),
+            pylatex.NoEscape(r"NI"),
         ]
 
         data_table.add_row(header_row, mapper=[pylatex.utils.bold])
@@ -950,6 +950,10 @@ class Spectrum(tasks.task.Task):
               flag = "X" if self.flagged_levels[operator_set][level] else ""
 
             fit_info = fit_infos[level]
+            noninteracting_level = ""
+            if fit_info.non_interacting_operators is not None:
+              for scattering_particle in fit_info.non_interacting_operators.non_interacting_level:
+                noninteracting_level+=str(scattering_particle)
             channel = operator_set.channel
             logfile = self.logfile(repr(operator_set))
             fit_log = sigmond_info.sigmond_log.FitLog(logfile)
@@ -978,7 +982,7 @@ class Spectrum(tasks.task.Task):
                 fit_model,
                 pylatex.NoEscape(rf"$({fit_info.tmin}, {fit_info.tmax})$"),
                 round(fit_result.chisq,2),
-                round(fit_result.quality,2),
+                noninteracting_level,
             ]
 
             data_table.add_row(data_row)
