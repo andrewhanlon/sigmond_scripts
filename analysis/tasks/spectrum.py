@@ -196,7 +196,7 @@ class Spectrum(tasks.task.Task):
             - model: 1-exp
               tmin: 14
               tmax: 20
-          tmin_info:
+          tmin_info: (optional)
             - fit_infos:
               - model: 1-exp
                 tmin_min: 3
@@ -505,6 +505,7 @@ class Spectrum(tasks.task.Task):
 
     # Now the spectra
     for operator_set, fit_infos in self.spectrum.items():
+#       print("Sarah:", operator_set, fit_infos)  
       tmin_plotdir = self.tmin_plotdir(repr(operator_set))
       fit_plotdir = self.fit_plotdir(repr(operator_set))
       shutil.rmtree(tmin_plotdir)
@@ -528,6 +529,9 @@ class Spectrum(tasks.task.Task):
       amplitudes = list()
       denergies = list()
       tmin_fit_infos = self.tmin_infos.get(operator_set, [None]*len(fit_infos))
+      if not tmin_fit_infos:
+        tmin_fit_infos = [None]*len(fit_infos)
+    
       for level, (fit_info, tmin_fit_info) in enumerate(zip(fit_infos, tmin_fit_infos)):
         energy_obs = fit_info.energy_observable
         amplitude_obs = fit_info.amplitude_observable
@@ -542,7 +546,7 @@ class Spectrum(tasks.task.Task):
 
         non_interacting_level = list()
         non_interacting_amp = list()
-        if fit_info.non_interacting_operators is not None:
+        if fit_info.non_interacting_operators is not None: 
           for scattering_particle in fit_info.non_interacting_operators.non_interacting_level:
             scattering_particle_fit_info = self.scattering_particles[scattering_particle]
             at_rest_scattering_particle = sigmond_info.sigmond_info.ScatteringParticle(scattering_particle.name, 0)
@@ -951,9 +955,10 @@ class Spectrum(tasks.task.Task):
 
             fit_info = fit_infos[level]
             noninteracting_level = ""
-            if fit_info.non_interacting_operators is not None:
-              for scattering_particle in fit_info.non_interacting_operators.non_interacting_level:
-                noninteracting_level+=str(scattering_particle)
+            if fit_info.ratio:
+                if fit_info.non_interacting_operators is not None:
+                  for scattering_particle in fit_info.non_interacting_operators.non_interacting_level:
+                    noninteracting_level+=str(scattering_particle)
             channel = operator_set.channel
             logfile = self.logfile(repr(operator_set))
             fit_log = sigmond_info.sigmond_log.FitLog(logfile)
