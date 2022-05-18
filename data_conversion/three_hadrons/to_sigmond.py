@@ -254,7 +254,8 @@ def get_corr_files(ensemble_name, search_dir):
 
     corr_opposite = sigmond.CorrelatorInfo(corr.getSource(), corr.getSink())
     if corr_opposite in corr_files:
-      corr_files[corr_opposite][1] = corr_file_name
+      #corr_files[corr_opposite][1] = corr_file_name
+      corr_files[corr_opposite] = (corr_files[corr_opposite][0], corr_file_name, corr_files[corr_opposite][2])
     else:
       corr_files[corr] = (corr_file_name, None, is_backwards)
 
