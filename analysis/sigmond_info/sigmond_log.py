@@ -261,11 +261,12 @@ class SpectrumLog(SigmondLog):
   def parse(self, log_xml_root):
     self.energies = SortedDict()
     self.reorder = True
+    fit_fail = False
     energy_level_xmls = log_xml_root.findall("Task/DoRotCorrMatInsertFitInfos/SinglePivot/ReorderEnergies/EnergyLevel")
     if not energy_level_xmls:
       self.reorder = False
       energy_level_xmls = log_xml_root.findall("Task/GetFromPivot/Energies/EnergyLevel")
-
+    
     for energy_level_xml in energy_level_xmls:
       if self.reorder:
         new_level = int(energy_level_xml.findtext("LevelIndex"))
@@ -285,7 +286,30 @@ class SpectrumLog(SigmondLog):
       fit_info = FitInfo.createFromObservable(energy_obs)
       self.energies[level] = fit_info
 
-  
+    #in case of a fit fail
+    if not energy_level_xmls:
+        this_level = 0
+        energy_level_xmls = log_xml_root.findall("Task/DoFit")
+        for energy_level_xml in energy_level_xmls:
+            if energy_level_xml.findtext("Type")=="TemporalCorrelator":
+                if energy_level_xml.find("Error") is not None:
+                    this_observable = energy_level_xml.findtext("TemporalCorrelatorFit/GIOperatorString")
+                    logging.warning(f"Failed fit for {this_observable} in {self.logfile}")
+                    break
+                else:  
+                    level = Level(this_level, this_level)
+                    energy_obs_str = energy_level_xml.findtext("BestFitResult/FitParameter0/MCObservable/Info")
+                    pattern = r"^(?P<obsname>\S+) (?P<obsid>\d+) (?P<simple>s|n) (?P<complex_arg>re|im)$"
+                    match = regex.match(pattern, energy_obs_str.strip())
+                    if match.group('simple') != 'n' or match.group('complex_arg') != 're':
+                        logging.error("Energies are supposed to be simple and real")
+
+                    energy_obs = sigmond.MCObsInfo(match.group('obsname'), int(match.group('obsid')))
+                    fit_info = FitInfo.createFromObservable(energy_obs)
+                    self.energies[level] = fit_info
+                this_level+=1
+                
+
     self.zfactors = SortedDict()
     for operator_zfactor_xml in log_xml_root.findall(
         "Task/DoCorrMatrixZMagSquares/OperatorZMagnitudeSquares"):

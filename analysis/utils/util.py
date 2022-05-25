@@ -428,8 +428,8 @@ def add_image(figure, rel_dir, pdf_file, width="1.0", caption="", view=True):
 
   else:
     logging.warning("Could not find file: {}".format(pdf_file))
-    missing_figure_tex = r"\missingfigure[figwidth=" + width + r"]{missing " + os.path.basename(pdf_file).replace("_", r"\_") + r"}"
-    figure.append(pylatex.NoEscape(missing_figure_tex))
+#     missing_figure_tex = r"\missingfigure[figwidth=" + width + r"]{missing " + os.path.basename(pdf_file).replace("_", r"\_") + r"}"
+#     figure.append(pylatex.NoEscape(missing_figure_tex))
 
 
 def compile_pdf(doc, filename, compiler=None):
@@ -669,26 +669,26 @@ def _suggest_spectum_yml_file(filedir, proj_name, channels, data_files, data_han
         yaml_settings[proj_name]["spectrum"][-1]["levels"] = []
         for operator in operators:
           yaml_settings[proj_name]["spectrum"][-1]["levels"].append({"model":"1-exp"})
-          yaml_settings[proj_name]["spectrum"][-1]["levels"][-1]["tmin"] = 15
-          yaml_settings[proj_name]["spectrum"][-1]["levels"][-1]["tmax"] = 25
+          yaml_settings[proj_name]["spectrum"][-1]["levels"][-1]["tmin"] = 10
+          yaml_settings[proj_name]["spectrum"][-1]["levels"][-1]["tmax"] = 20
           yaml_settings[proj_name]["spectrum"][-1]["levels"][-1]["ratio"] = False
         yaml_settings[proj_name]["spectrum"][-1]["tmin_info"] = []
         for operator in operators:
           yaml_settings[proj_name]["spectrum"][-1]["tmin_info"].append({"fit_infos":[]})
           yaml_settings[proj_name]["spectrum"][-1]["tmin_info"][-1]["fit_infos"].append({"model":"1-exp"})
-          yaml_settings[proj_name]["spectrum"][-1]["tmin_info"][-1]["fit_infos"][-1]["tmin_min"] = 10
-          yaml_settings[proj_name]["spectrum"][-1]["tmin_info"][-1]["fit_infos"][-1]["tmin_max"] = 20
-          yaml_settings[proj_name]["spectrum"][-1]["tmin_info"][-1]["fit_infos"][-1]["ratio"] = False
-          yaml_settings[proj_name]["spectrum"][-1]["tmin_info"][-1]["fit_infos"].append({"model":"1-exp"})
-          yaml_settings[proj_name]["spectrum"][-1]["tmin_info"][-1]["fit_infos"][-1]["tmin_min"] = 10
-          yaml_settings[proj_name]["spectrum"][-1]["tmin_info"][-1]["fit_infos"][-1]["tmin_max"] = 20
-          yaml_settings[proj_name]["spectrum"][-1]["tmin_info"][-1]["fit_infos"][-1]["ratio"] = True
-          yaml_settings[proj_name]["spectrum"][-1]["tmin_info"][-1]["fit_infos"].append({"model":"2-exp"})
           yaml_settings[proj_name]["spectrum"][-1]["tmin_info"][-1]["fit_infos"][-1]["tmin_min"] = 5
           yaml_settings[proj_name]["spectrum"][-1]["tmin_info"][-1]["fit_infos"][-1]["tmin_max"] = 15
           yaml_settings[proj_name]["spectrum"][-1]["tmin_info"][-1]["fit_infos"][-1]["ratio"] = False
+          yaml_settings[proj_name]["spectrum"][-1]["tmin_info"][-1]["fit_infos"].append({"model":"1-exp"})
+          yaml_settings[proj_name]["spectrum"][-1]["tmin_info"][-1]["fit_infos"][-1]["tmin_min"] = 5
+          yaml_settings[proj_name]["spectrum"][-1]["tmin_info"][-1]["fit_infos"][-1]["tmin_max"] = 15
+          yaml_settings[proj_name]["spectrum"][-1]["tmin_info"][-1]["fit_infos"][-1]["ratio"] = True
+          yaml_settings[proj_name]["spectrum"][-1]["tmin_info"][-1]["fit_infos"].append({"model":"2-exp"})
+          yaml_settings[proj_name]["spectrum"][-1]["tmin_info"][-1]["fit_infos"][-1]["tmin_min"] = 1
+          yaml_settings[proj_name]["spectrum"][-1]["tmin_info"][-1]["fit_infos"][-1]["tmin_max"] = 10
+          yaml_settings[proj_name]["spectrum"][-1]["tmin_info"][-1]["fit_infos"][-1]["ratio"] = False
           yaml_settings[proj_name]["spectrum"][-1]["tmin_info"][-1]["fit_infos"].append({"model":"geom"})
-          yaml_settings[proj_name]["spectrum"][-1]["tmin_info"][-1]["fit_infos"][-1]["tmin_min"] = 2
+          yaml_settings[proj_name]["spectrum"][-1]["tmin_info"][-1]["fit_infos"][-1]["tmin_min"] = 1
           yaml_settings[proj_name]["spectrum"][-1]["tmin_info"][-1]["fit_infos"][-1]["tmin_max"] = 10
           yaml_settings[proj_name]["spectrum"][-1]["tmin_info"][-1]["fit_infos"][-1]["ratio"] = False
     
