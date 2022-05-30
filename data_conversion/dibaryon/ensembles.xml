@@ -1,10 +1,30 @@
 <KnownEnsembles>
 
- <!-- Information about ensembles for SigMonD.  First tag <Infos>
-      contains the information.  Second tag <Weights> contains the
-      weights needed for CLS ensembles.   -->
-
   <Infos>
+
+     <EnsembleInfo>
+        <Id>exp_a064_m400_mL6.4_trMc</Id>
+        <NStreams>2</NStreams>
+        <NMeas>517</NMeas>
+        <NSpace>48</NSpace>
+        <NTime>96</NTime>
+     </EnsembleInfo>
+
+     <EnsembleInfo>
+        <Id>exp_a094_m400_mL6.0_trMc</Id>
+        <NStreams>1</NStreams>
+        <NMeas>1001</NMeas>
+        <NSpace>32</NSpace>
+        <NTime>96</NTime>
+     </EnsembleInfo>
+
+     <EnsembleInfo>
+        <Id>exp_a12_m400_mL6.0_trMc</Id>
+        <NStreams>1</NStreams>
+        <NMeas>1189</NMeas>
+        <NSpace>24</NSpace>
+        <NTime>96</NTime>
+     </EnsembleInfo>
 
      <EnsembleInfo>
         <Id>cls_A653</Id>

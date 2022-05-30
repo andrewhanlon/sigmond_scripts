@@ -13,11 +13,11 @@ import defs
 
 FORCE_HERM = True
 
-base_data_dir = "/disk3/research/data/raw_dibaryon/"
+base_data_dir = "/disk3/research/data/dibaryon/"
 output_dir = "data"
 
 #ensembles_to_do = ["A653", "B450", "B451", "B452", "H101", "H200", "J500", "N200", "N202", "N300", "U102", "U103", "E1", "E5"]
-ensembles_to_do = ["J500", "H102", "H107", "N200"]
+ensembles_to_do = ["a064_m400_mL6.4_trMc"]
 
 particle_map = {
     'Σ': 'S',
@@ -134,21 +134,23 @@ def read_op_files():
   return op_data
 
 def convert_dibaryons(ensemble, ops):
-  ensemble_info = sig.MCEnsembleInfo(f"cls_{ensemble.name}", 'ensembles.xml')
+  ensemble_info = sig.MCEnsembleInfo(f"{ensemble.type}_{ensemble.name}", 'ensembles.xml')
   bins_info = sig.MCBinsInfo(ensemble_info)
   sampling_info = sig.MCSamplingInfo()
   xml_obs = sig.XMLHandler("MCObservables", "")
   obs_get_handler = sig.MCObsGetHandler(xml_obs, bins_info, sampling_info)
   obs_handler = sig.MCObsHandler(obs_get_handler, False)
 
-  raw_data_dir = os.path.join(base_data_dir, f"analysis_{ensemble.dir_name}")
+  raw_data_dir = os.path.join(base_data_dir, f"{ensemble.dir_name}")
   
   flavors = defs.SU3_flavors if ensemble.su3 else defs.SU2_flavors
 
   for flavor in flavors:
     data_handlers = list()
     for replica in ensemble.replica:
-      if ensemble.su3:
+      if ensemble.type == "exp":
+        data_filename = f"{ensemble.dir_name}{replica}_{ensemble.modes}modes_dibaryon.hdf5"
+      elif ensemble.su3:
         data_filename = f"{ensemble.dir_name}{replica}_{ensemble.modes}modes.hdf5"
       else:
         isospin, strangeness = flavor.split('_')
@@ -235,14 +237,17 @@ def convert_dibaryons(ensemble, ops):
 
 
 def convert_baryons(ensemble):
-  data_dir = os.path.join(base_data_dir, f"analysis_{ensemble.dir_name}")
+  data_dir = os.path.join(base_data_dir, f"{ensemble.dir_name}")
   data_handlers = list()
   datasets = list()
   for replica in ensemble.replica:
     data_filename = f"{ensemble.dir_name}{replica}_{ensemble.modes}modes_baryon.hdf5"
     data_file = os.path.join(data_dir, data_filename)
     if not os.path.isfile(data_file):
-      if ensemble.su3:
+      if ensemble.type == "exp":
+        data_filename = f"{ensemble.name}{replica}_{ensemble.modes}modes_dibaryon.hdf5"
+        data_file = os.path.join(data_dir, data_filename)
+      elif ensemble.su3:
         data_filename = f"{ensemble.name}{replica}_{ensemble.modes}modes_baryon.hdf5"
         data_file = os.path.join(data_dir, data_filename)
       else:
@@ -259,7 +264,7 @@ def convert_baryons(ensemble):
     flavors = list(map(lambda x: x.decode('utf-8'), f_handler['baryons'][:]))
     num_flavors = len(flavors)
 
-  ensemble_info = sig.MCEnsembleInfo(f"cls_{ensemble.name}", 'ensembles.xml')
+  ensemble_info = sig.MCEnsembleInfo(f"{ensemble.type}_{ensemble.name}", 'ensembles.xml')
   bins_info = sig.MCBinsInfo(ensemble_info)
   sampling_info = sig.MCSamplingInfo()
   xml_obs = sig.XMLHandler("MCObservables", "")
@@ -312,7 +317,7 @@ def convert_baryons(ensemble):
 
 
 def convert_decuplet(ensemble):
-  data_dir = os.path.join(base_data_dir, f"analysis_{ensemble.dir_name}")
+  data_dir = os.path.join(base_data_dir, f"{ensemble.dir_name}")
   data_handlers = list()
   datasets = list()
   for replica in ensemble.replica:
@@ -325,7 +330,7 @@ def convert_decuplet(ensemble):
   flavor_name = "decuplet"
   num_flavors = 1 if ensemble.su3 else 4
 
-  ensemble_info = sig.MCEnsembleInfo(f"cls_{ensemble.name}", 'ensembles.xml')
+  ensemble_info = sig.MCEnsembleInfo(f"{ensemble.type}_{ensemble.name}", 'ensembles.xml')
   bins_info = sig.MCBinsInfo(ensemble_info)
   sampling_info = sig.MCSamplingInfo()
   xml_obs = sig.XMLHandler("MCObservables", "")
@@ -379,7 +384,7 @@ def convert_decuplet(ensemble):
 
 
 def convert_pseudoscalar(ensemble):
-  data_dir = os.path.join(base_data_dir, f"analysis_{ensemble.dir_name}")
+  data_dir = os.path.join(base_data_dir, f"{ensemble.dir_name}")
   data_handlers = list()
   tsrc_list = dict()
   datasets = dict()
@@ -406,7 +411,7 @@ def convert_pseudoscalar(ensemble):
           conf, tsrc = line.split()
           tsrc_list[rep_num][int(conf)-1] = int(tsrc)
 
-  ensemble_info = sig.MCEnsembleInfo(f"cls_{ensemble.name}", 'ensembles.xml')
+  ensemble_info = sig.MCEnsembleInfo(f"{ensemble.type}_{ensemble.name}", 'ensembles.xml')
   bins_info = sig.MCBinsInfo(ensemble_info)
   sampling_info = sig.MCSamplingInfo()
   xml_obs = sig.XMLHandler("MCObservables", "")
