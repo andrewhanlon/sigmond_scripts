@@ -320,6 +320,7 @@ class Spectrum(tasks.task.Task):
           noise_cutoff = level.pop('noise_cutoff', 0.0)
           ratio = level.pop('ratio', False)
           flag = level.pop('flag', False)
+          max_level = level.pop('max_level',4)
           util.check_extra_keys(level, "spectrum.level")
 
           if non_interacting_level is None:
@@ -334,7 +335,7 @@ class Spectrum(tasks.task.Task):
 
           fit_info = sigmond_info.fit_info.FitInfo(
               operator, fit_model, tmin, tmax, subtractvev, ratio, exclude_times, noise_cutoff,
-              non_interacting_operators)
+              non_interacting_operators, -1, max_level)
 
           spectrum[operator_set].append(fit_info)
           flagged_levels[operator_set].append(flag)
@@ -767,7 +768,7 @@ class Spectrum(tasks.task.Task):
 
     filename = os.path.join(self.results_dir, f"spectrum_{self.ensemble_name}_{self.task_name}_rebin{self.rebin}")
     util.compile_pdf(doc, filename, self.latex_compiler)
-
+          
   def _addZfactors(self, doc):
     with doc.create(pylatex.Section("Overlap factors")):
       for operator_set, spectrum_log in self.spectrum_logs.items():
@@ -1057,6 +1058,16 @@ class Spectrum(tasks.task.Task):
     est_filename = self.estimates_filename
     fests = open(est_filename, 'w+')
     fests.write(f"obs,val,err\n")
+    
+    #print non interacting levels for each level to their correponding irrp into the csv
+    for operator_set, fit_infos in self.spectrum.items():
+      non_interacting_energies,non_interacting_energy_names = self._getNonInteractingLevels(operator_set)
+      for ni_name, ni_energy in zip(non_interacting_energy_names,non_interacting_energies):
+        obsname = f"PSQ{operator_set.channel.psq}/{operator_set.channel.irrep}/"
+        for particle, mom in zip(ni_name[0],ni_name[1]):
+          obsname+=f"{particle}({mom})"
+        obsname+="_ref"
+        fests.write(f"{obsname},{ni_energy.getFullEstimate()},{ni_energy.getSymmetricError()}\n")
 
     for obs_info in samplings_handler.getKeys():
       np_data = util.get_samplings(obs_handler, obs_info)
@@ -1087,7 +1098,7 @@ class Spectrum(tasks.task.Task):
 
             hdf5_qsqr.close()
     elif self.single_hadrons:
-        logging.warning("q^2 calculations are only set up for two operator correlators")
+        logging.warning("q^2 calculations are only set up for two hadron correlators")
 
     # save energies to self
     self.energies = dict()
@@ -1210,7 +1221,7 @@ class Spectrum(tasks.task.Task):
     energies = dict()
     non_interacting_energies = dict()
     non_interacting_energy_names = dict()
-
+    
     for operator_set, fit_infos in self.spectrum.items():
       if operator_set.is_rotated:
         channel = operator_set.channel
@@ -1218,7 +1229,6 @@ class Spectrum(tasks.task.Task):
         psq = channel.psq
         label = rf"${irrep} ({psq})$"
         energies[label] = list()
-
         for energy in self.energies[operator_set].values():
           energies[label].append(energy)
 

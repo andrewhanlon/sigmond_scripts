@@ -110,7 +110,7 @@ def spectrum(thresholds, energies, non_interacting_energies, latex_map, rotate_i
   tikz_pic.append(pylatex.NoEscape(border))
 
   # find energy_range
-  energie_vals = list()
+  energie_vals = list() #change to where it doen't fuck up if there are no non interacting levels decided
   for energy_lists, non_energy_lists in zip(energies.values(), non_interacting_energies.values()):
     for energy in energy_lists:
       energy_mean = energy.getFullEstimate()

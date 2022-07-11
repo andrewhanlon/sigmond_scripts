@@ -206,7 +206,7 @@ class RotatedOperatorSet(NamedOperatorSet):
       if len(matches)>1:
         logging.warning(f"Optimized operator '{opop}' in basis '{self._name}' has multiple log files, please specify pivot (by deleting the ones you don't want)")
         for this_log in matches:
-          logging.warning(f"\t{opop} foung in {this_log}")
+          logging.warning(f"\t{opop} found in {this_log}")
         opop_logfiles.append(None)
       elif len(matches)==0:
         logging.warning(f"Optimized operator '{opop}' in basis '{self._name}' cannot be found")

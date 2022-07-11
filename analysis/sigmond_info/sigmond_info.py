@@ -291,7 +291,7 @@ class NonInteractingOperators(NamedTuple):
         operator = scattering_particles[particle]
         operators.append(operator)
       except KeyError:
-        logging.error("Scattering particle {particle} not specified")
+        logging.error(f"Scattering particle {particle} not specified")
 
     return cls(the_non_interacting_level, operators)
 

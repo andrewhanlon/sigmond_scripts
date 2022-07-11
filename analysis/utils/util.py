@@ -668,9 +668,10 @@ def _suggest_spectum_yml_file(filedir, proj_name, channels, data_files, data_han
         yaml_settings[proj_name]["spectrum"][-1]["non_interacting_levels"]["delete_this"] = f"*{repr(channel).upper()}"
         yaml_settings[proj_name]["spectrum"][-1]["levels"] = []
         for operator in operators:
-          yaml_settings[proj_name]["spectrum"][-1]["levels"].append({"model":"1-exp"})
-          yaml_settings[proj_name]["spectrum"][-1]["levels"][-1]["tmin"] = 10
+          yaml_settings[proj_name]["spectrum"][-1]["levels"].append({"model":"multi-exp"})
+          yaml_settings[proj_name]["spectrum"][-1]["levels"][-1]["tmin"] = 2
           yaml_settings[proj_name]["spectrum"][-1]["levels"][-1]["tmax"] = 20
+#           yaml_settings[proj_name]["spectrum"][-1]["levels"][-1]["max_level"] = 1
           yaml_settings[proj_name]["spectrum"][-1]["levels"][-1]["ratio"] = False
         yaml_settings[proj_name]["spectrum"][-1]["tmin_info"] = []
         for operator in operators:
