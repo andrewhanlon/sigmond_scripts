@@ -44,6 +44,7 @@ class RotateCorrelators(tasks.task.Task):
     self.subtractvev = extra_options.pop('subtractvev', True)
 
     self.plot_info = extra_options.pop('plot_info', sigmond_info.sigmond_info.PlotInfo())
+    self.write_to_file = extra_options.pop('write_to_file', False)
 
     util.check_extra_keys(extra_options, self.task_name)
 
@@ -195,7 +196,12 @@ class RotateCorrelators(tasks.task.Task):
 
   def finalize(self):
     doc = util.create_doc(f"Rotated Correlators and Effective Energies: {self.task_name} - {self.ensemble_name}")
-
+    
+    #Sarah
+    results_dir = self.results_dir
+    if self.write_to_file:
+        os.makedirs(os.path.join(results_dir,'estimates'), exist_ok=True)
+    
     for operator_basis in self.operator_bases:
       logfile = self.logfile(repr(operator_basis))
       rotation_log = sigmond_info.sigmond_log.RotationLog(logfile)
@@ -307,8 +313,27 @@ class RotateCorrelators(tasks.task.Task):
             with doc.create(pylatex.Subsubsection(str(operator))):
               corr = sigmond.CorrelatorInfo(operator.operator_info, operator.operator_info)
               util.add_correlator(doc, self, corr, operator_basis, obs_handler)
+              if self.write_to_file:
+                  self._write_diag_corr_to_csv(corr, operator_basis, obs_handler)
 
-    results_dir = self.results_dir
     os.makedirs(results_dir, exist_ok=True)
     filename = os.path.join(results_dir, self.task_name)
     util.compile_pdf(doc, filename, self.latex_compiler)
+    
+
+  def _write_diag_corr_to_csv( self, correlator, name, obs_handler):
+    operator_src = operator_info.operator.Operator(correlator.getSource())
+    subtractvev = self.subtractvev and operator_src.channel.vev
+    results_dir = self.results_dir
+    if correlator.isSinkSourceSame():
+        csv_file_stub = str(correlator.getSink()).replace(' ','_').replace('(0,0,0)','0').replace('=','')
+        f = open(os.path.join(results_dir,'estimates',csv_file_stub+'.csv'),'w+')
+        f.write('t,value,error\n')
+        left_estimates = sigmond.getCorrelatorEstimates(
+            obs_handler, correlator, self.hermitian, subtractvev, sigmond.ComplexArg.RealPart,
+            self.sampling_mode)
+        for t in sorted(left_estimates.keys()):
+            left_value = left_estimates[t].getFullEstimate()
+            left_error = left_estimates[t].getSymmetricError()
+            f.write(f"{t},{left_value},{left_error}\n")
+        f.close()
