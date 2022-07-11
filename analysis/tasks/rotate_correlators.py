@@ -32,6 +32,8 @@ class RotateCorrelators(tasks.task.Task):
       **subtractvev (bool): whether operators with non-zero VEVs
           should have the VEV subtracted
       **plot_info (PlotInfo): info about the plot
+      **write_to_file (bool): write correlator data to csv files
+          in results directory
     """
     self.hermitian = True
     self.operator_bases = operator_bases
@@ -57,6 +59,7 @@ class RotateCorrelators(tasks.task.Task):
       negative_eigenvalue_alarm: -0.10
       subtractvev: true
       rotate_mode: bins # or samplings_all, samplings_unsubt, samplings
+      write_to_file: true # optional, writes rotated correlators to csv files if flag present
 
       plot_info:
         corrname: standard
