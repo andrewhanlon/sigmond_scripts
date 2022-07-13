@@ -241,7 +241,7 @@ def boost_obs(obs_handler, energy_obs, psq, spatial_sites):
   try:
     sigmond.doBoostBySamplings(obs_handler, energy_obs, psqfactor, boost_obs)
   except RuntimeError:
-    logging.crtical(f"Could not get samplings for\n{energy_obs!s}")
+    logging.critical(f"Could not get samplings for\n{energy_obs!s}")
 
   return boost_obs
 

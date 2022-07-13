@@ -739,6 +739,11 @@ class Spectrum(tasks.task.Task):
 
   def finalize(self):
     self.spectrum_logs = dict()
+    
+    logfile = self.logfile('single_hadrons')
+    spectrum_log = sigmond_info.sigmond_log.SpectrumLog(logfile)
+    self.spectrum_logs['single_hadrons'] = spectrum_log
+    
     for operator_set in self.spectrum.keys():
       if operator_set.is_rotated:
         logfile = self.logfile(repr(operator_set))
@@ -1099,7 +1104,7 @@ class Spectrum(tasks.task.Task):
             hdf5_qsqr.close()
     elif self.single_hadrons:
         logging.warning("q^2 calculations are only set up for two hadron correlators")
-
+        
     # save energies to self
     self.energies = dict()
     for operator_set, fit_infos in self.spectrum.items():
