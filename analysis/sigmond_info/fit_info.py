@@ -354,6 +354,8 @@ class FitInfo:
 
   @property
   def amplitude_observable(self):
+    if(self.model==FitModel.TimeForwardMultiExponential):
+        return sigmond.MCObsInfo(self.obs_name, self.obs_id(4))
     return sigmond.MCObsInfo(self.obs_name, self.obs_id(1))
 
   def __str__(self):
