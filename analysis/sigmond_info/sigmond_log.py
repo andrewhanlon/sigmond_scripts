@@ -58,16 +58,22 @@ class RotationLog(SigmondLog):
 
     rotation_task_xml = rotation_tasks_xml[0]
 
-    if rotation_task_xml.find("SinglePivot") is None:
-      logging.warning("Reading of non 'SinglePivot' log files not currently supported")
+    self.pivot_type = ""
+    if rotation_task_xml.find("SinglePivot"):
+      self.pivot_type = "SinglePivot"
+    elif rotation_task_xml.find("RollingPivot"):
+        self.pivot_type = "RollingPivot"
+    
+    if not self.pivot_type:
+      logging.warning("Only reading the of 'SinglePivot' or 'RollingPivot' rotation log files is supported")
       return NotImplemented
 
-    pivot_xml = rotation_task_xml.find("SinglePivot/InitiateNew/CreatePivot")
+    pivot_xml = rotation_task_xml.find(f"{self.pivot_type}/InitiateNew/CreatePivot")
     self.diag_corr_errors_xml = pivot_xml.find("DiagonalCorrelatorFractionalErrors")
     self.analyze_metric_xml = pivot_xml.find("AnalyzeMetric")
     self.analyze_matrix_xml = pivot_xml.find("AnalyzeMatrix")
     self.do_rotation_xml = rotation_task_xml.find("DoRotation")
-    self.transformation_matrix_xml = rotation_task_xml.find("SinglePivot/InitiateNew/TransformationMatrix")
+    self.transformation_matrix_xml = rotation_task_xml.find(f"{self.pivot_type}/InitiateNew/TransformationMatrix")
 
   @property
   def metric_null_space_message(self):

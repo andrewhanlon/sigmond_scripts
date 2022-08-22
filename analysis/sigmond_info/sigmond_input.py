@@ -676,6 +676,11 @@ class SigmondInput:
       ET.SubElement(pivot_init_tag, "MetricTime").text = str(pivot_info.metric_time)
       ET.SubElement(pivot_init_tag, "DiagonalizeTime").text = str(pivot_info.diagonalize_time)
       ET.SubElement(pivot_init_tag, "MinimumInverseConditionNumber").text = str(1./pivot_info.max_condition_number)
+    elif pivot_info.pivot_type is sigmond_info.sigmond_info.PivotType.RollingPivot:
+      ET.SubElement(pivot_init_tag, "NormTime").text = str(pivot_info.norm_time)
+      ET.SubElement(pivot_init_tag, "MetricTime").text = str(pivot_info.metric_time)
+      ET.SubElement(pivot_init_tag, "ZMagSqTime").text = str(pivot_info.diagonalize_time)
+      ET.SubElement(pivot_init_tag, "MinimumInverseConditionNumber").text = str(1./pivot_info.max_condition_number)
     else:
       logging.error(f"pivot of type {pivot_info.pivot_type} currently not supported")
 

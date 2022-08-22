@@ -9,6 +9,7 @@ import sigmond
 
 import tasks.task
 import utils.util as util
+import sigmond_info.sigmond_info
 import sigmond_info.sigmond_log
 import sigmond_info.sigmond_input
 import operator_info.operator
@@ -224,20 +225,34 @@ class RotateCorrelators(tasks.task.Task):
         with doc.create(pylatex.Subsection("Rotation Info")):
           with doc.create(pylatex.Center()) as centered:
             with centered.create(
-                pylatex.LongTabu("X[c]|X[c]|X[c]|X[c]|X[c]|X[3,c]|X[3,c]|X[3,c]|X[3,c]|X[3,c]",
+                  pylatex.LongTabu("X[c]|X[c]|X[c]|X[c]|X[c]|X[3,c]|X[3,c]|X[3,c]|X[3,c]|X[3,c]",
                                  to=r"\linewidth")) as param_table:
-              header_row = [
-                  pylatex.NoEscape(r"$N_{op}$"),
-                  pylatex.NoEscape(r"$N_{\text{d}}$"),
-                  pylatex.NoEscape(r"$\tau_N$"),
-                  pylatex.NoEscape(r"$\tau_0$"),
-                  pylatex.NoEscape(r"$\tau_D$"),
-                  pylatex.NoEscape(r"$\xi_{cn}$ (max)"),
-                  pylatex.NoEscape(r"$\xi_{cn}^C$ (input)"),
-                  pylatex.NoEscape(r"$\xi_{cn}^C$ (retain)"),
-                  pylatex.NoEscape(r"$\xi_{cn}^G$ (input)"),
-                  pylatex.NoEscape(r"$\xi_{cn}^G$ (retain)"),
-              ]
+              if(operator_basis.pivot_info.pivot_type==sigmond_info.sigmond_info.PivotType.RollingPivot):
+                  header_row = [
+                      pylatex.NoEscape(r"$N_{op}$"),
+                      pylatex.NoEscape(r"$N_{\text{d}}$"),
+                      pylatex.NoEscape(r"$\tau_N$"),
+                      pylatex.NoEscape(r"$\tau_0$"),
+                      pylatex.NoEscape(r"$\tau_Z$"),
+                      pylatex.NoEscape(r"$\xi_{cn}$ (max)"),
+                      pylatex.NoEscape(r"$\xi_{cn}^C$ (input)"),
+                      pylatex.NoEscape(r"$\xi_{cn}^C$ (retain)"),
+                      pylatex.NoEscape(r"$\xi_{cn}^G$ (input)"),
+                      pylatex.NoEscape(r"$\xi_{cn}^G$ (retain)"),
+                  ]
+              else:
+                  header_row = [
+                      pylatex.NoEscape(r"$N_{op}$"),
+                      pylatex.NoEscape(r"$N_{\text{d}}$"),
+                      pylatex.NoEscape(r"$\tau_N$"),
+                      pylatex.NoEscape(r"$\tau_0$"),
+                      pylatex.NoEscape(r"$\tau_D$"),
+                      pylatex.NoEscape(r"$\xi_{cn}$ (max)"),
+                      pylatex.NoEscape(r"$\xi_{cn}^C$ (input)"),
+                      pylatex.NoEscape(r"$\xi_{cn}^C$ (retain)"),
+                      pylatex.NoEscape(r"$\xi_{cn}^G$ (input)"),
+                      pylatex.NoEscape(r"$\xi_{cn}^G$ (retain)"),
+                  ]
               param_table.add_row(header_row, mapper=[pylatex.utils.bold])
               param_table.add_hline()
               param_table.end_table_header()
@@ -258,7 +273,7 @@ class RotateCorrelators(tasks.task.Task):
           doc.append(pylatex.NoEscape(r"\textbf{Metric Null Space Check:} " + \
                                       rotation_log.metric_null_space_message))
           
-          if not operator_basis._optimized_ops:
+          if (not operator_basis._optimized_ops) and (operator_basis.pivot_info.pivot_type!=sigmond_info.sigmond_info.PivotType.RollingPivot):
             with doc.create(pylatex.Subsubsection("Input Operators")):
               with doc.create(pylatex.Center()) as centered:
                 with centered.create(
@@ -279,36 +294,37 @@ class RotateCorrelators(tasks.task.Task):
                     ]
                     op_table.add_row
                     op_table.add_row(row)
+                    
+          if operator_basis.pivot_info.pivot_type!=sigmond_info.sigmond_info.PivotType.RollingPivot:
+            with doc.create(pylatex.Subsubsection("Diagonal Deviations From Zero")):
+                with doc.create(pylatex.Center()) as centered:
+                  with centered.create(
+                      pylatex.LongTabu("X[c] X[4,c] X[3,c] X[3,c] X[3,c] X[3,c] X[2,c]")) as deviation_table:
+                    header_row = [
+                        "time",
+                        pylatex.NoEscape(r"$\delta 0_{max}$"),
+                        pylatex.NoEscape(r"$\% > 1 \sigma$"),
+                        pylatex.NoEscape(r"$\% > 2 \sigma$"),
+                        pylatex.NoEscape(r"$\% > 3 \sigma$"),
+                        pylatex.NoEscape(r"$\% > 4 \sigma$"),
+                        "Status",
+                    ]
+                    deviation_table.add_row(header_row, mapper=[pylatex.utils.bold])
+                    deviation_table.add_hline()
+                    deviation_table.end_table_header()
+                    for time, deviation in rotation_log.deviations_from_zero.items():
+                      row = [
+                          time,
+                          deviation.max,
+                          deviation.one,
+                          deviation.two,
+                          deviation.three,
+                          deviation.four,
+                          deviation.status,
+                      ]
+                      deviation_table.add_row(row)
 
-          with doc.create(pylatex.Subsubsection("Diagonal Deviations From Zero")):
-            with doc.create(pylatex.Center()) as centered:
-              with centered.create(
-                  pylatex.LongTabu("X[c] X[4,c] X[3,c] X[3,c] X[3,c] X[3,c] X[2,c]")) as deviation_table:
-                header_row = [
-                    "time",
-                    pylatex.NoEscape(r"$\delta 0_{max}$"),
-                    pylatex.NoEscape(r"$\% > 1 \sigma$"),
-                    pylatex.NoEscape(r"$\% > 2 \sigma$"),
-                    pylatex.NoEscape(r"$\% > 3 \sigma$"),
-                    pylatex.NoEscape(r"$\% > 4 \sigma$"),
-                    "Status",
-                ]
-                deviation_table.add_row(header_row, mapper=[pylatex.utils.bold])
-                deviation_table.add_hline()
-                deviation_table.end_table_header()
-                for time, deviation in rotation_log.deviations_from_zero.items():
-                  row = [
-                      time,
-                      deviation.max,
-                      deviation.one,
-                      deviation.two,
-                      deviation.three,
-                      deviation.four,
-                      deviation.status,
-                  ]
-                  deviation_table.add_row(row)
-
-        doc.append(pylatex.NoEscape(r"\newpage"))
+            doc.append(pylatex.NoEscape(r"\newpage"))
 
         operators = self.data_handler.getRotatedOperators(operator_basis)
         with doc.create(pylatex.Subsection("Correlators/Effective Energies")):
