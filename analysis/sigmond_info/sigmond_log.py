@@ -269,6 +269,7 @@ class SpectrumLog(SigmondLog):
     self.reorder = True
     fit_fail = False
     energy_level_xmls = log_xml_root.findall("Task/DoRotCorrMatInsertFitInfos/SinglePivot/ReorderEnergies/EnergyLevel")
+    energy_level_xmls += log_xml_root.findall("Task/DoRotCorrMatInsertFitInfos/RollingPivot/ReorderEnergies/EnergyLevel")
     if not energy_level_xmls:
       self.reorder = False
       energy_level_xmls = log_xml_root.findall("Task/GetFromPivot/Energies/EnergyLevel")
