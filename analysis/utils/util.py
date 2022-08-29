@@ -647,7 +647,6 @@ def _suggest_spectum_yml_file(filedir, proj_name, channels, data_files, data_han
       for operator in operators:
         if operator.operator_type == sigmond.OpKind.GenIrrep:
           hadron_number, hadrons = _countHadronsInIDName(operator.operator_info.getGenIrrep().getIDName(),single_hadron_names)
-#         else:
 #           #untested because all of my operators are gen irreducible
 #           hadron_number = operator.operator_info.getBasicLapH().getNumberOfHadrons() 
 
@@ -668,11 +667,11 @@ def _suggest_spectum_yml_file(filedir, proj_name, channels, data_files, data_han
         yaml_settings[proj_name]["spectrum"][-1]["non_interacting_levels"]["delete_this"] = f"*{repr(channel).upper()}"
         yaml_settings[proj_name]["spectrum"][-1]["levels"] = []
         for operator in operators:
-          yaml_settings[proj_name]["spectrum"][-1]["levels"].append({"model":"multi-exp"})
-          yaml_settings[proj_name]["spectrum"][-1]["levels"][-1]["tmin"] = 2
-          yaml_settings[proj_name]["spectrum"][-1]["levels"][-1]["tmax"] = 20
-#           yaml_settings[proj_name]["spectrum"][-1]["levels"][-1]["max_level"] = 1
-          yaml_settings[proj_name]["spectrum"][-1]["levels"][-1]["ratio"] = False
+          yaml_settings[proj_name]["spectrum"][-1]["levels"].append({"model":"1-exp"})
+          yaml_settings[proj_name]["spectrum"][-1]["levels"][-1]["tmin"] = 10
+          yaml_settings[proj_name]["spectrum"][-1]["levels"][-1]["tmax"] = 25
+#           yaml_settings[proj_name]["spectrum"][-1]["levels"][-1]["max_level"] = 1 #multi-exp only
+          yaml_settings[proj_name]["spectrum"][-1]["levels"][-1]["ratio"] = True
         yaml_settings[proj_name]["spectrum"][-1]["tmin_info"] = []
         for operator in operators:
           yaml_settings[proj_name]["spectrum"][-1]["tmin_info"].append({"fit_infos":[]})
@@ -705,10 +704,15 @@ def _suggest_spectum_yml_file(filedir, proj_name, channels, data_files, data_han
 def _countHadronsInIDName( IDName, hadron_list ):
     number_of_hadrons = 0
     hadrons_found = []
+    if ('[' in IDName and '-' in IDName) or ('(' in IDName and '-' in IDName) or ('[' in IDName and '(' in IDName):
+        logging.error("Function utils._countHadronsInIDName() needs to be rewritten")
+    
     for hadron in hadron_list:
-        if hadron+'[' in IDName or hadron+'(' in IDName:
+        if hadron+'[' in IDName or hadron+'(' in IDName or hadron+'-' in IDName:
             number_of_hadrons += 1
-            IDName = IDName.replace(hadron, "", 1)
+            IDName = IDName.replace(hadron+'(', "", 1) #should only be one of these
+            IDName = IDName.replace(hadron+'[', "", 1) 
+            IDName = IDName.replace(hadron+'-', "", 1)
             hadrons_found.append(hadron)
     if hadrons_found:
         add_to_hadron_number, more_hadrons = _countHadronsInIDName( IDName, hadron_list )
