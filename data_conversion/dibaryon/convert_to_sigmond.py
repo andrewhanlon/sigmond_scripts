@@ -17,7 +17,8 @@ base_data_dir = "/disk3/research/data/dibaryon/"
 output_dir = "data"
 
 #ensembles_to_do = ["A653", "B450", "B451", "B452", "H101", "H200", "J500", "N200", "N202", "N300", "U102", "U103", "E1", "E5"]
-ensembles_to_do = ["a064_m400_mL6.4_trMc"]
+#ensembles_to_do = ["a064_m400_mL6.4_trMc"]
+ensembles_to_do = ["N451"]
 
 particle_map = {
     'Σ': 'S',
@@ -180,6 +181,8 @@ def convert_dibaryons(ensemble, ops):
           dataset = data_handler[dataset_name]
           op_size = dataset.shape[3]
           if op_size != len(op_strs):
+            print(op_size)
+            print(len(op_strs))
             print(f"Mismatch in operator size: {dataset_name}")
             sys.exit()
 
