@@ -552,6 +552,10 @@ class SigmondInput:
       **symbol_type (SymbolType): specifies the shape of the data points to use.
       **rescale (float): specifies a rescaling factors for the correlator
           plots.
+      **remove_off_diag (bool): specifies whether off diagonal elements
+          should be removed
+      **diagonly_time (int): specifies time when only diagonal rotated
+          correlators are calculated
     """
 
     xml = ET.Element("Task")
@@ -560,6 +564,11 @@ class SigmondInput:
     ET.SubElement(xml, "MaxTimeSep").text = str(maxtime)
     ET.SubElement(xml, "RotateMode").text = rotate_mode.name
     ET.SubElement(xml, "Type").text = pivot_info.pivot_type.name
+
+    if 'remove_off_diag' in extra_options and extra_options['remove_off_diag']:
+      ET.SubElement(xml, "RemoveOffDiag")
+    if 'diagonly_time' in extra_options:
+      ET.SubElement(xml, "DiagonalOnlyTime").text = str(extra_options['diagonly_time'])
 
     pivot_init_tag = ET.SubElement(xml, "{}Initiate".format(pivot_info.pivot_type.name))
     ET.SubElement(pivot_init_tag, "RotatedCorrelator").append(resulting_operator.xml())

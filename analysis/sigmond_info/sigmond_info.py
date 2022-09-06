@@ -200,13 +200,15 @@ class ScatteringParticle:
   @classmethod
   def create(cls, particle):
     try:
-      name, arg = particle[:-1].split('(')
-      if '_' in arg:
-        refP, irrep = arg.split('_')
-        refP = tuple(sorted([abs(int(pi)) for pi in refP.split(',')]))
+      if '_' in particle:
+        particle_part, irrep = particle.split('_')
+        name, arg = particle_part[:-1].split('(')
+        refP = tuple(sorted([abs(int(pi)) for pi in arg.split(',')]))
       else:
+        name, arg = particle[:-1].split('(')
         refP = tuple(sorted([abs(int(pi)) for pi in arg.split(',')]))
         irrep = None
+        
 
     except ValueError:
       logging.error(f"Invalid ScatteringParticle '{particle}'")
