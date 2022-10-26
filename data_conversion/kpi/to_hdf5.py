@@ -20,6 +20,8 @@ COMPLEX_ARGS = [sigmond.ComplexArg.RealPart, sigmond.ComplexArg.ImaginaryPart]
 
 MAX_CORRS = 50
 
+AVE_CORRS = True
+
 def main():
   for ensemble in defs.ensembles:
     ensemble_name = ensemble.name
@@ -29,8 +31,8 @@ def main():
     channels = list()
     for replica_i, replica in enumerate(ensemble.replica):
       replica_ensemble_name = f"{ensemble_name}_{replica}"
-      for tsrc_i, tsrc in enumerate(ensemble.sources):
-        data_dir = os.path.join(ensemble_name, replica, f"src{tsrc}")
+      for tsrc_i, (tsrc, parity) in enumerate(ensemble.sources):
+        data_dir = os.path.join(ensemble_name, replica, f"src{tsrc}", parity)
         search_dir = os.path.join(defs.base_data_dir, data_dir)
         print(f"Searching in {search_dir}")
         corr_files[tsrc_i][replica_i] = get_corr_files(replica_ensemble_name, search_dir)
@@ -47,30 +49,32 @@ def main():
       op_lists = list()
       for replica_i, replica in enumerate(ensemble.replica):
         replica_ensemble_name = f"{ensemble_name}_{replica}"
-        '''
-        corrs_to_average = list()
-        for tsrc_i, tsrc in enumerate(ensemble.sources):
-          correlators = corr_files[tsrc_i][replica_i][channel]
-          correlator_data, op_list = get_data(correlators, replica_ensemble_name, tsrc)
-          op_lists.append(op_list)
-          corrs_to_average.append(correlator_data)
 
-        averaged_corr_data = np.mean(corrs_to_average, axis=0)
+        if AVE_CORRS:
+          corrs_to_average = list()
+          for tsrc_i, (tsrc, parity) in enumerate(ensemble.sources):
+            correlators = corr_files[tsrc_i][replica_i][channel]
+            correlator_data, op_list = get_data(correlators, replica_ensemble_name, tsrc, parity)
+            op_lists.append(op_list)
+            corrs_to_average.append(correlator_data)
 
-        all_equal = all(op_list==op_lists[0] for op_list in op_lists)
-        if not all_equal:
-          print("not all op lists equal")
-          exit()
-        
-        hdf5_file = get_hdf5_file(replica_ensemble_name)
-        write_data(averaged_corr_data, channel, op_lists[0], hdf5_file)
-        '''
-        for tsrc_i, tsrc in enumerate(ensemble.sources):
-          correlators = corr_files[tsrc_i][replica_i][channel]
-          correlator_data, op_list = get_data(correlators, replica_ensemble_name, tsrc)
+          averaged_corr_data = np.mean(corrs_to_average, axis=0)
 
-          hdf5_file = get_hdf5_file(replica_ensemble_name, channel, tsrc)
-          write_data(correlator_data, channel, op_list, hdf5_file, replica, replica_ensemble_name)
+          all_equal = all(op_list==op_lists[0] for op_list in op_lists)
+          if not all_equal:
+            print("not all op lists equal")
+            exit()
+          
+          hdf5_file = get_ave_hdf5_file(replica_ensemble_name, channel)
+          write_data(averaged_corr_data, channel, op_lists[0], hdf5_file, replica, replica_ensemble_name)
+
+        else:
+          for tsrc_i, (tsrc, parity) in enumerate(ensemble.sources):
+            correlators = corr_files[tsrc_i][replica_i][channel]
+            correlator_data, op_list = get_data(correlators, replica_ensemble_name, tsrc, parity)
+
+            hdf5_file = get_hdf5_file(replica_ensemble_name, channel, tsrc, parity)
+            write_data(correlator_data, channel, op_list, hdf5_file, replica, replica_ensemble_name)
 
 
 def write_data(data, channel, op_list, hdf5_file, replica, replica_ensemble_name):
@@ -88,7 +92,7 @@ def write_data(data, channel, op_list, hdf5_file, replica, replica_ensemble_name
   f_hand.close()
 
 
-def get_data(correlators, ensemble_name, tsrc):
+def get_data(correlators, ensemble_name, tsrc, parity):
   mcobs_xml = ET.Element("MCObservables")
   corr_data_xml = ET.SubElement(mcobs_xml, "BLCorrelatorData")
 
@@ -145,34 +149,62 @@ def get_data(correlators, ensemble_name, tsrc):
 
 
   for snk_i, snk_op in enumerate(operators):
-    for src_i, src_op in enumerate(operators):
+    for src_i, src_op in enumerate(operators[snk_i:], start=snk_i):
 
       correlator = sigmond.CorrelatorInfo(snk_op, src_op)
-      correlator_opposite = sigmond.CorrelatorInfo(src_op, snk_op)
+      correlator_opp = sigmond.CorrelatorInfo(src_op, snk_op)
       for tsep in range(tmin, tmax+1):
         correlator_time = sigmond.CorrelatorAtTimeInfo(correlator, tsep, False, False)
         correlator_time_re_obsinfo = sigmond.MCObsInfo(correlator_time, sigmond.ComplexArg.RealPart)
         correlator_time_im_obsinfo = sigmond.MCObsInfo(correlator_time, sigmond.ComplexArg.ImaginaryPart)
 
+        correlator_opp_time = sigmond.CorrelatorAtTimeInfo(correlator_opp, tsep, False, False)
+        correlator_opp_time_re_obsinfo = sigmond.MCObsInfo(correlator_opp_time, sigmond.ComplexArg.RealPart)
+        correlator_opp_time_im_obsinfo = sigmond.MCObsInfo(correlator_opp_time, sigmond.ComplexArg.ImaginaryPart)
+
         has_re = obs_handler.queryBins(correlator_time_re_obsinfo)
         has_im = obs_handler.queryBins(correlator_time_im_obsinfo)
+        if (has_re and not has_im) or (has_im and not has_re):
+          print("only real or imaginary")
+          sys.exit()
 
-        if has_re and has_im:
+        has_corr = has_re and has_im
+
+        has_opp_re = obs_handler.queryBins(correlator_opp_time_re_obsinfo)
+        has_opp_im = obs_handler.queryBins(correlator_opp_time_im_obsinfo)
+        if (has_opp_re and not has_opp_im) or (has_opp_im and not has_opp_re):
+          print("only real or imaginary")
+          sys.exit()
+
+        has_opp_corr = has_opp_re and has_opp_im
+
+        if has_corr and has_opp_corr:
+          data_not_opp = np.array(obs_handler.getBins(correlator_time_re_obsinfo).array()) + 1j*np.array(obs_handler.getBins(correlator_time_im_obsinfo).array())
+          data_opp = np.array(obs_handler.getBins(correlator_opp_time_re_obsinfo).array()) - 1j*np.array(obs_handler.getBins(correlator_opp_time_im_obsinfo).array())
+
+          data = 0.5*(data_not_opp + data_opp)
+
+        elif has_corr:
           data = np.array(obs_handler.getBins(correlator_time_re_obsinfo).array()) + 1j*np.array(obs_handler.getBins(correlator_time_im_obsinfo).array())
-        elif has_re:
-          data = np.array(obs_handler.getBins(correlator_time_re_obsinfo).array())
-        elif has_im:
-          data = 1j*np.array(obs_handler.getBins(correlator_time_im_obsinfo).array())
+
+        elif has_opp_corr:
+          data = np.array(obs_handler.getBins(correlator_opp_time_re_obsinfo).array()) - 1j*np.array(obs_handler.getBins(correlator_opp_time_im_obsinfo).array())
         else:
           continue
+          
 
         if single_correlator:
           corr_data[:,tsep] = data
         else:
           corr_data[:,snk_i,src_i,tsep] = data
+          corr_data[:,src_i,snk_i,tsep] = np.conj(data)
 
-  operators = [op.op_str() for op in operators]
-  return corr_data, operators
+  op_list = list()
+  for operator in operators:
+    operator.setForwards()
+    op_list.append(operator.op_str())
+
+  return corr_data, op_list
 
 
 def get_corr_files(ensemble_name, search_dir):
@@ -222,10 +254,12 @@ def get_corr_files(ensemble_name, search_dir):
 
   corr_files = dict()
   for corr in corr_handler.getCorrelatorSet():
+    '''
     if corr.getSource().isBackwards() or corr.getSink().isBackwards():
       print(corr.corr_str())
       print(corr_handler.getFileName(corr))
       #sys.exit()
+    '''
 
     channel = get_channel(corr)
     if channel not in corr_files:
@@ -236,6 +270,7 @@ def get_corr_files(ensemble_name, search_dir):
     corr_files[channel]['data_files'].append(corr_handler.getFileName(corr))
     corr_files[channel]['correlators'].append(corr)
 
+  '''
   # DEBUG
   for channel, corrs in corr_files.items():
     print(f"Channel {channel}")
@@ -243,15 +278,22 @@ def get_corr_files(ensemble_name, search_dir):
       print(f"  Data file: {corrs['data_files'][x]}")
       print(f"  corr: {corrs['correlators'][x].corr_str()}")
       print()
+  '''
 
   return corr_files
 
-
-def get_hdf5_file(ensemble_name, channel, tsrc):
-  output_dir = os.path.join(defs.output_dir, ensemble_name)
+def get_ave_hdf5_file(ensemble_name, channel):
+  output_dir = os.path.join(defs.output_dir, 'hdf5', ensemble_name)
   os.makedirs(output_dir, exist_ok=True)
 
-  hdf5_file = os.path.join(output_dir, f"{ensemble_name}_{channel.iso_strange_str()}_t0{tsrc}.hdf5")
+  hdf5_file = os.path.join(output_dir, f"{ensemble_name}_{channel.iso_strange_str()}_ave.hdf5")
+  return hdf5_file
+
+def get_hdf5_file(ensemble_name, channel, tsrc, parity):
+  output_dir = os.path.join(defs.output_dir, 'hdf5', ensemble_name)
+  os.makedirs(output_dir, exist_ok=True)
+
+  hdf5_file = os.path.join(output_dir, f"{ensemble_name}_{channel.iso_strange_str()}_t0{tsrc}_{parity}.hdf5")
   return hdf5_file
 
 def get_channel(correlator):

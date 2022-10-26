@@ -34,7 +34,7 @@ def main():
           correlators.append(corr_files[replica][tsrc].keys())
           print("done")
 
-      # TODO: check all elements of correlators have same keys
+      # check all elements of correlators have same keys
       all_equal = all(corrs==correlators[0] for corrs in correlators)
       if not all_equal:
         print("not all equal\n\n")
@@ -84,7 +84,7 @@ def write_data(data, ensemble_name, channel, flavor_channel):
   for obs_info, data_bins in data.items():
     obs_handler.putBins(obs_info, sigmond.RVector(data_bins))
     xml_out = sigmond.XMLHandler("output", "")
-    obs_handler.writeBinsToFile({obs_info}, bin_file, xml_out, sigmond.WriteMode.Protect)
+    obs_handler.writeBinsToFile({obs_info}, bin_file, xml_out, sigmond.WriteMode.Protect, 'D')
 
 
 def extend_data(data):
@@ -174,19 +174,22 @@ def get_data(correlator, data_file, data_file_opposite, is_backwards, ensemble_n
 
   corr_time_info_herm = sigmond.CorrelatorAtTimeInfo(correlator, 0, True, False)
   for tsep in range(tmin, tmax+1):
-    for cmp_i, complex_arg in enumerate(COMPLEX_ARGS):
+    for complex_arg in COMPLEX_ARGS:
       if correlator.isSinkSourceSame() and complex_arg is sigmond.ComplexArg.ImaginaryPart:
         continue
+
+      sign = 1. if complex_arg is sigmond.ComplexArg.RealPart else -1.
 
       corr_time_info.resetTimeSeparation(tsep)
       corr_time_info_obs_info = sigmond.MCObsInfo(corr_time_info, complex_arg)
       data = np.array(obs_handler.getBins(corr_time_info_obs_info).array())
 
       if has_opposite:
+        print('has_opposite')
         corr_time_info_opp.resetTimeSeparation(tsep)
         corr_time_info_opp_obs_info = sigmond.MCObsInfo(corr_time_info_opp, complex_arg)
-        data_opp = np.array(obs_handler.getBins(corr_time_info_opp_obs_info).array())
-        data = 0.5*(data + np.conj(data_opp))
+        data_opp = sign*np.array(obs_handler.getBins(corr_time_info_opp_obs_info).array())
+        data = 0.5*(data + data_opp)
 
       corr_time_info_herm.resetTimeSeparation(tsep)
       if is_backwards:

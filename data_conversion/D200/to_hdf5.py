@@ -21,7 +21,9 @@ import operator_info.operator
 
 
 #data_type_dirs = ['isodoublet_strange_nucleonlambda', 'isosinglet_nonstrange_nucleonnucleon', 'isoquartet_strange_nucleonsigma', 'isodoublet_nonstrange', 'isoquartet_nonstrange_fermionic', 'isosinglet_strange_fermionic', 'single_hadrons', 'isotriplet_nonstrange_nucleonnucleon', 'isosinglet_doublystrange_lambdalambda', 'isoquintet_doublystrange_sigmasigma']
-data_type_dirs = ['isosinglet_strange_fermionic', 'single_hadrons', 'isotriplet_nonstrange_nucleonnucleon', 'isosinglet_doublystrange_lambdalambda', 'isoquintet_doublystrange_sigmasigma']
+data_type_dirs = ['single_hadrons']
+
+TMAX = 25
 
 def main():
   parser = argparse.ArgumentParser(description="Convert D200 data")
@@ -251,11 +253,13 @@ def get_data(correlators, ensemble_name, replica, ensemble_Nt, tsrc, ensembles_f
       tmin = keys[0].getTimeIndex()
       tmax = keys[-1].getTimeIndex()
 
+  if TMAX is not None:
+    tmax = TMAX
+
   operators = sorted(list([operator_info.operator.Operator(op) for op in operators]))
   operators = [op.operator_info for op in operators]
 
   corr_data = np.zeros((bins_info.getNumberOfBins(), len(operators), len(operators), tmax+1), dtype=np.complex128)
-
 
   for snk_i, snk_op in enumerate(operators):
     bl_op = snk_op.getBasicLapH()

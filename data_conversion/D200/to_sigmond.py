@@ -18,7 +18,10 @@ MAX_CORRS = 50
 
 SOURCE_MOD = 12
 
-data_type_dirs = ['isodoublet_strange_nucleonlambda', 'isosinglet_nonstrange_nucleonnucleon', 'isoquartet_strange_nucleonsigma', 'isodoublet_nonstrange', 'isoquartet_nonstrange_fermionic', 'isosinglet_strange_fermionic', 'single_hadrons', 'isotriplet_nonstrange_nucleonnucleon', 'isosinglet_doublystrange_lambdalambda', 'isoquintet_doublystrange_sigmasigma']
+#data_type_dirs = ['isodoublet_strange_nucleonlambda', 'isosinglet_nonstrange_nucleonnucleon', 'isoquartet_strange_nucleonsigma', 'isodoublet_nonstrange', 'isoquartet_nonstrange_fermionic', 'isosinglet_strange_fermionic', 'single_hadrons', 'isotriplet_nonstrange_nucleonnucleon', 'isosinglet_doublystrange_lambdalambda', 'isoquintet_doublystrange_sigmasigma']
+data_type_dirs = ['single_hadrons']
+
+TMAX = 25
 
 def main():
 
@@ -32,7 +35,7 @@ def main():
 
   args = parser.parse_args()
   
-  ensemble = defs.sensemble
+  ensemble = defs.ensemble
 
   for data_type_dir in data_type_dirs:
     print(data_type_dir, flush=True)
@@ -47,10 +50,9 @@ def main():
         data_dir = os.path.join(ensemble.name, replica, f"src{source[0]}", defs.parity_name[source[1]], data_type_dir)
         search_dir = os.path.join(args.input, data_dir)
         print(f"searching in {search_dir}")
-        corr_files[replica][source] = get_corr_files(replica_ensemble_name, replica, search_dir, args.ensembles_file)
-        correlators.append(corr_files[replica][source].keys())
+        corr_files[replica][source] = get_corr_files(defs.ensemble_name, replica, search_dir, args.ensembles_file)
+        correlators.append(sorted(list(corr_files[replica][source].keys())))
 
-    '''
     # TODO - check that all elements of correlators are identical
     all_equal = all(corrs==correlators[0] for corrs in correlators)
     if not all_equal:
@@ -64,7 +66,6 @@ def main():
       exit()
 
     correlators = correlators[0]
-    '''
 
     data_to_write = dict()
 
@@ -163,7 +164,6 @@ def get_data(correlator, data_files, ensemble_name, replica, ensemble_Nt, tsrc, 
 
   bl_op = correlator.getSource().getBasicLapH()
   # TODO: replace with isFermionic()
-  change_sign = bl_op.isBaryon() or bl_op.isMesonBaryon()
 
   file_list_infos = list()
   has_opposite = data_files[1] is not None
@@ -205,6 +205,9 @@ def get_data(correlator, data_files, ensemble_name, replica, ensemble_Nt, tsrc, 
       print("mismatch between tmax on corresponding correlators")
       exit()
 
+  if TMAX is not None:
+    tmax = TMAX
+
   correlator_data = dict()
   corr_time_info = sigmond.CorrelatorAtTimeInfo(correlator, 0, False, False)
   if has_opposite:
@@ -229,18 +232,8 @@ def get_data(correlator, data_files, ensemble_name, replica, ensemble_Nt, tsrc, 
         else:
           data = 0.5*(data - data_opp)
 
-      if change_sign:
-        if not forward:
+      if change_sign and not forward:
           data = -data
-
-        for bin_i, config in enumerate(defs.config_indices[ensemble_name]):
-          if forward:
-            T = tsep + tsrc + defs.source_lists[ensemble_name][config] % SOURCE_MOD
-          else:
-            T = -tsep + tsrc + defs.source_lists[ensemble_name][config] % SOURCE_MOD
-
-          if T >= ensemble_Nt or T < 0:
-            data[bin_i] = -data[bin_i]
 
       corr_time_info_herm.resetTimeSeparation(tsep)
       if not forward:
@@ -312,7 +305,7 @@ def get_corr_files(ensemble_name, replica, search_dir, ensembles_file):
 
     corr_opposite = sigmond.CorrelatorInfo(corr.getSource(), corr.getSink())
     if corr_opposite in corr_files:
-      corr_files[corr_opposite][1] = corr_file_name
+      corr_files[corr_opposite] = (corr_files[corr_opposite][0], corr_file_name)
     else:
       corr_files[corr] = (corr_file_name, None)
 

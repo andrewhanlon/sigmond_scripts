@@ -17,10 +17,10 @@ import sys
 sys.path.insert(1, "../../analysis/")
 import operator_info.operator
 
-ensembles_to_do = ["C103"]
+ensembles_to_do = ["N203"]
 
 def main():
-  parser = argparse.ArgumentParser(description="Convert C103 data")
+  parser = argparse.ArgumentParser(description="Convert general data")
   parser.add_argument("-i", "--input", type=str, required=True, metavar='input directory',
                       help="Specify directory containing raw data")
   parser.add_argument("-o", "--output", type=str, required=True, metavar='output directory',
@@ -100,11 +100,11 @@ def main():
 
           all_equal = all(op_list==op_lists[0] for op_list in op_lists)
           if not all_equal:
-            print("not all op lists equal")
-            sys.exit()
+            print(f"{averaged_channel!s}: not all op lists equal")
+            continue
           
           hdf5_file = get_hdf5_file(args.output, replica_ensemble_name, averaged_channel)
-          write_data(averaged_corr_data, averaged_channel, op_lists[0], hdf5_file)
+          write_data(averaged_corr_data, averaged_channel, op_lists[0], hdf5_file, replica, replica_ensemble_name)
 
 
     else:
@@ -129,7 +129,7 @@ def main():
               sys.exit()
             
             hdf5_file = get_hdf5_file(args.output, replica_ensemble_name, channel)
-            write_data(averaged_corr_data, channel, op_lists[0], hdf5_file)
+            write_data(averaged_corr_data, channel, op_lists[0], hdf5_file, replica, replica_ensemble_name)
 
         else:
           for replica in ensemble.replica:
@@ -139,7 +139,7 @@ def main():
               correlator_data, op_list = get_data(correlators, replica_ensemble_name, ensemble.Nt, source[0], args.ensembles_file)
 
               hdf5_file = get_hdf5_file(args.output, replica_ensemble_name, channel, source)
-              write_data(correlator_data, channel, op_list, hdf5_file)
+              write_data(correlator_data, channel, op_list, hdf5_file, replica, replica_ensemble_name)
 
 
 def write_data(data, channel, op_list, hdf5_file, replica, replica_ensemble_name):
@@ -211,23 +211,47 @@ def get_data(correlators, ensemble_name, ensemble_Nt, tsrc, ensembles_file):
     change_sign = bl_op.isBaryon() or bl_op.isMesonBaryon()
     forward = not snk_op.isBackwards()
 
-    for src_i, src_op in enumerate(operators):
+    for src_i, src_op in enumerate(operators[snk_i:], start=snk_i):
 
       correlator = sigmond.CorrelatorInfo(snk_op, src_op)
+      correlator_opp = sigmond.CorrelatorInfo(src_op, snk_op)
       for tsep in range(tmin, tmax+1):
         correlator_time = sigmond.CorrelatorAtTimeInfo(correlator, tsep, False, False)
         correlator_time_re_obsinfo = sigmond.MCObsInfo(correlator_time, sigmond.ComplexArg.RealPart)
         correlator_time_im_obsinfo = sigmond.MCObsInfo(correlator_time, sigmond.ComplexArg.ImaginaryPart)
 
+        correlator_opp_time = sigmond.CorrelatorAtTimeInfo(correlator_opp, tsep, False, False)
+        correlator_opp_time_re_obsinfo = sigmond.MCObsInfo(correlator_opp_time, sigmond.ComplexArg.RealPart)
+        correlator_opp_time_im_obsinfo = sigmond.MCObsInfo(correlator_opp_time, sigmond.ComplexArg.ImaginaryPart)
+
         has_re = obs_handler.queryBins(correlator_time_re_obsinfo)
         has_im = obs_handler.queryBins(correlator_time_im_obsinfo)
+        if (has_re and not has_im) or (has_im and not has_re):
+          print("only real or imaginary")
+          sys.exit()
 
-        if has_re and has_im:
+        has_corr = has_re and has_im
+
+        has_opp_re = obs_handler.queryBins(correlator_opp_time_re_obsinfo)
+        has_opp_im = obs_handler.queryBins(correlator_opp_time_im_obsinfo)
+        if (has_opp_re and not has_opp_im) or (has_opp_im and not has_opp_re):
+          print("only real or imaginary")
+          sys.exit()
+
+        has_opp_corr = has_opp_re and has_opp_im
+
+        if has_corr and has_opp_corr:
+          data_not_opp = np.array(obs_handler.getBins(correlator_time_re_obsinfo).array()) + 1j*np.array(obs_handler.getBins(correlator_time_im_obsinfo).array())
+          data_opp = np.array(obs_handler.getBins(correlator_opp_time_re_obsinfo).array()) - 1j*np.array(obs_handler.getBins(correlator_opp_time_im_obsinfo).array())
+
+          data = 0.5*(data_not_opp + data_opp)
+
+        elif has_corr:
           data = np.array(obs_handler.getBins(correlator_time_re_obsinfo).array()) + 1j*np.array(obs_handler.getBins(correlator_time_im_obsinfo).array())
-        elif has_re:
-          data = np.array(obs_handler.getBins(correlator_time_re_obsinfo).array())
-        elif has_im:
-          data = 1j*np.array(obs_handler.getBins(correlator_time_im_obsinfo).array())
+
+        elif has_opp_corr:
+          data = np.array(obs_handler.getBins(correlator_opp_time_re_obsinfo).array()) - 1j*np.array(obs_handler.getBins(correlator_opp_time_im_obsinfo).array())
+
         else:
           continue
 
@@ -249,6 +273,7 @@ def get_data(correlators, ensemble_name, ensemble_Nt, tsrc, ensembles_file):
           corr_data[:,tsep] = data
         else:
           corr_data[:,snk_i,src_i,tsep] = data
+          corr_data[:,src_i,snk_i,tsep] = np.conj(data)
 
   op_list = list()
   for operator in operators:

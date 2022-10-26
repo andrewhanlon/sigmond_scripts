@@ -1,7 +1,7 @@
 from typing import NamedTuple
 
 base_data_dir = "/disk2/research/data/kpi/raw/"
-output_dir = "/disk2/research/data/kpi/sigmond/"
+output_dir = "/disk2/research/data/kpi/"
 
 class Ensemble(NamedTuple):
   name: str
@@ -9,21 +9,33 @@ class Ensemble(NamedTuple):
   sources: list
 
 ensembles = [
-    #Ensemble("cls21_d200", ['r000'], [35]),
-    #Ensemble("cls21_d200", ['r000'], [35, 92]),
+    Ensemble("cls21_d200", ['r000'], [(35, 'fwd'), (92, 'bwd')]),
     #Ensemble("cls21_n200", ['r000'], [32, 52]),
-    Ensemble("cls21_n203", ['r000', 'r001'], [(32,'fwd'), (52, 'fwd')]),
+    #Ensemble("cls21_n203", ['r000', 'r001'], [(32,'fwd'), (52, 'fwd')]),
+    Ensemble("cls21_e250", ['r001'],
+      [
+        (0, 'fwd'), (0, 'bwd'),
+        (1, 'fwd'), (1, 'bwd'),
+        (2, 'fwd'), (2, 'bwd'),
+        (3, 'fwd'), (3, 'bwd'),
+      ]
+    ),
 ]
 
 omissions = {
+    "cls21_e250_r001": set(list(range(0, 1009))) -  set(list(range(0, 501, 4)) + list(range(502, 901, 2)) + list(range(904, 1009, 4))),
+    "cls21_e250": set(list(range(0, 1009))) -  set(list(range(0, 501, 4)) + list(range(502, 901, 2)) + list(range(904, 1009, 4))),
     "cls21_d200_r000": set([2000]),
+    "cls21_d200": set([2000]),
     "cls21_n200_r000": set(range(1, 856, 2)),
+    "cls21_n200": set(range(1, 856, 2)),
     "cls21_n203_r000": set(range(1, 757, 2)),
     "cls21_n203_r001": set(range(0, 788, 2)),
     "cls21_n203": set(range(1, 757, 2)) | set(range(756, 1544, 2)),
 }
 
 configs = {
+    "cls21_e250_r001": list(range(1, 502, 4)) + list(range(503, 902, 2)) + list(range(905, 1010, 4)),
     "cls21_d200_r000": list(range(1, 2001, 1)),
     "cls21_n200_r000": list(range(1, 856, 2)),
     "cls21_n203_r000": list(range(1, 757, 2)),
