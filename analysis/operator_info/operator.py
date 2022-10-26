@@ -221,8 +221,8 @@ class Operator:
 
   @staticmethod
   def operator_type(op_str):
-    isospin = op_str.split()[0]
-    if isospin.startswith("iso") and "_" not in isospin:
+    flavor = op_str.split()[0]
+    if flavor.startswith("Flavor") or (flavor.startswith("iso") and "_" not in flavor):
       return sigmond.OpKind.GenIrrep
     else:
       return sigmond.OpKind.BasicLapH
@@ -264,7 +264,7 @@ class Operator:
   def ratio_op(self):
     if self.operator_type is sigmond.OpKind.GenIrrep:
       op_str_tokens = self.op_str().split()
-      op_str_tokens[4] += "r"
+      op_str_tokens[-2] += "r"
       op_str = ' '.join(op_str_tokens)
       ratio_op = Operator(op_str)
       return ratio_op
