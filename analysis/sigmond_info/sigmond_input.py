@@ -635,16 +635,60 @@ class SigmondInput:
     ET.SubElement(pivot_init_tag, "RotatedCorrelator").append(resulting_operator.xml())
     if 'pivot_name' in extra_options:
       ET.SubElement(pivot_init_tag, "AssignName").text = extra_options['pivot_name']
-    pivot_init_tag.append(correlator_matrix.xml())
+    #pivot_init_tag.append(correlator_matrix.xml())
+    
     if 'improved_ops' in extra_options:
-      improved_ops_tag = ET.SubElement(pivot_init_tag, "ImprovedOperators")
-      for improved_op in extra_options['improved_ops']:
-        improved_ops_tag.append(improved_op.xml())
+      if extra_options['improved_ops']:
+        #make list of replacements
+        ops_to_replace = list()
+        replacements = list()
+        for improved_op_set in extra_options['improved_ops']:
+          for improved_op in improved_op_set:
+            replacements.append(improved_op[0])
+          for i in range(1,len(improved_op_set[0]),2):
+            ops_to_replace.append(improved_op_set[0][i])
+          if len(ops_to_replace)!=len(replacements):
+            logging.warning("Mismatch in improved operators")
+            ops_to_replace = list()
+            replacements = list()
+      
+        #make replacements in correlator matrix
+        improved_correlator_matrix = correlator_matrix.xml()
+        for child in improved_correlator_matrix.findall('GIOperatorString'):
+          for i, (op) in enumerate(ops_to_replace):
+            if child.text==op:
+              child.text = replacements[i]
+        pivot_init_tag.append(improved_correlator_matrix)
+      else:
+        pivot_init_tag.append(correlator_matrix.xml())
+    else:
+      pivot_init_tag.append(correlator_matrix.xml())
+
+    if 'improved_ops' in extra_options:
+      if extra_options['improved_ops']:
+
+        #add improved operators to pivot
+        improved_ops_tag = ET.SubElement(pivot_init_tag, "ImprovedOperators")
+        for improved_op_set in extra_options['improved_ops']:
+          for improved_op in improved_op_set:
+            improved_op_tag = ET.SubElement(improved_ops_tag,"ImprovedOperator")
+            opname_tag = ET.SubElement(improved_op_tag, "OpName")
+            ET.SubElement(opname_tag, "GIOperatorString").text = improved_op[0]
+            for i in range(1,len(improved_op),2):
+              opterm_tag = ET.SubElement(improved_op_tag, "OpTerm")
+              ET.SubElement(opterm_tag, "GIOperatorString").text = improved_op[i]
+              ET.SubElement(opterm_tag, "Coefficient").text = improved_op[i+1]
+
 
     if pivot_info.pivot_type is sigmond_info.sigmond_info.PivotType.SinglePivot:
       ET.SubElement(pivot_init_tag, "NormTime").text = str(pivot_info.norm_time)
       ET.SubElement(pivot_init_tag, "MetricTime").text = str(pivot_info.metric_time)
       ET.SubElement(pivot_init_tag, "DiagonalizeTime").text = str(pivot_info.diagonalize_time)
+      ET.SubElement(pivot_init_tag, "MinimumInverseConditionNumber").text = str(1./pivot_info.max_condition_number)
+    elif pivot_info.pivot_type is sigmond_info.sigmond_info.PivotType.RollingPivot:
+      ET.SubElement(pivot_init_tag, "NormTime").text = str(pivot_info.norm_time)
+      ET.SubElement(pivot_init_tag, "MetricTime").text = str(pivot_info.metric_time)
+      ET.SubElement(pivot_init_tag, "ZMagSqTime").text = str(pivot_info.diagonalize_time)
       ET.SubElement(pivot_init_tag, "MinimumInverseConditionNumber").text = str(1./pivot_info.max_condition_number)
     else:
       logging.error(f"pivot of type {pivot_info.pivot_type} currently not supported")

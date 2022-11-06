@@ -88,7 +88,7 @@ def get_minor_ticks(x_range, y_range):
 
 
 def spectrum(thresholds, energies, non_interacting_energies, latex_map, rotate_irreps,
-             plot_width_factor, ref_name, filename, latex_compiler):
+             plot_width_factor, ref_name, filename, latex_compiler, non_interacting_energy_names=None):
   global FRAME_WIDTH
   FRAME_WIDTH *= plot_width_factor
   global PERCENT_ROOM
@@ -97,7 +97,7 @@ def spectrum(thresholds, energies, non_interacting_energies, latex_map, rotate_i
   # create doc and tikz
   doc = util.create_tikz_doc()
   tikz_filename = f"{filename}.tikz"
-  doc.append(pylatex.NoEscape(rf"\input{{{tikz_filename}}}"))
+  doc.append(pylatex.NoEscape(rf"\input{{spectrum.tikz}}"))
 
   error_bar_options = [
       pylatex.NoEscape(r"lebar/.style={black,postaction={decorate,decoration={markings, mark=at position 0.0 with {\draw (0pt,-2.4pt) -- ++(0,4.8pt);}}}}"),
@@ -110,7 +110,7 @@ def spectrum(thresholds, energies, non_interacting_energies, latex_map, rotate_i
   tikz_pic.append(pylatex.NoEscape(border))
 
   # find energy_range
-  energie_vals = list()
+  energie_vals = list() #change to where it doen't fuck up if there are no non interacting levels decided
   for energy_lists, non_energy_lists in zip(energies.values(), non_interacting_energies.values()):
     for energy in energy_lists:
       energy_mean = energy.getFullEstimate()
@@ -235,6 +235,18 @@ def spectrum(thresholds, energies, non_interacting_energies, latex_map, rotate_i
                  rf"({line_left[0]},{line_left[1]}) -- " \
                  rf"({line_right[0]},{line_right[1]});"
       tikz_pic.append(pylatex.NoEscape(non_tikz))
+
+  #label non interacting enerrgies.
+  if non_interacting_energy_names is not None:
+    for counter, (x_pos, non_energy_list, irrep) in enumerate(zip(irrep_label_poss, non_interacting_energies.values(),non_interacting_energy_names)):
+      for i, (non_energy_est) in enumerate(non_energy_list):
+        non_energy_val = non_energy_est.getFullEstimate()
+        line_right = calculate_position((x_pos+box_width/2, non_energy_val), x_range, energy_range)
+
+        level_name = str(non_interacting_energy_names[irrep][i][0][0])+"_"+str(non_interacting_energy_names[irrep][i][1][0])+" " \
+                   + str(non_interacting_energy_names[irrep][i][0][1])+"_"+str(non_interacting_energy_names[irrep][i][1][1])
+        non_tikz_labels = rf"\node[scale=0.5] at ({line_right[0]}+0.3,{line_right[1]}) {{${level_name}$}};"
+        tikz_pic.append(pylatex.NoEscape(non_tikz_labels))
 
   # Draw energy levels
   box_width = label_width*.9

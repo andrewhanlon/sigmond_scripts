@@ -9,6 +9,7 @@ import sigmond
 
 import tasks.task
 import utils.util as util
+import sigmond_info.sigmond_info
 import sigmond_info.sigmond_log
 import sigmond_info.sigmond_input
 import operator_info.operator
@@ -36,6 +37,8 @@ class RotateCorrelators(tasks.task.Task):
       **diagonly_time (int): (default: 0) specifies what time only diagonal correlators
           are calculated
       **plot_info (PlotInfo): info about the plot
+      **write_to_file (bool): write correlator data to csv files
+          in results directory
     """
     self.hermitian = True
     self.operator_bases = operator_bases
@@ -51,6 +54,7 @@ class RotateCorrelators(tasks.task.Task):
     self.subtractvev = extra_options.pop('subtractvev', True)
 
     self.plot_info = extra_options.pop('plot_info', sigmond_info.sigmond_info.PlotInfo())
+    self.write_to_file = extra_options.pop('write_to_file', False)
 
     util.check_extra_keys(extra_options, self.task_name)
 
@@ -65,6 +69,7 @@ class RotateCorrelators(tasks.task.Task):
       remove_off_diag: false
       diagonly_time: 10
       rotate_mode: bins # or samplings_all, samplings_unsubt, samplings
+      write_to_file: true # optional, writes rotated correlators to csv files if flag present
 
       plot_info:
         corrname: standard
@@ -82,6 +87,8 @@ class RotateCorrelators(tasks.task.Task):
             metric_time: 18
             diagonalize_time: 22
             max_condition_number: 100
+          optimized_operators:
+            - basis_name_of_opops (uses name to retrieve information from logfile in same project directory)
           operators:       # optional (if basis_name already defined)
             - op_string1
             - op_string2
@@ -100,10 +107,11 @@ class RotateCorrelators(tasks.task.Task):
 
     except KeyError as err:
       logging.error(f"Invalid key '{err}' in task '{self.task_name}'")
+    except AttributeError as err:
+      logging.error(f"Rotated basis needs a pivot tag")
 
     task_options['plot_info'] = sigmond_info.sigmond_info.PlotInfo.createFromConfig(task_options)
     task_options['rotate_mode'] = sigmond_info.sigmond_info.RotateMode(task_options.pop('rotate_mode', 'samplings_all'))
-
     self.initialize(operator_bases, **task_options)
 
   def energy_plotdir(self, rotated_basis):
@@ -181,6 +189,7 @@ class RotateCorrelators(tasks.task.Task):
       logging.info(f"  Time separations [{mintime},{maxtime}]")
       data_files = self.data_handler.getChannelDataFiles(operator_basis.channel)
 
+
       project_name = self.project_name(repr(operator_basis))
       logfile = self.logfile(repr(operator_basis))
       inputfile = self.inputfile(repr(operator_basis))
@@ -202,7 +211,8 @@ class RotateCorrelators(tasks.task.Task):
           energy_plotstub=energy_plotstub, eff_energy_type=self.plot_info.eff_energy_type, 
           timestep=self.plot_info.timestep, symbol_color=self.plot_info.symbol_color,
           symbol_type=self.plot_info.symbol_type, rescale=self.plot_info.rescale,
-          remove_off_diag=self.remove_off_diag, diagonly_time=self.diagonly_time)
+          remove_off_diag=self.remove_off_diag, diagonly_time=self.diagonly_time,
+          improved_ops=operator_basis.verifyOptimizedOps(self.logdir))
 
       sigmond_input.write()
       sigmond_inputs.append(sigmond_input)
@@ -211,14 +221,20 @@ class RotateCorrelators(tasks.task.Task):
 
   def finalize(self):
     doc = util.create_doc(f"Rotated Correlators and Effective Energies: {self.task_name} - {self.ensemble_name}")
-
+    
+    #Sarah
+    results_dir = self.results_dir
+    os.makedirs(results_dir, exist_ok=True)
+    if self.write_to_file:
+        os.makedirs(os.path.join(results_dir,'estimates'), exist_ok=True)
+    
     for operator_basis in self.operator_bases:
       logfile = self.logfile(repr(operator_basis))
       rotation_log = sigmond_info.sigmond_log.RotationLog(logfile)
       if rotation_log.failed:
-        logging.warning(f"Rotation {operator_basis.name} failed")
+        logging.warning(f"Rotation {operator_basis.name} failed: log located in {logfile}")
         continue
-
+      
       corr_plotsdir = self.correlator_plotdir(operator_basis)
       energy_plotsdir = self.energy_plotdir(operator_basis)
       util.dirGrace2pdf(corr_plotsdir)
@@ -231,20 +247,34 @@ class RotateCorrelators(tasks.task.Task):
         with doc.create(pylatex.Subsection("Rotation Info")):
           with doc.create(pylatex.Center()) as centered:
             with centered.create(
-                pylatex.LongTabu("X[c]|X[c]|X[c]|X[c]|X[c]|X[3,c]|X[3,c]|X[3,c]|X[3,c]|X[3,c]",
+                  pylatex.LongTabu("X[c]|X[c]|X[c]|X[c]|X[c]|X[3,c]|X[3,c]|X[3,c]|X[3,c]|X[3,c]",
                                  to=r"\linewidth")) as param_table:
-              header_row = [
-                  pylatex.NoEscape(r"$N_{op}$"),
-                  pylatex.NoEscape(r"$N_{\text{d}}$"),
-                  pylatex.NoEscape(r"$\tau_N$"),
-                  pylatex.NoEscape(r"$\tau_0$"),
-                  pylatex.NoEscape(r"$\tau_D$"),
-                  pylatex.NoEscape(r"$\xi_{cn}$ (max)"),
-                  pylatex.NoEscape(r"$\xi_{cn}^C$ (input)"),
-                  pylatex.NoEscape(r"$\xi_{cn}^C$ (retain)"),
-                  pylatex.NoEscape(r"$\xi_{cn}^G$ (input)"),
-                  pylatex.NoEscape(r"$\xi_{cn}^G$ (retain)"),
-              ]
+              if(operator_basis.pivot_info.pivot_type==sigmond_info.sigmond_info.PivotType.RollingPivot):
+                  header_row = [
+                      pylatex.NoEscape(r"$N_{op}$"),
+                      pylatex.NoEscape(r"$N_{\text{d}}$"),
+                      pylatex.NoEscape(r"$\tau_N$"),
+                      pylatex.NoEscape(r"$\tau_0$"),
+                      pylatex.NoEscape(r"$\tau_Z$"),
+                      pylatex.NoEscape(r"$\xi_{cn}$ (max)"),
+                      pylatex.NoEscape(r"$\xi_{cn}^C$ (input)"),
+                      pylatex.NoEscape(r"$\xi_{cn}^C$ (retain)"),
+                      pylatex.NoEscape(r"$\xi_{cn}^G$ (input)"),
+                      pylatex.NoEscape(r"$\xi_{cn}^G$ (retain)"),
+                  ]
+              else:
+                  header_row = [
+                      pylatex.NoEscape(r"$N_{op}$"),
+                      pylatex.NoEscape(r"$N_{\text{d}}$"),
+                      pylatex.NoEscape(r"$\tau_N$"),
+                      pylatex.NoEscape(r"$\tau_0$"),
+                      pylatex.NoEscape(r"$\tau_D$"),
+                      pylatex.NoEscape(r"$\xi_{cn}$ (max)"),
+                      pylatex.NoEscape(r"$\xi_{cn}^C$ (input)"),
+                      pylatex.NoEscape(r"$\xi_{cn}^C$ (retain)"),
+                      pylatex.NoEscape(r"$\xi_{cn}^G$ (input)"),
+                      pylatex.NoEscape(r"$\xi_{cn}^G$ (retain)"),
+                  ]
               param_table.add_row(header_row, mapper=[pylatex.utils.bold])
               param_table.add_hline()
               param_table.end_table_header()
@@ -264,57 +294,59 @@ class RotateCorrelators(tasks.task.Task):
 
           doc.append(pylatex.NoEscape(r"\textbf{Metric Null Space Check:} " + \
                                       rotation_log.metric_null_space_message))
-
-          with doc.create(pylatex.Subsubsection("Input Operators")):
-            with doc.create(pylatex.Center()) as centered:
-              with centered.create(
-                  pylatex.LongTabu("X[2,c] X[c] X[c]", row_height=1.5)) as op_table:
-                header_row = [
-                    "Operator",
-                    pylatex.NoEscape(r"$\delta C(\tau_0)$"),
-                    pylatex.NoEscape(r"$\delta C(\tau_D)$")
-                ]
-                op_table.add_row(header_row, mapper=[pylatex.utils.bold])
-                op_table.add_hline()
-                op_table.end_table_header()
-                for op, errors in rotation_log.diagonal_correlator_errors.items():
-                  row = [
-                      op,
-                      errors.metric,
-                      errors.matrix,
+          
+          if (not operator_basis._optimized_ops) and (operator_basis.pivot_info.pivot_type!=sigmond_info.sigmond_info.PivotType.RollingPivot):
+            with doc.create(pylatex.Subsubsection("Input Operators")):
+              with doc.create(pylatex.Center()) as centered:
+                with centered.create(
+                    pylatex.LongTabu("X[2,c] X[c] X[c]", row_height=1.5)) as op_table:
+                  header_row = [
+                      "Operator",
+                      pylatex.NoEscape(r"$\delta C(\tau_0)$"),
+                      pylatex.NoEscape(r"$\delta C(\tau_D)$")
                   ]
-                  op_table.add_row
-                  op_table.add_row(row)
+                  op_table.add_row(header_row, mapper=[pylatex.utils.bold])
+                  op_table.add_hline()
+                  op_table.end_table_header()
+                  for op, errors in rotation_log.diagonal_correlator_errors.items():
+                    row = [
+                        op,
+                        errors.metric,
+                        errors.matrix,
+                    ]
+                    op_table.add_row
+                    op_table.add_row(row)
+                    
+          if operator_basis.pivot_info.pivot_type!=sigmond_info.sigmond_info.PivotType.RollingPivot:
+            with doc.create(pylatex.Subsubsection("Diagonal Deviations From Zero")):
+                with doc.create(pylatex.Center()) as centered:
+                  with centered.create(
+                      pylatex.LongTabu("X[c] X[4,c] X[3,c] X[3,c] X[3,c] X[3,c] X[2,c]")) as deviation_table:
+                    header_row = [
+                        "time",
+                        pylatex.NoEscape(r"$\delta 0_{max}$"),
+                        pylatex.NoEscape(r"$\% > 1 \sigma$"),
+                        pylatex.NoEscape(r"$\% > 2 \sigma$"),
+                        pylatex.NoEscape(r"$\% > 3 \sigma$"),
+                        pylatex.NoEscape(r"$\% > 4 \sigma$"),
+                        "Status",
+                    ]
+                    deviation_table.add_row(header_row, mapper=[pylatex.utils.bold])
+                    deviation_table.add_hline()
+                    deviation_table.end_table_header()
+                    for time, deviation in rotation_log.deviations_from_zero.items():
+                      row = [
+                          time,
+                          deviation.max,
+                          deviation.one,
+                          deviation.two,
+                          deviation.three,
+                          deviation.four,
+                          deviation.status,
+                      ]
+                      deviation_table.add_row(row)
 
-          with doc.create(pylatex.Subsubsection("Diagonal Deviations From Zero")):
-            with doc.create(pylatex.Center()) as centered:
-              with centered.create(
-                  pylatex.LongTabu("X[c] X[4,c] X[3,c] X[3,c] X[3,c] X[3,c] X[2,c]")) as deviation_table:
-                header_row = [
-                    "time",
-                    pylatex.NoEscape(r"$\delta 0_{max}$"),
-                    pylatex.NoEscape(r"$\% > 1 \sigma$"),
-                    pylatex.NoEscape(r"$\% > 2 \sigma$"),
-                    pylatex.NoEscape(r"$\% > 3 \sigma$"),
-                    pylatex.NoEscape(r"$\% > 4 \sigma$"),
-                    "Status",
-                ]
-                deviation_table.add_row(header_row, mapper=[pylatex.utils.bold])
-                deviation_table.add_hline()
-                deviation_table.end_table_header()
-                for time, deviation in rotation_log.deviations_from_zero.items():
-                  row = [
-                      time,
-                      deviation.max,
-                      deviation.one,
-                      deviation.two,
-                      deviation.three,
-                      deviation.four,
-                      deviation.status,
-                  ]
-                  deviation_table.add_row(row)
-
-        doc.append(pylatex.NoEscape(r"\newpage"))
+            doc.append(pylatex.NoEscape(r"\newpage"))
 
         operators = self.data_handler.getRotatedOperators(operator_basis)
         #self.addPlotsToPDF(doc, data_files, operators, operator_basis)
@@ -324,6 +356,8 @@ class RotateCorrelators(tasks.task.Task):
             with doc.create(pylatex.Subsubsection(str(operator))):
               corr = sigmond.CorrelatorInfo(operator.operator_info, operator.operator_info)
               util.add_correlator(doc, self, corr, operator_basis, obs_handler)
+              if self.write_to_file:
+                  self._write_diag_corr_to_csv(corr, operator_basis, obs_handler)
 
         doc.append(pylatex.NoEscape(r"\newpage"))
 
@@ -339,7 +373,23 @@ class RotateCorrelators(tasks.task.Task):
             with doc.create(pylatex.Subsubsection(off_diag_corr.corr_str())):
               util.add_correlator(doc, self, off_diag_corr, operator_basis, obs_handler)
 
-    results_dir = self.results_dir
-    os.makedirs(results_dir, exist_ok=True)
     filename = os.path.join(results_dir, self.task_name)
     util.compile_pdf(doc, filename, self.latex_compiler)
+    
+
+  def _write_diag_corr_to_csv( self, correlator, name, obs_handler):
+    operator_src = operator_info.operator.Operator(correlator.getSource())
+    subtractvev = self.subtractvev and operator_src.channel.vev
+    results_dir = self.results_dir
+    if correlator.isSinkSourceSame():
+        csv_file_stub = str(correlator.getSink()).replace(' ','_').replace('(0,0,0)','0').replace('=','')
+        f = open(os.path.join(results_dir,'estimates',csv_file_stub+'.csv'),'w+')
+        f.write('t,value,error\n')
+        left_estimates = sigmond.getCorrelatorEstimates(
+            obs_handler, correlator, self.hermitian, subtractvev, sigmond.ComplexArg.RealPart,
+            self.sampling_mode)
+        for t in sorted(left_estimates.keys()):
+            left_value = left_estimates[t].getFullEstimate()
+            left_error = left_estimates[t].getSymmetricError()
+            f.write(f"{t},{left_value},{left_error}\n")
+        f.close()

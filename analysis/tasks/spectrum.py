@@ -4,6 +4,7 @@ import logging
 import xml.etree.ElementTree as ET
 import h5py
 import pylatex
+import numpy as np
 
 import tasks.task
 import utils.plotting
@@ -61,6 +62,11 @@ class Spectrum(tasks.task.Task):
       **bar_color (SymbolColor): color for the zfactor plots
       **rotate_labels (bool): whether the irrep labels on the spectrum plot
           should be rotated
+      **non_interacting_energy_labels (bool): whether it prints the
+          non interacting levels on the spectrum tikz plot or not.
+      **single_hadrons (list): list of the two single hadron names that 
+          make up the correlators for this channel to calculate the q^2_cm.
+          Not set up for anything other than two operator interactions.
     """
 
     self.spectrum = spectrum
@@ -77,6 +83,8 @@ class Spectrum(tasks.task.Task):
     self.bar_color = extra_options.pop('bar_color', sigmond_info.sigmond_info.SymbolColor.cyan)
     self.rotate_labels = extra_options.pop('rotate_labels', False)
     self.plot_width_factor = extra_options.pop('plot_width_factor', 1.)
+    self.non_interacting_energy_labels = extra_options.pop('non_interacting_energy_labels', False)
+    self.single_hadrons = extra_options.pop('single_hadrons',list())
 
     util.check_extra_keys(extra_options, 'Spectrum.initialize')
 
@@ -85,9 +93,8 @@ class Spectrum(tasks.task.Task):
 
     YAML:
       subtractvev: true   # optional
-
       noise_cutoff: 3.    # optional
-
+      non_interacting_energy_labels: true #optional
       reorder: false   # optional
       
       # optional
@@ -190,7 +197,7 @@ class Spectrum(tasks.task.Task):
             - model: 1-exp
               tmin: 14
               tmax: 20
-          tmin_info:
+          tmin_info: (optional)
             - fit_infos:
               - model: 1-exp
                 tmin_min: 3
@@ -317,6 +324,7 @@ class Spectrum(tasks.task.Task):
           noise_cutoff = level.pop('noise_cutoff', global_noise_cutoff)
           ratio = level.pop('ratio', False)
           flag = level.pop('flag', False)
+          max_level = level.pop('max_level',4)
           util.check_extra_keys(level, "spectrum.level")
 
           if non_interacting_level is None:
@@ -331,7 +339,7 @@ class Spectrum(tasks.task.Task):
 
           fit_info = sigmond_info.fit_info.FitInfo(
               operator, fit_model, tmin, tmax, subtractvev, ratio, exclude_times, noise_cutoff,
-              non_interacting_operators)
+              non_interacting_operators, -1, max_level)
 
           spectrum[operator_set].append(fit_info)
           flagged_levels[operator_set].append(flag)
@@ -394,6 +402,16 @@ class Spectrum(tasks.task.Task):
   def hdf5_filename(self):
     filename = f"energy_samplings_{self.task_name}_rebin{self.rebin}.hdf5"
     return os.path.join(self.samplings_dir, filename)
+
+  @property
+  def qsqr_filename(self):
+    filename = f"qsqr_samplings_{self.task_name}_rebin{self.rebin}.hdf5"
+    return os.path.join(self.samplings_dir, filename)
+
+  @property
+  def estimates_filename(self):
+    filename = f"energy_estimates_{self.task_name}_rebin{self.rebin}_{self.sampling_mode}.csv"
+    return os.path.join(self.results_dir, filename)
   
   @property
   def samplings_filename(self):
@@ -492,6 +510,7 @@ class Spectrum(tasks.task.Task):
 
     # Now the spectra
     for operator_set, fit_infos in self.spectrum.items():
+#       print("Sarah:", operator_set, fit_infos)  
       tmin_plotdir = self.tmin_plotdir(repr(operator_set))
       fit_plotdir = self.fit_plotdir(repr(operator_set))
       shutil.rmtree(tmin_plotdir)
@@ -513,7 +532,11 @@ class Spectrum(tasks.task.Task):
 
       energies = list()
       amplitudes = list()
+      denergies = list()
       tmin_fit_infos = self.tmin_infos.get(operator_set, [None]*len(fit_infos))
+      if not tmin_fit_infos:
+        tmin_fit_infos = [None]*len(fit_infos)
+    
       for level, (fit_info, tmin_fit_info) in enumerate(zip(fit_infos, tmin_fit_infos)):
         energy_obs = fit_info.energy_observable
         amplitude_obs = fit_info.amplitude_observable
@@ -528,7 +551,7 @@ class Spectrum(tasks.task.Task):
 
         non_interacting_level = list()
         non_interacting_amp = list()
-        if fit_info.non_interacting_operators is not None:
+        if fit_info.non_interacting_operators is not None: 
           for scattering_particle in fit_info.non_interacting_operators.non_interacting_level:
             scattering_particle_fit_info = self.scattering_particles[scattering_particle]
             at_rest_scattering_particle = sigmond_info.sigmond_info.ScatteringParticle(scattering_particle.name, 0, False)
@@ -578,16 +601,21 @@ class Spectrum(tasks.task.Task):
                     plot_info=tmin_plot_info, chosen_fit_info=noshift_energy_obs)
         
         if fit_info.ratio:
+          channel = fit_info.operator.channel
+          samp_dir = f"PSQ{channel.psq}/{channel.irrep}"
+          delab = sigmond.MCObsInfo(f"{samp_dir}/dElab_{level}", 0)
+          sigmond_input.doCopy(delab, energy_obs, sampling_mode=self.sampling_mode)
+          denergies.append(delab)
           sigmond_input.doReconstructEnergy(
               energy_obs, energy_obs, self.ensemble_spatial_extent, non_interacting_level,
               sampling_mode=self.sampling_mode)
 
           sigmond_input.doReconstructAmplitude(
               amplitude_obs, amplitude_obs, non_interacting_amp, sampling_mode=self.sampling_mode)
-
+        
         energies.append(energy_obs)
         amplitudes.append(amplitude_obs)
-
+        
       if operator_set.is_rotated:
         zfactor_plotdir = self.zfactor_plotdir(repr(operator_set))
         shutil.rmtree(zfactor_plotdir)
@@ -642,6 +670,8 @@ class Spectrum(tasks.task.Task):
 
           energy_samplings_obs.append(elab_ref)
           energy_samplings_obs.append(ecm_ref)
+            
+      energy_samplings_obs.extend(denergies)
 
       sigmond_input.writeToFile(
           self.samplings_filename, energy_samplings_obs,
@@ -713,6 +743,11 @@ class Spectrum(tasks.task.Task):
 
   def finalize(self):
     self.spectrum_logs = dict()
+    
+    logfile = self.logfile('single_hadrons')
+    spectrum_log = sigmond_info.sigmond_log.SpectrumLog(logfile)
+    #self.spectrum_logs['single_hadrons'] = spectrum_log
+    
     for operator_set in self.spectrum.keys():
       if operator_set.is_rotated:
         logfile = self.logfile(repr(operator_set))
@@ -729,6 +764,7 @@ class Spectrum(tasks.task.Task):
         doc.append(pylatex.NoEscape(rf"\input{{{spectrum_tikz_file}.tikz}}"))
         doc.append(pylatex.NoEscape(r"}"))
         self._addFitTable(doc)
+        #if non interacting levels add Noninteracting levels fit table
         doc.append(pylatex.NoEscape(r"\newpage"))
 
     self._addFittedEnergies(doc)
@@ -741,7 +777,7 @@ class Spectrum(tasks.task.Task):
 
     filename = os.path.join(self.results_dir, f"spectrum_{self.ensemble_name}_{self.task_name}_rebin{self.rebin}")
     util.compile_pdf(doc, filename, self.latex_compiler)
-
+          
   def _addZfactors(self, doc):
     with doc.create(pylatex.Section("Overlap factors")):
       for operator_set, spectrum_log in self.spectrum_logs.items():
@@ -895,8 +931,9 @@ class Spectrum(tasks.task.Task):
 
 
   def _addFitTable(self, doc):
+    #make table for spectrum fits
     with doc.create(pylatex.Center()) as centered:
-      long_tabu = "X[0.1,c] X[c] X[c] X[2,c] X[4,c] X[4,c] X[4,c] X[3,c] X[2,c] X[2,c]"
+      long_tabu = "X[0.1,c] X[0.5,c] X[0.5,c] X[2,c] X[3,c]  X[4,c] X[3,c] X[4,c] X[3,c] X[1.5,c] X[2,c]"
       with centered.create(pylatex.LongTabu(long_tabu, to=r"\linewidth")) as data_table:
 
         if self.reference_fit_info is None:
@@ -912,10 +949,11 @@ class Spectrum(tasks.task.Task):
             pylatex.NoEscape(r"Level"),
             pylatex.NoEscape(ref_energy_header),
             pylatex.NoEscape(r"$a_t (\Delta) E_{\rm lab}$"),
+            pylatex.NoEscape(r"$a_t E_{\rm lab}$"),
             pylatex.NoEscape("Fit model"),
             pylatex.NoEscape(r"$(t_{\rm min}, t_{\rm max})$"),
             pylatex.NoEscape(r"$\chi^2/\text{dof}$"),
-            pylatex.NoEscape(r"$p$-val."),
+            pylatex.NoEscape(r"NI"),
         ]
 
         data_table.add_row(header_row, mapper=[pylatex.utils.bold])
@@ -930,6 +968,11 @@ class Spectrum(tasks.task.Task):
               flag = "X" if self.flagged_levels[operator_set][level] else ""
 
             fit_info = fit_infos[level]
+            noninteracting_level = ""
+            if fit_info.ratio:
+                if fit_info.non_interacting_operators is not None:
+                  for scattering_particle in fit_info.non_interacting_operators.non_interacting_level:
+                    noninteracting_level+=str(scattering_particle)
             channel = operator_set.channel
             logfile = self.logfile(repr(operator_set))
             fit_log = sigmond_info.sigmond_log.FitLog(logfile)
@@ -938,6 +981,7 @@ class Spectrum(tasks.task.Task):
 
             energy = util.nice_value(energy.getFullEstimate(), energy.getSymmetricError())
             at_energy = fit_result.energy
+            recon_energy = fit_result.reconstructed_energy
             fit_model = fit_info.model.short_name
             if fit_info.ratio:
               fit_model += " - ratio"
@@ -953,14 +997,62 @@ class Spectrum(tasks.task.Task):
                 pylatex.NoEscape(rf"${level} \to {new_level}$"),
                 energy,
                 at_energy,
+                recon_energy,
                 fit_model,
                 pylatex.NoEscape(rf"$({fit_info.tmin}, {fit_info.tmax})$"),
                 round(fit_result.chisq,2),
-                round(fit_result.quality,2),
+                noninteracting_level,
             ]
 
             data_table.add_row(data_row)
             new_level += 1
+    
+    #make table for scattering particles
+    if self.scattering_particles:
+      with doc.create(pylatex.Center()) as centered:
+        long_tabu = "X[8,c] X[4,c] X[4,c] X[4,c] X[3,c] X[2,c] X[2,c]"
+        with centered.create(pylatex.LongTabu(long_tabu, to=r"\linewidth")) as data_table2:
+          header_row = [
+                pylatex.NoEscape(r"Scattering Particles($d^2$)"),
+                pylatex.NoEscape(ref_energy_header),
+                pylatex.NoEscape(r"$a_t (\Delta) E_{\rm lab}$"),
+                pylatex.NoEscape("Fit model"),
+                pylatex.NoEscape(r"$(t_{\rm min}, t_{\rm max})$"),
+                pylatex.NoEscape(r"$\chi^2/\text{dof}$"),
+                pylatex.NoEscape(r"$p$-val."),
+          ]
+
+          data_table2.add_row(header_row, mapper=[pylatex.utils.bold])
+          data_table2.end_table_header()
+          
+          data_table2.add_hline()
+          new_level = 0
+          scattering_particles = list(self.scattering_particles.keys())
+          grouped_scattering_particles = [scattering_particles[n:n+2] for n in range(0, len(scattering_particles), 2)]
+          logfile = self.logfile('single_hadrons')
+          fit_log = sigmond_info.sigmond_log.FitLog(logfile)
+          for scattering_particles_group in grouped_scattering_particles:
+            for scattering_particle in scattering_particles_group:
+              fit_info = self.scattering_particles[scattering_particle]
+              energy = self.ni_energies[scattering_particle]
+              energy = util.nice_value(energy.getFullEstimate(), energy.getSymmetricError())
+              fit_result = fit_log.fits[fit_info]
+              at_energy = fit_result.energy
+              fit_model = fit_info.model.short_name
+              if fit_info.ratio:
+                fit_model += " - ratio"
+              data_row = [
+                      scattering_particle,
+                      energy,
+                      at_energy,
+                      fit_model,
+                      pylatex.NoEscape(rf"$({fit_info.tmin}, {fit_info.tmax})$"),
+                      round(fit_result.chisq,2),
+                      round(fit_result.quality,2),
+              ]
+    
+              data_table2.add_row(data_row)
+              new_level += 1
 
 
   def _setEnergies(self):
@@ -969,6 +1061,60 @@ class Spectrum(tasks.task.Task):
     data_files.addSamplingFiles(self.samplings_filename)
     obs_handler, _ = util.get_obs_handlers(data_files, self.bins_info, self.sampling_info)
 
+    samplings_handler = sigmond.SamplingsGetHandler(
+        self.bins_info, self.sampling_info, set([self.samplings_filename]))
+
+    hdf5_filename = self.hdf5_filename
+    if os.path.exists(hdf5_filename):
+      os.remove(hdf5_filename)
+    hdf5_h = h5py.File(hdf5_filename, 'w')
+    
+    est_filename = self.estimates_filename
+    fests = open(est_filename, 'w+')
+    fests.write(f"obs,val,err\n")
+    
+    #print non interacting levels for each level to their correponding irrp into the csv
+    for operator_set, fit_infos in self.spectrum.items():
+      non_interacting_energies,non_interacting_energy_names = self._getNonInteractingLevels(operator_set)
+      for ni_name, ni_energy in zip(non_interacting_energy_names,non_interacting_energies):
+        obsname = f"PSQ{operator_set.channel.psq}/{operator_set.channel.irrep}/"
+        for particle, mom in zip(ni_name[0],ni_name[1]):
+          obsname+=f"{particle}({mom})"
+        obsname+="_ref"
+        fests.write(f"{obsname},{ni_energy.getFullEstimate()},{ni_energy.getSymmetricError()}\n")
+
+    for obs_info in samplings_handler.getKeys():
+      np_data = util.get_samplings(obs_handler, obs_info)
+      hdf5_h.create_dataset(obs_info.getObsName(), data=np_data)
+      val = obs_handler.getEstimate(obs_info).getFullEstimate()
+      err = obs_handler.getEstimate(obs_info).getSymmetricError()
+      fests.write(f"{obs_info.getObsName()},{val},{err}\n")
+
+    hdf5_h.close()
+    fests.close()
+    
+    #write qsqr to file
+    if len(self.single_hadrons)==2:
+        sh1ref_obs_info = sigmond.MCObsInfo(f'single_hadrons/{self.single_hadrons[0]}(0)_ref',0)
+        sh2ref_obs_info = sigmond.MCObsInfo(f'single_hadrons/{self.single_hadrons[1]}(0)_ref',0)
+        if sh1ref_obs_info in samplings_handler.getKeys() and sh2ref_obs_info in samplings_handler.getKeys():
+            qsqr_filename = self.qsqr_filename
+            if os.path.exists(qsqr_filename):
+              os.remove(qsqr_filename)
+            hdf5_qsqr = h5py.File(qsqr_filename, 'w')
+            sh1ref_data = util.get_samplings(obs_handler, sh1ref_obs_info)
+            sh2ref_data = util.get_samplings(obs_handler, sh2ref_obs_info)
+            for obs_info in samplings_handler.getKeys():
+                if '_ref' in obs_info.getObsName() and 'cm' in obs_info.getObsName():
+                    np_data = util.get_samplings(obs_handler, obs_info)
+                    qsqr_data = np_data*np_data/4.0-(sh1ref_data*sh1ref_data+sh2ref_data*sh2ref_data)/2.0 + (sh1ref_data*sh1ref_data-sh2ref_data*sh2ref_data)*(sh1ref_data*sh1ref_data-sh2ref_data*sh2ref_data)/(4.0*np_data*np_data)
+                    hdf5_qsqr.create_dataset(obs_info.getObsName().replace('ecm','q2cm'), data=qsqr_data)
+
+            hdf5_qsqr.close()
+    elif self.single_hadrons:
+        logging.warning("q^2 calculations are only set up for two hadron correlators") 
+
+    # save energies to self
     self.energies = dict()
     for operator_set, fit_infos in self.spectrum.items():
       self.energies[operator_set] = dict()
@@ -981,7 +1127,8 @@ class Spectrum(tasks.task.Task):
 
           try:
             energy = obs_handler.getEstimate(sigmond.MCObsInfo(obs_name, 0))
-          except RuntimeError:
+          except RuntimeError as error:
+            logging.warning(f"{error}")
             logging.critical(f"Failed to get samplings for {obs_name}")
 
           self.energies[operator_set][level.original] = energy
@@ -995,7 +1142,8 @@ class Spectrum(tasks.task.Task):
 
           try:
             energy = obs_handler.getEstimate(sigmond.MCObsInfo(obs_name, 0))
-          except RuntimeError:
+          except RuntimeError as error:
+            logging.warning(f"{error}")
             logging.critical(f"Failed to get samplings for {obs_name}")
 
           self.energies[operator_set][level] = energy
@@ -1062,6 +1210,19 @@ class Spectrum(tasks.task.Task):
 
     hdf5_h.close()
 
+    #save single hadrons to self
+    if self.scattering_particles:
+      self.ni_energies = dict()
+      for operator, fit_info in self.scattering_particles.items():
+        #operator = fit_info.operator
+        obs_name = f"single_hadrons/{operator}"
+        if self.reference_fit_info is not None:
+          obs_name += f"_{self.ref_name}"
+        try:
+          energy = obs_handler.getEstimate(sigmond.MCObsInfo(obs_name, 0))
+        except RuntimeError:
+          logging.critical(f"Failed to get samplings for {obs_name}")
+        self.ni_energies[operator] = energy
 
   def _getThresholds(self):
     data_files = data_handling.data_files.DataFiles()
@@ -1098,14 +1259,23 @@ class Spectrum(tasks.task.Task):
     data_files.addSamplingFiles(self.samplings_filename)
     obs_handler, _ = util.get_obs_handlers(data_files, self.bins_info, self.sampling_info)
 
-    non_interacting_levels = list()
+    non_interacting_levels = list()      #    level 0     ,   level 1...
+    non_interacting_level_names = list() #[ [[N,pi].[0,0]], [[N,pi].[1,0]], ...
     for fit_info in self.spectrum[operator_basis]:
+      single_particle_names = list()
+      single_particle_moms = list()
       single_particles = list()
+
+      if fit_info.non_interacting_operators is None:
+        continue
+
       for scattering_particle in fit_info.non_interacting_operators.non_interacting_level:
         at_rest_scattering_particle = sigmond_info.sigmond_info.ScatteringParticle(scattering_particle.name, 0, False)
         energy_obs = sigmond.MCObsInfo(f"{self.sh_name}/{at_rest_scattering_particle!r}", 0)
         single_particle = util.boost_obs(obs_handler, energy_obs, scattering_particle.psq, self.ensemble_spatial_extent)
         single_particles.append(single_particle)
+        single_particle_names.append(scattering_particle.name)
+        single_particle_moms.append(scattering_particle.psq)
 
       total = util.linear_superposition_obs(obs_handler, single_particles, [1.0]*len(single_particles))
       total_cm = util.boost_obs_to_cm(obs_handler, total, fit_info.operator.psq, self.ensemble_spatial_extent)
@@ -1115,8 +1285,9 @@ class Spectrum(tasks.task.Task):
         total_cm = util.ratio_obs(obs_handler, total_cm, ref_obs)
 
       non_interacting_levels.append(obs_handler.getEstimate(total_cm))
+      non_interacting_level_names.append([single_particle_names,single_particle_moms])
 
-    return non_interacting_levels
+    return non_interacting_levels,non_interacting_level_names
 
   def _makePlot(self):
 
@@ -1125,7 +1296,8 @@ class Spectrum(tasks.task.Task):
     # get energies and non_interacting energies
     energies = dict()
     non_interacting_energies = dict()
-
+    non_interacting_energy_names = dict()
+    
     for operator_set, fit_infos in self.spectrum.items():
       if operator_set.is_rotated:
         channel = operator_set.channel
@@ -1133,7 +1305,6 @@ class Spectrum(tasks.task.Task):
         psq = channel.psq
         label = rf"${irrep} ({psq})$"
         energies[label] = list()
-
         for energy in self.energies[operator_set].values():
           energies[label].append(energy)
 
@@ -1150,13 +1321,21 @@ class Spectrum(tasks.task.Task):
 
           energies[label].append(energy)
 
-      non_interacting_energies[label] = self._getNonInteractingLevels(operator_set)
+      non_interacting_energies[label],non_interacting_energy_names[label] = self._getNonInteractingLevels(operator_set)
 
     plot_directory = os.path.join(self.results_dir, "spectrum_plot")
     os.makedirs(plot_directory, exist_ok=True)
     plot_filename = os.path.join(plot_directory, "spectrum")
-    utils.plotting.spectrum(thresholds, energies, non_interacting_energies, self.latex_map,
+    relative_plot_directory = os.path.join("spectrum_plot","spectrum")
+
+    if self.non_interacting_energy_labels:
+      utils.plotting.spectrum(thresholds, energies, non_interacting_energies, self.latex_map,
+                            self.rotate_labels, self.plot_width_factor, self.ref_name, plot_filename,
+                            self.latex_compiler, non_interacting_energy_names)
+    else:
+      utils.plotting.spectrum(thresholds, energies, non_interacting_energies, self.latex_map,
                             self.rotate_labels, self.plot_width_factor, self.ref_name, plot_filename,
                             self.latex_compiler)
-    return plot_filename
+    return relative_plot_directory
+
 

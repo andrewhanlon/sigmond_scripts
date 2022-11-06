@@ -46,6 +46,10 @@ class AverageCorrelators(tasks.task.Task):
       **plot_info (PlotInfo): info about the plot
       **write_operators (bool): determines whether the operators
           should be written to file
+      **suggest_rotation_task (bool): Writes a rotation task with a basic
+          setup using the operators fed into view data
+      **suggest_spectrum_task (bool): Writes a spectrum task with a basic
+          setup using the operators fed into view data
     """
     self.subtractvev = False
 
@@ -57,6 +61,8 @@ class AverageCorrelators(tasks.task.Task):
 
     self.use_spatial_info = options.pop('use_spatial_info', False)
     self.use_irrep_info = options.pop('use_irrep_info', False)
+    self.suggest_rot = options.pop('suggest_rotation_task', False)
+    self.suggest_spec = options.pop('suggest_spectrum_task', False)
 
     raw_channels = self.data_handler.raw_channels
     self.averaged_channels = dict()
@@ -96,6 +102,8 @@ class AverageCorrelators(tasks.task.Task):
       use_irrep_info: true
 
       write_operators: false
+      suggest_rotation_task: false          # optional
+      suggest_spectrum_task: false          # optional
 
       plot_info:
         corrname: standard                   # optional
@@ -284,8 +292,7 @@ class AverageCorrelators(tasks.task.Task):
 
   def finalize(self):
     if self.write_operators and os.path.isfile(self.op_yaml_file):
-      os.remove(self.op_yaml_file)
-      
+      os.remove(self.op_yaml_file)  
 
     self.data_handler.findAveragedData()
     doc = util.create_doc(
@@ -299,7 +306,6 @@ class AverageCorrelators(tasks.task.Task):
         operator_info.operator_set.write_operators_to_yaml(self.op_yaml_file, repr(channel), operators, True)
 
       result_operators, original_operators, coefficients = self.final_info[channel]
-
       with doc.create(pylatex.Section(str(channel))):
         with doc.create(pylatex.Subsection("Operators averaged")):
           for result_operator in result_operators:
@@ -317,6 +323,10 @@ class AverageCorrelators(tasks.task.Task):
 
     filename = os.path.join(self.results_dir, util.str_to_file(self.task_name))
     util.compile_pdf(doc, filename, self.latex_compiler)
+    if self.suggest_rot:
+        util._suggest_rotation_yml_file(self.results_dir, self.project_dir.split('/')[-2], self.averaged_channels, self.data_files, self.data_handler)
+    if self.suggest_spec:
+        util._suggest_spectum_yml_file(self.results_dir, self.project_dir.split('/')[-2], self.averaged_channels, self.data_files, self.data_handler)
 
 
 def _getOperatorsMap(operators, averaged_channel, get_had_spat=False, get_had_irrep=False):
@@ -358,7 +368,6 @@ def _getAveragedOperator(operator, averaged_channel, get_had_spat=False, get_had
     obs_id = op_info.getLGClebschGordonIdNum()
 
   return operator_info.operator.Operator(averaged_channel.getGIOperator(obs_name, obs_id))
-  
 
 # TODO: use flavor_map in operator_info/operator.py
 NAME_MAP = {

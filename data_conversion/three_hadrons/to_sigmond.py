@@ -33,6 +33,7 @@ def main():
           corr_files[replica][tsrc] = get_corr_files(replica_ensemble_name, search_dir)
           correlators.append(corr_files[replica][tsrc].keys())
           print("done")
+<<<<<<< HEAD
 
       # check all elements of correlators have same keys
       all_equal = all(corrs==correlators[0] for corrs in correlators)
@@ -46,6 +47,21 @@ def main():
 
           print()
 
+=======
+
+      # TODO: check all elements of correlators have same keys
+      all_equal = all(corrs==correlators[0] for corrs in correlators)
+      if not all_equal:
+        print("not all equal\n\n")
+        for corrs_num, corrs in enumerate(correlators):
+          print(f"corrs num {corrs_num}")
+          print("--------------------")
+          for corr in sorted(corrs):
+            print(f"\t{corr}")
+
+          print()
+
+>>>>>>> master
       correlators = correlators[0]
 
       for correlator in tqdm.tqdm(correlators):
@@ -174,22 +190,36 @@ def get_data(correlator, data_file, data_file_opposite, is_backwards, ensemble_n
 
   corr_time_info_herm = sigmond.CorrelatorAtTimeInfo(correlator, 0, True, False)
   for tsep in range(tmin, tmax+1):
+<<<<<<< HEAD
     for complex_arg in COMPLEX_ARGS:
       if correlator.isSinkSourceSame() and complex_arg is sigmond.ComplexArg.ImaginaryPart:
         continue
 
       sign = 1. if complex_arg is sigmond.ComplexArg.RealPart else -1.
 
+=======
+    for cmp_i, complex_arg in enumerate(COMPLEX_ARGS):
+      if correlator.isSinkSourceSame() and complex_arg is sigmond.ComplexArg.ImaginaryPart:
+        continue
+
+>>>>>>> master
       corr_time_info.resetTimeSeparation(tsep)
       corr_time_info_obs_info = sigmond.MCObsInfo(corr_time_info, complex_arg)
       data = np.array(obs_handler.getBins(corr_time_info_obs_info).array())
 
       if has_opposite:
+<<<<<<< HEAD
         print('has_opposite')
         corr_time_info_opp.resetTimeSeparation(tsep)
         corr_time_info_opp_obs_info = sigmond.MCObsInfo(corr_time_info_opp, complex_arg)
         data_opp = sign*np.array(obs_handler.getBins(corr_time_info_opp_obs_info).array())
         data = 0.5*(data + data_opp)
+=======
+        corr_time_info_opp.resetTimeSeparation(tsep)
+        corr_time_info_opp_obs_info = sigmond.MCObsInfo(corr_time_info_opp, complex_arg)
+        data_opp = np.array(obs_handler.getBins(corr_time_info_opp_obs_info).array())
+        data = 0.5*(data + np.conj(data_opp))
+>>>>>>> master
 
       corr_time_info_herm.resetTimeSeparation(tsep)
       if is_backwards:
@@ -257,8 +287,12 @@ def get_corr_files(ensemble_name, search_dir):
 
     corr_opposite = sigmond.CorrelatorInfo(corr.getSource(), corr.getSink())
     if corr_opposite in corr_files:
+<<<<<<< HEAD
       #corr_files[corr_opposite][1] = corr_file_name
       corr_files[corr_opposite] = (corr_files[corr_opposite][0], corr_file_name, corr_files[corr_opposite][2])
+=======
+      corr_files[corr_opposite][1] = corr_file_name
+>>>>>>> master
     else:
       corr_files[corr] = (corr_file_name, None, is_backwards)
 

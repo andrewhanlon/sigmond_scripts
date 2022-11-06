@@ -78,6 +78,7 @@ def main():
 
 def write_data(data, ensemble_name, channel):
   output_dir = os.path.join(defs.output_dir, 'sigmond', ensemble_name)
+  #output_dir = os.path.join(defs.output_dir, ensemble_name)
   os.makedirs(output_dir, exist_ok=True)
 
   ensemble_info = sigmond.MCEnsembleInfo(ensemble_name, 'ensembles.xml')
@@ -210,6 +211,17 @@ def get_data(correlator, data_file, data_file_opposite, is_backwards, ensemble_n
         data = sign*np.array(obs_handler.getBins(corr_time_info_opp_obs_info).array())
       else:
         sys.exit()
+
+        #data_opp = np.array(obs_handler.getBins(corr_time_info_opp_obs_info).array())
+        #data = 0.5*(data + np.conj(data_opp))
+      #elif has_not_opposite:
+        #data = np.array(obs_handler.getBins(corr_time_info_obs_info).array())
+      #elif has_opposite:
+        #data = np.array(obs_handler.getBins(corr_time_info_opp_obs_info).array())
+      #else:
+        #print("has neither?")
+        #sys.exit()
+
 
       corr_time_info_herm.resetTimeSeparation(tsep)
       if is_backwards:

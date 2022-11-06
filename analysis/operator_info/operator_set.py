@@ -17,8 +17,9 @@ def getOperatorSet(options):
   if (pivot_info := options.pop('pivot_info', False)):
     try:
       name = options.pop('name')
+      opops = options.pop('optimized_operators', list())
       pivot_info = sigmond_info.sigmond_info.PivotInfo(**pivot_info)
-      operator_set = operator_info.operator_set.RotatedOperatorSet(name, pivot_info, *operators)
+      operator_set = operator_info.operator_set.RotatedOperatorSet(name, pivot_info, opops, *operators)
     except KeyError as err:
       logging.error("RotatedOperatorSet missing key {err}")
 
@@ -166,10 +167,10 @@ class NamedOperatorSet(OperatorSet):
 
 class RotatedOperatorSet(NamedOperatorSet):
 
-  def __init__(self, name, pivot_info, *operators):
+  def __init__(self, name, pivot_info, optimized_ops, *operators):
     self._name = name
     self._pivot_info = pivot_info
-
+    self._optimized_ops = optimized_ops
     operators = self._verifyOperators(operators)
 
     super().__init__(name, *operators)
@@ -180,8 +181,10 @@ class RotatedOperatorSet(NamedOperatorSet):
     if (pivot_exists := os.path.isfile(pivot_file)):
       original_operators = SortedSet([operator_info.operator.Operator(op) for op in sigmond.getOperatorBasis(pivot_file)])
 
-    if pivot_exists and operators and original_operators != operators:
-      logging.error("RotatedOperatorSet operators do not match operators on disk")
+    if self._optimized_ops and operators:
+      return operators
+    elif pivot_exists and operators and original_operators != operators:
+      logging.error(f"RotatedOperatorSet operators do not match operators on disk in {pivot_file}")
     elif pivot_exists and operators:
       return operators
     elif pivot_exists and not operators:
@@ -190,6 +193,49 @@ class RotatedOperatorSet(NamedOperatorSet):
       return operators
     else:
       logging.error("RotatedOperatorSet cannot find operators")
+
+  def verifyOptimizedOps( self, logdir ): 
+    #verify that the logfiles for the optimized operators exist
+    opop_logfiles = []
+    for opop in self._optimized_ops:
+      matches = []
+      for root, dirs, files in os.walk(logdir):
+        for this_file in files:
+          if '.'+opop+'_' in this_file:
+            matches.append(this_file)
+      if len(matches)>1:
+        logging.warning(f"Optimized operator '{opop}' in basis '{self._name}' has multiple log files, please specify pivot (by deleting the ones you don't want)")
+        for this_log in matches:
+          logging.warning(f"\t{opop} found in {this_log}")
+        opop_logfiles.append(None)
+      elif len(matches)==0:
+        logging.warning(f"Optimized operator '{opop}' in basis '{self._name}' cannot be found")
+        opop_logfiles.append(None)
+      else:
+        opop_logfiles.append(os.path.join(logdir,matches[0]))
+
+    #retrieve optimized ops and verify that the contituent ops match ops in basis
+    all_impopsets = []
+    for opop,oplog_file in zip(self._optimized_ops,opop_logfiles):
+      if oplog_file is not None:
+        oplog = sigmond_info.sigmond_log.RotationLog(oplog_file)
+        this_impopset = oplog.improved_operators
+        all_present = True
+        for impop in this_impopset:
+          for i in range(1, len(impop), 2):
+            this_op_present = False
+            for op in self.operators:
+              if str(op)==impop[i]:
+                this_op_present = True
+            if not this_op_present:
+              logging.warning(f"Optimized operator contituent {impop[i]} is not present in current basis {self._name}")
+              all_present = False
+        if all_present:
+          #change name of improved operators to given name rather than "ROT"
+          for impop in this_impopset:
+            impop[0] = impop[0].replace("ROT",opop)
+          all_impopsets.append(this_impopset)
+    return all_impopsets
 
   def getRotatedOperators(self):
     return data_handling.data_handler.DataHandler().getRotatedOperators(self)

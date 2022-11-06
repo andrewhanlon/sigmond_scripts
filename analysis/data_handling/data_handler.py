@@ -139,10 +139,12 @@ class DataHandler(metaclass=util.Singleton):
     time_extent = self.ensemble_info.getLatticeTimeExtent()
     ave_trange = self._averaged_data.getOperatorSetSmallestTRange(time_extent, operator_set)
     raw_trange = self._raw_data.getOperatorSetSmallestTRange(time_extent, operator_set)
-
     if ave_trange != (-1, -1):
       return ave_trange
+    elif raw_trange != (-1, -1):
+      return raw_trange
     else:
+      logging.warning( f"Operator set {operator_set.name} cannot find data files for all operators")
       return raw_trange
 
 

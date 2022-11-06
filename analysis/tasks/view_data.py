@@ -40,11 +40,17 @@ class ViewData(tasks.task.Task):
           should be written to file
       **split_pdfs (bool): specifies if PDFs should be split by channel,
           in which case it will group by irrep and P^2
+      **suggest_rotation_task (bool): Writes a rotation task with a basic
+          setup using the operators fed into view data
+      **suggest_spectrum_task (bool): Writes a spectrum task with a basic
+          setup using the operators fed into view data
     """
 
     self.channels = options.pop('channels', SortedSet())
     self.operator_sets = options.pop('operator_sets', dict())
     self.excluded_operators = options.pop('excluded_operators', set())
+    self.suggest_rot = options.pop('suggest_rotation_task', False)
+    self.suggest_spec = options.pop('suggest_spectrum_task', False)
 
     self.off_diagonal = options.pop('off_diagonal', False)
     self.hermitian = options.pop('hermitian', True)
@@ -71,6 +77,8 @@ class ViewData(tasks.task.Task):
       split_pdfs: true                 # optional
 
       auto_add: false                      # optional
+      suggest_rotation_task: false          # optional
+      suggest_spectrum_task: false          # optional
 
       plot_info:
         corrname: standard                   # optional
@@ -252,3 +260,8 @@ class ViewData(tasks.task.Task):
     else:
       filename = os.path.join(self.results_dir, f"{util.str_to_file(self.task_name)}_rebin{self.rebin}")
       util.compile_pdf(doc, filename, self.latex_compiler)
+        
+    if self.suggest_rot:
+        util._suggest_rotation_yml_file(self.results_dir,self.project_dir.split('/')[-2],self.channels,self.data_files,self.data_handler)
+    if self.suggest_spec:
+        util._suggest_spectum_yml_file(self.results_dir,self.project_dir.split('/')[-2],self.channels,self.data_files,self.data_handler)

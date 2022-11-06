@@ -20,7 +20,7 @@ class SigmondLog(metaclass=ABCMeta):
     try:
       log_xml_root = ET.parse(logfile).getroot()
     except ET.ParseError:
-      logging.warning("Bad logfile: {}".format(logfile))
+      logging.critical("Bad logfile: {}".format(logfile))
       return
 
     self.parse(log_xml_root)
@@ -58,15 +58,22 @@ class RotationLog(SigmondLog):
 
     rotation_task_xml = rotation_tasks_xml[0]
 
-    if rotation_task_xml.find("SinglePivot") is None:
-      logging.warning("Reading of non 'SinglePivot' log files not currently supported")
+    self.pivot_type = ""
+    if rotation_task_xml.find("SinglePivot"):
+      self.pivot_type = "SinglePivot"
+    elif rotation_task_xml.find("RollingPivot"):
+        self.pivot_type = "RollingPivot"
+    
+    if not self.pivot_type:
+      logging.warning("Only reading the of 'SinglePivot' or 'RollingPivot' rotation log files is supported")
       return NotImplemented
 
-    pivot_xml = rotation_task_xml.find("SinglePivot/InitiateNew/CreatePivot")
+    pivot_xml = rotation_task_xml.find(f"{self.pivot_type}/InitiateNew/CreatePivot")
     self.diag_corr_errors_xml = pivot_xml.find("DiagonalCorrelatorFractionalErrors")
     self.analyze_metric_xml = pivot_xml.find("AnalyzeMetric")
     self.analyze_matrix_xml = pivot_xml.find("AnalyzeMatrix")
     self.do_rotation_xml = rotation_task_xml.find("DoRotation")
+    self.transformation_matrix_xml = rotation_task_xml.find(f"{self.pivot_type}/InitiateNew/TransformationMatrix")
 
   @property
   def metric_null_space_message(self):
@@ -146,11 +153,25 @@ class RotationLog(SigmondLog):
   def number_levels(self):
     return len(list(self.analyze_matrix_xml.find("GMatrixRetainedEigenvalues")))
 
+  @property
+  def improved_operators(self):
+    improved_ops = list()
+    for op in self.transformation_matrix_xml.find("ImprovedOperators").iter("ImprovedOperator"):
+      op_info = list()
+      op_info.append( op.find("OpName").findtext("GIOperatorString") )
+      for term in op.iter("OpTerm"):
+        op_info.append( term.findtext("GIOperatorString") )
+        op_info.append( term.findtext("Coefficient") ) #.replace('(', '').replace(')', '').split(',') )
+      improved_ops.append( op_info )
+    # [ [name, term1, coeff1, term2, coeff2...], [name, term1, coeff1...  
+    return improved_ops
+
 
 class FitResult(NamedTuple):
   chisq: float
   quality: float
   energy: str
+  reconstructed_energy: str #if ratio, otherwise it's just the energy
   amplitude: str
   gap: str
   const: str
@@ -207,8 +228,25 @@ class FitLog(SigmondLog):
           const_value = float(const_fit.findtext("MCEstimate/FullEstimate"))
           const_err = float(const_fit.findtext("MCEstimate/SymmetricError"))
           const = util.nice_value(const_value, const_err)
+        
+        if fit_info.ratio: #changing all output to be in the same lab frame units
+            reconstructed_energy = energy
+            for task_xml2 in log_xml_root.findall("Task"):
+                reconstructed_energy_xml = task_xml2.find("DoObsFunction")
+                if reconstructed_energy_xml is None or reconstructed_energy_xml.find("Error") is not None:
+                    continue
+                if reconstructed_energy_xml.findtext("Type") != "ReconstructEnergy":
+                    continue
+                if energy_obs_str != reconstructed_energy_xml.findtext("EnergyDifference/MCObservable/Info"):
+                    continue
+                reconstructed_value = float(reconstructed_energy_xml.findtext("MCEstimate/FullEstimate"))
+                reconstructed_err = float(reconstructed_energy_xml.findtext("MCEstimate/SymmetricError"))
+                reconstructed_energy = util.nice_value(reconstructed_value,reconstructed_err)
+                break
 
-        fit_result = FitResult(chisq_dof, quality, energy, amplitude, gap, const, cov_cond)
+            fit_result = FitResult(chisq_dof, quality, energy, reconstructed_energy, amplitude, gap, const, cov_cond)
+        else:
+            fit_result = FitResult(chisq_dof, quality, energy, energy, amplitude, gap, const, cov_cond)
 
         if fit_info in self.fits:
           logging.warning(f"Found two identical fits in {self.logfile}, ignoring...")
@@ -229,11 +267,13 @@ class SpectrumLog(SigmondLog):
   def parse(self, log_xml_root):
     self.energies = SortedDict()
     self.reorder = True
+    fit_fail = False
     energy_level_xmls = log_xml_root.findall("Task/DoRotCorrMatInsertFitInfos/SinglePivot/ReorderEnergies/EnergyLevel")
+    energy_level_xmls += log_xml_root.findall("Task/DoRotCorrMatInsertFitInfos/RollingPivot/ReorderEnergies/EnergyLevel")
     if not energy_level_xmls:
       self.reorder = False
       energy_level_xmls = log_xml_root.findall("Task/GetFromPivot/Energies/EnergyLevel")
-
+    
     for energy_level_xml in energy_level_xmls:
       if self.reorder:
         new_level = int(energy_level_xml.findtext("LevelIndex"))
@@ -253,7 +293,30 @@ class SpectrumLog(SigmondLog):
       fit_info = FitInfo.createFromObservable(energy_obs)
       self.energies[level] = fit_info
 
-  
+    #in case of a fit fail
+    if not energy_level_xmls:
+        this_level = 0
+        energy_level_xmls = log_xml_root.findall("Task/DoFit")
+        for energy_level_xml in energy_level_xmls:
+            if energy_level_xml.findtext("Type")=="TemporalCorrelator":
+                if energy_level_xml.find("Error") is not None:
+                    this_observable = energy_level_xml.findtext("TemporalCorrelatorFit/GIOperatorString")
+                    logging.warning(f"Failed fit for {this_observable} in {self.logfile}")
+                    break
+                else:  
+                    level = Level(this_level, this_level)
+                    energy_obs_str = energy_level_xml.findtext("BestFitResult/FitParameter0/MCObservable/Info")
+                    pattern = r"^(?P<obsname>\S+) (?P<obsid>\d+) (?P<simple>s|n) (?P<complex_arg>re|im)$"
+                    match = regex.match(pattern, energy_obs_str.strip())
+                    if match.group('simple') != 'n' or match.group('complex_arg') != 're':
+                        logging.error("Energies are supposed to be simple and real")
+
+                    energy_obs = sigmond.MCObsInfo(match.group('obsname'), int(match.group('obsid')))
+                    fit_info = FitInfo.createFromObservable(energy_obs)
+                    self.energies[level] = fit_info
+                this_level+=1
+                
+
     self.zfactors = SortedDict()
     for operator_zfactor_xml in log_xml_root.findall(
         "Task/DoCorrMatrixZMagSquares/OperatorZMagnitudeSquares"):

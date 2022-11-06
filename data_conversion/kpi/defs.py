@@ -10,6 +10,8 @@ class Ensemble(NamedTuple):
 
 ensembles = [
     Ensemble("cls21_d200", ['r000'], [(35, 'fwd'), (92, 'bwd')]),
+    #Ensemble("cls21_d200", ['r000'], [35]),
+    #Ensemble("cls21_d200", ['r000'], [35, 92]),
     #Ensemble("cls21_n200", ['r000'], [32, 52]),
     #Ensemble("cls21_n203", ['r000', 'r001'], [(32,'fwd'), (52, 'fwd')]),
     Ensemble("cls21_e250", ['r001'],

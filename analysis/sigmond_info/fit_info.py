@@ -24,6 +24,7 @@ class FitModel(MultiValueEnum):
   TimeSymGeomSeriesExponential = 9, "geom-sym"
   LogTimeForwardSingleExponential = 10, "log-1-exp"
   LogTimeForwardTwoExponential = 11, "log-2-exp"
+  TimeForwardMultiExponential = 12, "multi-exp"
 
   @property
   def short_name(self):
@@ -51,6 +52,7 @@ FIT_MODEL_SHORT_NAMES = {
     FitModel.TimeSymGeomSeriesExponential: "geom-sym",
     FitModel.LogTimeForwardSingleExponential: "log-1-exp",
     FitModel.LogTimeForwardTwoExponential: "log-2-exp",
+    FitModel.TimeForwardMultiExponential: "multi-exp",
 }
 
 
@@ -123,10 +125,15 @@ class FitInfo:
           "SqrtGapToSecondEnergy",
           "SecondAmplitudeRatio",
       ],
+      FitModel.TimeForwardMultiExponential: [
+          "E0","E1","E2","E3",
+          "A0","A1","A2","A3",
+      ],
   }
 
   def __init__(self, operator, model, tmin, tmax, subtractvev=False, ratio=False,
-               exclude_times=[], noise_cutoff=0.0, non_interacting_operators=None, tmin_max=-1):
+               exclude_times=[], noise_cutoff=0.0, non_interacting_operators=None, tmin_max=-1,
+               max_level = 4):
     """
     Args:
       operator (sigmondbind.OperatorInfo):
@@ -138,6 +145,7 @@ class FitInfo:
           the fit
       noise_cutoff (float): A error cutoff in the fit
       tmin_max (int): If doing a TminVary Fit, this is needed
+      max_level (int): for multiseries fit, max fit form level
     """
 
     self.operator = operator
@@ -148,6 +156,7 @@ class FitInfo:
     self.ratio = ratio
     self.exclude_times = exclude_times
     self.noise_cutoff = noise_cutoff
+    self.max_level = max_level #for multiseries fit
 
     self.non_interacting_operators = non_interacting_operators
 
@@ -302,6 +311,8 @@ class FitInfo:
       model_xml = ET.SubElement(xml, "Model")
 
     ET.SubElement(model_xml, "Type").text = self.model_name
+    if self.model_name == "TimeForwardMultiExponential":
+        ET.SubElement(model_xml, "MaxLevel").text = str(self.max_level)
 
     param_count = 0
     for param in self.PARAMETERS[self.model]:
@@ -343,6 +354,8 @@ class FitInfo:
 
   @property
   def amplitude_observable(self):
+    if(self.model==FitModel.TimeForwardMultiExponential):
+        return sigmond.MCObsInfo(self.obs_name, self.obs_id(4))
     return sigmond.MCObsInfo(self.obs_name, self.obs_id(1))
 
   def __str__(self):
