@@ -526,17 +526,17 @@ def _suggest_rotation_yml_file(filepath, proj_name, channels, data_files, data_h
     yaml_settings[f"rotate_{proj_name}"]["plot_info"]["timestep"] = 1
     
     #insert operator info
-    yaml_settings[f"rotate_{proj_name}"]["plot_info"]["operator_bases"] = []
+    yaml_settings[f"rotate_{proj_name}"]["operator_bases"] = []
     for channel in channels:
       data_files = data_files + data_handler.getChannelDataFiles(channel)
       operators = data_handler.getChannelOperators(channel)
       if len(operators) > 1:
-        yaml_settings[f"rotate_{proj_name}"]["plot_info"]["operator_bases"].append({"name":repr(channel)})
-        yaml_settings[f"rotate_{proj_name}"]["plot_info"]["operator_bases"][-1]["pivot_info"] = {}
-        yaml_settings[f"rotate_{proj_name}"]["plot_info"]["operator_bases"][-1]["pivot_info"][f"<<"] = f"*PIVOT_INFO"
-        yaml_settings[f"rotate_{proj_name}"]["plot_info"]["operator_bases"][-1]["operators"] = []
+        yaml_settings[f"rotate_{proj_name}"]["operator_bases"].append({"name":repr(channel)})
+        yaml_settings[f"rotate_{proj_name}"]["operator_bases"][-1]["pivot_info"] = {}
+        yaml_settings[f"rotate_{proj_name}"]["operator_bases"][-1]["pivot_info"][f"<<"] = f"*PIVOT_INFO"
+        yaml_settings[f"rotate_{proj_name}"]["operator_bases"][-1]["operators"] = []
         for operator in operators:
-          yaml_settings[f"rotate_{proj_name}"]["plot_info"]["operator_bases"][-1]["operators"].append(operator.op_str())
+          yaml_settings[f"rotate_{proj_name}"]["operator_bases"][-1]["operators"].append(operator.op_str())
         
     #print yml file
     yaml_contents = yaml.dump(yaml_settings,sort_keys=False,default_style=None)
@@ -667,25 +667,25 @@ def _suggest_spectum_yml_file(filedir, proj_name, channels, data_files, data_han
         yaml_settings[proj_name]["spectrum"][-1]["non_interacting_levels"]["delete_this"] = f"*{repr(channel).upper()}"
         yaml_settings[proj_name]["spectrum"][-1]["levels"] = []
         for operator in operators:
-          yaml_settings[proj_name]["spectrum"][-1]["levels"].append({"model":"1-exp"})
+          yaml_settings[proj_name]["spectrum"][-1]["levels"].append({"model":"2-exp"})
           yaml_settings[proj_name]["spectrum"][-1]["levels"][-1]["tmin"] = 10
           yaml_settings[proj_name]["spectrum"][-1]["levels"][-1]["tmax"] = 25
 #           yaml_settings[proj_name]["spectrum"][-1]["levels"][-1]["max_level"] = 1 #multi-exp only
-          yaml_settings[proj_name]["spectrum"][-1]["levels"][-1]["ratio"] = True
+          yaml_settings[proj_name]["spectrum"][-1]["levels"][-1]["ratio"] = False
         yaml_settings[proj_name]["spectrum"][-1]["tmin_info"] = []
         for operator in operators:
           yaml_settings[proj_name]["spectrum"][-1]["tmin_info"].append({"fit_infos":[]})
           yaml_settings[proj_name]["spectrum"][-1]["tmin_info"][-1]["fit_infos"].append({"model":"1-exp"})
-          yaml_settings[proj_name]["spectrum"][-1]["tmin_info"][-1]["fit_infos"][-1]["tmin_min"] = 5
-          yaml_settings[proj_name]["spectrum"][-1]["tmin_info"][-1]["fit_infos"][-1]["tmin_max"] = 15
+          yaml_settings[proj_name]["spectrum"][-1]["tmin_info"][-1]["fit_infos"][-1]["tmin_min"] = 10
+          yaml_settings[proj_name]["spectrum"][-1]["tmin_info"][-1]["fit_infos"][-1]["tmin_max"] = 20
           yaml_settings[proj_name]["spectrum"][-1]["tmin_info"][-1]["fit_infos"][-1]["ratio"] = False
           yaml_settings[proj_name]["spectrum"][-1]["tmin_info"][-1]["fit_infos"].append({"model":"1-exp"})
           yaml_settings[proj_name]["spectrum"][-1]["tmin_info"][-1]["fit_infos"][-1]["tmin_min"] = 5
           yaml_settings[proj_name]["spectrum"][-1]["tmin_info"][-1]["fit_infos"][-1]["tmin_max"] = 15
           yaml_settings[proj_name]["spectrum"][-1]["tmin_info"][-1]["fit_infos"][-1]["ratio"] = True
           yaml_settings[proj_name]["spectrum"][-1]["tmin_info"][-1]["fit_infos"].append({"model":"2-exp"})
-          yaml_settings[proj_name]["spectrum"][-1]["tmin_info"][-1]["fit_infos"][-1]["tmin_min"] = 1
-          yaml_settings[proj_name]["spectrum"][-1]["tmin_info"][-1]["fit_infos"][-1]["tmin_max"] = 10
+          yaml_settings[proj_name]["spectrum"][-1]["tmin_info"][-1]["fit_infos"][-1]["tmin_min"] = 5
+          yaml_settings[proj_name]["spectrum"][-1]["tmin_info"][-1]["fit_infos"][-1]["tmin_max"] = 15
           yaml_settings[proj_name]["spectrum"][-1]["tmin_info"][-1]["fit_infos"][-1]["ratio"] = False
           yaml_settings[proj_name]["spectrum"][-1]["tmin_info"][-1]["fit_infos"].append({"model":"geom"})
           yaml_settings[proj_name]["spectrum"][-1]["tmin_info"][-1]["fit_infos"][-1]["tmin_min"] = 1
