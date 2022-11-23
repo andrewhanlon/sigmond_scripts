@@ -87,6 +87,8 @@ class Spectrum(tasks.task.Task):
     self.single_hadrons = extra_options.pop('single_hadrons',list())
 
     util.check_extra_keys(extra_options, 'Spectrum.initialize')
+    
+    self.ni_fit_info = {}
 
   def readConfig(self, **task_options):
     """readConfig function for Spectrum
@@ -506,7 +508,6 @@ class Spectrum(tasks.task.Task):
 
     # Now the spectra
     for operator_set, fit_infos in self.spectrum.items():
-#       print("Sarah:", operator_set, fit_infos)  
       tmin_plotdir = self.tmin_plotdir(repr(operator_set))
       fit_plotdir = self.fit_plotdir(repr(operator_set))
       shutil.rmtree(tmin_plotdir)
@@ -525,7 +526,7 @@ class Spectrum(tasks.task.Task):
 
       sigmond_input = self.new_sigmond_input(project_name, inputfile, logfile, data_files)
       self._addReferenceAndScatteringFits(sigmond_input, False)
-
+        
       energies = list()
       amplitudes = list()
       denergies = list()
@@ -555,7 +556,6 @@ class Spectrum(tasks.task.Task):
 
             non_interacting_level.append((at_rest_scattering_particle_fit_info.energy_observable, scattering_particle.psq))
             non_interacting_amp.append(scattering_particle_fit_info.amplitude_observable)
-
         if tmin_fit_info is not None:
           tmin_plot_info = self.default_tmin_plot_info.setChosenFit(fit_info)
 
@@ -944,7 +944,8 @@ class Spectrum(tasks.task.Task):
             pylatex.NoEscape(r"$a_t E_{\rm lab}$"),
             pylatex.NoEscape("Fit model"),
             pylatex.NoEscape(r"$(t_{\rm min}, t_{\rm max})$"),
-            pylatex.NoEscape(r"$\chi^2/\text{dof}$"),
+#             pylatex.NoEscape(r"$\chi^2/\text{dof}$"),
+            pylatex.NoEscape(r"$p$-val."),
             pylatex.NoEscape(r"NI"),
         ]
 
@@ -992,7 +993,8 @@ class Spectrum(tasks.task.Task):
                 recon_energy,
                 fit_model,
                 pylatex.NoEscape(rf"$({fit_info.tmin}, {fit_info.tmax})$"),
-                round(fit_result.chisq,2),
+#                 round(fit_result.chisq,2),
+                round(fit_result.quality,2),
                 noninteracting_level,
             ]
 
@@ -1076,7 +1078,8 @@ class Spectrum(tasks.task.Task):
 
     for obs_info in samplings_handler.getKeys():
       np_data = util.get_samplings(obs_handler, obs_info)
-      hdf5_h.create_dataset(obs_info.getObsName(), data=np_data)
+      dset = hdf5_h.create_dataset(obs_info.getObsName(), data=np_data)
+      dset.attrs.create("test","test")
       val = obs_handler.getEstimate(obs_info).getFullEstimate()
       err = obs_handler.getEstimate(obs_info).getSymmetricError()
       fests.write(f"{obs_info.getObsName()},{val},{err}\n")
@@ -1112,6 +1115,8 @@ class Spectrum(tasks.task.Task):
       if operator_set.is_rotated:
         for level, fit_info in self.spectrum_logs[operator_set].energies.items():
           operator = fit_info.operator
+          if operator.channel.irrep not in operator_set.channel.irrep:
+            continue
           obs_name = f"PSQ{operator.psq}/{operator.channel.irrep}/ecm_{level.new}"
           if self.reference_fit_info is not None:
             obs_name += f"_{self.ref_name}"
@@ -1120,7 +1125,9 @@ class Spectrum(tasks.task.Task):
             energy = obs_handler.getEstimate(sigmond.MCObsInfo(obs_name, 0))
           except RuntimeError as error:
             logging.warning(f"{error}")
-            logging.critical(f"Failed to get samplings for {obs_name}")
+#             logging.critical(f"Failed to get samplings for {obs_name}")
+            logging.warning(f"Failed to get samplings for {obs_name}")
+            continue
 
           self.energies[operator_set][level.original] = energy
 

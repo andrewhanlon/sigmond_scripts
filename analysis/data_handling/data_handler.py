@@ -19,7 +19,7 @@ class DataHandler(metaclass=util.Singleton):
 
   def __init__(self, project_info):
     self.project_info = project_info
-
+    
     self._raw_data = CorrelatorData()
     self._averaged_data = CorrelatorData()
     self._rotated_data = dict()
