@@ -95,7 +95,8 @@ class Spectrum(tasks.task.Task):
 
     YAML:
       subtractvev: true   # optional
-      non_interacting_energy_labels: true #optiona;
+      noise_cutoff: 3.    # optional
+      non_interacting_energy_labels: true #optional
       reorder: false   # optional
       
       # optional
@@ -228,12 +229,14 @@ class Spectrum(tasks.task.Task):
     """
 
     subtractvev = task_options.pop('subtractvev', True)
+    global_noise_cutoff = task_options.pop('noise_cutoff', 0.)
     task_options['minimizer_info'] = sigmond_info.sigmond_info.getMinimizerInfo(task_options)
     task_options['fit_plot_info'] = sigmond_info.sigmond_info.FitPlotInfo.createFromConfig(task_options)
     task_options['default_tmin_plot_info'] = sigmond_info.sigmond_info.TMinPlotInfo.createFromConfig(task_options)
 
     ref_fit_info = task_options.pop('reference_fit_info', None)
     if ref_fit_info is not None:
+      ref_fit_info['noise_cutoff'] = ref_fit_info.get('noise_cutoff', global_noise_cutoff)
       ref_fit_info = sigmond_info.fit_info.FitInfo.createFromConfig(ref_fit_info)
     task_options['reference_fit_info'] = ref_fit_info
 
@@ -252,13 +255,14 @@ class Spectrum(tasks.task.Task):
           operator = operator_info.operator.Operator(fit.pop('operator'))
           use_irrep = fit.pop('use_irrep', False)
           fit_model = sigmond_info.fit_info.FitModel(fit.pop('model'))
-          fit_info = sigmond_info.fit_info.FitInfo(operator, fit_model, **fit)
+          noise_cutoff = fit.pop('noise_cutoff', global_noise_cutoff)
+          fit_info = sigmond_info.fit_info.FitInfo(operator, fit_model, **fit, noise_cutoff=noise_cutoff)
           psq = operator.psq
           if use_irrep:
             irrep = operator.getLGIrrep()
-            scattering_particle = sigmond_info.sigmond_info.ScatteringParticle(name, psq, irrep)
+            scattering_particle = sigmond_info.sigmond_info.ScatteringParticle(name, psq, False, irrep)
           else:
-            scattering_particle = sigmond_info.sigmond_info.ScatteringParticle(name, psq)
+            scattering_particle = sigmond_info.sigmond_info.ScatteringParticle(name, psq, False)
 
           if scattering_particle in scattering_particles:
             logging.error(f"Scattering particle '{scattering_particle}' encountered twice")
@@ -319,7 +323,7 @@ class Spectrum(tasks.task.Task):
           tmin = int(level.pop('tmin'))
           tmax = int(level.pop('tmax'))
           exclude_times = level.pop('exclude_times', [])
-          noise_cutoff = level.pop('noise_cutoff', 0.0)
+          noise_cutoff = level.pop('noise_cutoff', global_noise_cutoff)
           ratio = level.pop('ratio', False)
           flag = level.pop('flag', False)
           max_level = level.pop('max_level',4)
@@ -551,7 +555,7 @@ class Spectrum(tasks.task.Task):
         if fit_info.non_interacting_operators is not None: 
           for scattering_particle in fit_info.non_interacting_operators.non_interacting_level:
             scattering_particle_fit_info = self.scattering_particles[scattering_particle]
-            at_rest_scattering_particle = sigmond_info.sigmond_info.ScatteringParticle(scattering_particle.name, 0)
+            at_rest_scattering_particle = sigmond_info.sigmond_info.ScatteringParticle(scattering_particle.name, 0, False)
             at_rest_scattering_particle_fit_info = self.scattering_particles[at_rest_scattering_particle]
 
             non_interacting_level.append((at_rest_scattering_particle_fit_info.energy_observable, scattering_particle.psq))
@@ -805,6 +809,8 @@ class Spectrum(tasks.task.Task):
                 caption = fit_info.operator.op_str().replace('_', '\_')
                 caption += f"\\newline {fit_info.model.short_name}"
                 caption += f", $t_{{\\rm max}} = {fit_info.tmax}$"
+                if fit_info.noise_cutoff > 0.:
+                  caption += f" ($\\sigma_{{\\rm cut}} = {round(fit_info.noise_cutoff, 2)}$)"
                 list_of_tmin_plots.append((plotfile, caption))
 
               grouped_plots = [list_of_tmin_plots[n:n+3] for n in range(0, len(list_of_tmin_plots), 3)]
@@ -838,6 +844,8 @@ class Spectrum(tasks.task.Task):
                   if fit_info.ratio:
                     caption += " - ratio"
                   caption += f", $t_{{\\rm max}} = {fit_info.tmax}$"
+                  if fit_info.noise_cutoff > 0.:
+                    caption += f" ($\\sigma_{{\\rm cut}} = {round(fit_info.noise_cutoff, 2)}$)"
                   if shift:
                     list_of_tmin_shift_plots.append((plotfile, caption))
                   else:
@@ -1054,6 +1062,7 @@ class Spectrum(tasks.task.Task):
     data_files = data_handling.data_files.DataFiles()
     data_files.addSamplingFiles(self.samplings_filename)
     obs_handler, _ = util.get_obs_handlers(data_files, self.bins_info, self.sampling_info)
+
     samplings_handler = sigmond.SamplingsGetHandler(
         self.bins_info, self.sampling_info, set([self.samplings_filename]))
 
@@ -1145,8 +1154,70 @@ class Spectrum(tasks.task.Task):
             logging.critical(f"Failed to get samplings for {obs_name}")
 
           self.energies[operator_set][level] = energy
-   
-    #save single hadrons
+
+    samplings_handler = sigmond.SamplingsGetHandler(
+        self.bins_info, self.sampling_info, set([self.samplings_filename]))
+
+    hdf5_filename = self.hdf5_filename
+    if os.path.exists(hdf5_filename):
+      os.remove(hdf5_filename)
+    hdf5_h = h5py.File(hdf5_filename, 'w')
+
+    for obs_info in samplings_handler.getKeys():
+      np_data = util.get_samplings(obs_handler, obs_info)
+      hdf5_h.create_dataset(obs_info.getObsName(), data=np_data)
+
+    # Add non-interacting level
+    for operator_set, fit_infos in self.spectrum.items():
+      channel = operator_set.channel
+      group_name = f"/PSQ{channel.psq}/{channel.irrep}"
+      group = hdf5_h[group_name]
+      
+      # get reorder map
+      reorder = dict()
+      for new_level, level in enumerate(self.energies[operator_set].keys()):
+        reorder[level] = new_level
+
+      # old
+      '''
+      particles = set()
+      moms = [None]*len(fit_infos)
+      for level, fit_info in enumerate(fit_infos):
+        particle_set = list()
+        mom_set = list()
+
+        for scattering_particle in fit_info.non_interacting_operators.non_interacting_level.particles:
+          particle_set.append(scattering_particle.name)
+          mom_set.append(scattering_particle.psq)
+        
+        particles.add(tuple(particle_set))
+        moms[reorder[level]] = mom_set
+
+      if len(particles) != 1:
+        logging.critical("Ordering of particles is not constant")
+
+      group.attrs.create('particles', list(particles.pop()))
+      group.attrs.create('free_levels', moms)
+      '''
+      # new
+      try:
+        free_levels = [None]*len(fit_infos)
+        for level, fit_info in enumerate(fit_infos):
+          free_levels_set = list()
+
+          for scattering_particle in fit_info.non_interacting_operators.non_interacting_level.particles:
+            free_levels_set.append(str(scattering_particle))
+          
+          free_levels[reorder[level]] = free_levels_set
+
+        group.attrs.create('free_levels', free_levels)
+      except Exception as e:
+        logging.warning(f"Could not add free levels: {e}")
+
+
+    hdf5_h.close()
+
+    #save single hadrons to self
     if self.scattering_particles:
       self.ni_energies = dict()
       for operator, fit_info in self.scattering_particles.items():
@@ -1171,7 +1242,7 @@ class Spectrum(tasks.task.Task):
       coeffs = list()
       latexs = list()
       for scattering_particle_name in threshold:
-        scattering_particle = sigmond_info.sigmond_info.ScatteringParticle(scattering_particle_name, 0)
+        scattering_particle = sigmond_info.sigmond_info.ScatteringParticle(scattering_particle_name, 0, False)
         energy_obs = sigmond.MCObsInfo(f"{self.sh_name}/{scattering_particle!r}", 0)
         obs_infos.append(energy_obs)
         coeffs.append(1.0)
@@ -1206,7 +1277,7 @@ class Spectrum(tasks.task.Task):
         continue
 
       for scattering_particle in fit_info.non_interacting_operators.non_interacting_level:
-        at_rest_scattering_particle = sigmond_info.sigmond_info.ScatteringParticle(scattering_particle.name, 0)
+        at_rest_scattering_particle = sigmond_info.sigmond_info.ScatteringParticle(scattering_particle.name, 0, False)
         energy_obs = sigmond.MCObsInfo(f"{self.sh_name}/{at_rest_scattering_particle!r}", 0)
         single_particle = util.boost_obs(obs_handler, energy_obs, scattering_particle.psq, self.ensemble_spatial_extent)
         single_particles.append(single_particle)

@@ -32,12 +32,19 @@ class RotateCorrelators(tasks.task.Task):
       **negative_eigenvalue_alarm (float): see sigmond docs
       **subtractvev (bool): whether operators with non-zero VEVs
           should have the VEV subtracted
+      **remove_off_diag (bool): (default: true) specifies whether the off diagonal
+          correlators should be printed
+      **diagonly_time (int): (default: 0) specifies what time only diagonal correlators
+          are calculated
       **plot_info (PlotInfo): info about the plot
       **write_to_file (bool): write correlator data to csv files
           in results directory
     """
     self.hermitian = True
     self.operator_bases = operator_bases
+    self.remove_off_diag = extra_options.pop('remove_off_diag', False)
+    self.off_diagonal = not self.remove_off_diag
+    self.diagonly_time = extra_options.pop('diagonly_time', 0)
 
     self.rotate_mode = extra_options.pop('rotate_mode', sigmond_info.sigmond_info.RotateMode.samplings_all)
 
@@ -59,6 +66,8 @@ class RotateCorrelators(tasks.task.Task):
       show_transformation: true
       negative_eigenvalue_alarm: -0.10
       subtractvev: true
+      remove_off_diag: false
+      diagonly_time: 10
       rotate_mode: bins # or samplings_all, samplings_unsubt, samplings
       write_to_file: true # optional, writes rotated correlators to csv files if flag present
 
@@ -128,14 +137,25 @@ class RotateCorrelators(tasks.task.Task):
     plotstub = f"eff-energy_{rotated_basis.name}_rotated"
     return os.path.join(plotdir, plotstub)
 
-  def correlator_plotfile(self, correlator, rotated_basis, extension):
-    if not correlator.isSinkSourceSame():
-      logging.error("Only diagonal rotated correlators are created")
+  def correlator_plotfile(self, correlator, rotated_basis, **options):
+    """get a correlator plotfile
+      
+      correlator (sigmond.CorrelatorInfo): the correlator to plot
+      name (str): ...
+      **complex_arg (ComplexArg): Required if the correlator
+          is not diagonal. If it is diagonal, this is
+          ignored
+      **extension (PlotExtension): 
+    """
+    extension = options.pop('extension', util.PlotExtension.grace)
+    complex_arg = options.pop('complex_arg', sigmond.ComplexArg.RealPart)
+    complex_str = "Re" if complex_arg == sigmond.ComplexArg.RealPart else "Im"
 
-    level = operator_info.operator.Operator(correlator.getSource()).level
+    src_level = operator_info.operator.Operator(correlator.getSource()).level
+    snk_level = operator_info.operator.Operator(correlator.getSource()).level
     plotdir = self.correlator_plotdir(rotated_basis)
     plotstub = self.correlator_plotstub(rotated_basis)
-    plotfile = f"{plotstub}_{level}.{extension.value}"
+    plotfile = f"{plotstub}_{src_level}-{snk_level}_{complex_str}.{extension.value}"
     return os.path.join(plotdir, plotfile)
 
   def energy_plotfile(self, operator, rotated_basis, extension):
@@ -190,8 +210,9 @@ class RotateCorrelators(tasks.task.Task):
           file_mode=sigmond.WriteMode.Overwrite, corr_plotstub=corr_plotstub, 
           energy_plotstub=energy_plotstub, eff_energy_type=self.plot_info.eff_energy_type, 
           timestep=self.plot_info.timestep, symbol_color=self.plot_info.symbol_color,
-          symbol_type=self.plot_info.symbol_type, rescale=self.plot_info.rescale
-          ,improved_ops=operator_basis.verifyOptimizedOps(self.logdir))
+          symbol_type=self.plot_info.symbol_type, rescale=self.plot_info.rescale,
+          remove_off_diag=self.remove_off_diag, diagonly_time=self.diagonly_time,
+          improved_ops=operator_basis.verifyOptimizedOps(self.logdir))
 
       sigmond_input.write()
       sigmond_inputs.append(sigmond_input)
@@ -203,6 +224,7 @@ class RotateCorrelators(tasks.task.Task):
     
     #Sarah
     results_dir = self.results_dir
+    os.makedirs(results_dir, exist_ok=True)
     if self.write_to_file:
         os.makedirs(os.path.join(results_dir,'estimates'), exist_ok=True)
     
@@ -327,7 +349,9 @@ class RotateCorrelators(tasks.task.Task):
             doc.append(pylatex.NoEscape(r"\newpage"))
 
         operators = self.data_handler.getRotatedOperators(operator_basis)
-        with doc.create(pylatex.Subsection("Correlators/Effective Energies")):
+        #self.addPlotsToPDF(doc, data_files, operators, operator_basis)
+
+        with doc.create(pylatex.Subsection("Rotated Diagonal Correlators/Effective Energies")):
           for operator in operators:
             with doc.create(pylatex.Subsubsection(str(operator))):
               corr = sigmond.CorrelatorInfo(operator.operator_info, operator.operator_info)
@@ -335,7 +359,20 @@ class RotateCorrelators(tasks.task.Task):
               if self.write_to_file:
                   self._write_diag_corr_to_csv(corr, operator_basis, obs_handler)
 
-    os.makedirs(results_dir, exist_ok=True)
+        doc.append(pylatex.NoEscape(r"\newpage"))
+
+        off_diag_corrs = list()
+        op_list = list(operators)
+        for opsrc_i, op_src in enumerate(op_list):
+          for op_snk in operators[opsrc_i+1:]:
+            corr = sigmond.CorrelatorInfo(op_src.operator_info, op_snk.operator_info)
+            off_diag_corrs.append(corr)
+
+        with doc.create(pylatex.Subsection("Rotated Off-Diagonal Correlators")):
+          for off_diag_corr in off_diag_corrs:
+            with doc.create(pylatex.Subsubsection(off_diag_corr.corr_str())):
+              util.add_correlator(doc, self, off_diag_corr, operator_basis, obs_handler)
+
     filename = os.path.join(results_dir, self.task_name)
     util.compile_pdf(doc, filename, self.latex_compiler)
     

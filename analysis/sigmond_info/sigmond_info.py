@@ -211,38 +211,58 @@ class ScatteringParticle:
   a single particle called 'name' with P^2=3.
   """
 
-  def __init__(self, name, psq, irrep=None):
+  def __init__(self, name, momentum, ref=False, irrep=None):
     self.name = name
-    self.psq = psq
+    self.momentum = momentum
+    self.ref = ref
     self.irrep = irrep
 
   @classmethod
   def create(cls, particle):
     try:
-      name, arg = particle[:-1].split('(')
+      name, arg = particle.split('(')
       if '_' in arg:
-        psq, irrep = arg.split('_')
-        psq = int(psq)
+        momentum, irrep = arg.split('_')
       else:
-        psq = int(arg)
+        momentum = arg
         irrep = None
+
+      momentum = momentum[:-1]
+
+      if ',' in momentum:
+        ref = False
+        momentum = tuple(sorted([abs(int(pi)) for pi in momentum.split(',')]))
+        momentum = momentum[0]**2 + momentum[1]**2 + momentum[2]**2
+      else:
+        ref = False
+        momentum = int(momentum)
 
     except ValueError:
       logging.error(f"Invalid ScatteringParticle '{particle}'")
 
-    return cls(name, psq, irrep)
+    return cls(name, momentum, ref, irrep)
+
+  @property
+  def psq(self):
+    if self.ref:
+      return self.momentum[0]**2 + self.momentum[1]**2 + self.momentum[2]**2
+    else:
+      return self.momentum
 
   def __str__(self):
-    if self.irrep is None:
-      return f"{self.name}({self.psq})"
+    _str = self.name
+    if self.ref:
+      _str += f"({self.momentum[0]},{self.momentum[1]},{self.momentum[2]})"
     else:
-      return f"{self.name}({self.psq}_{self.irrep})"
+      _str += f"({self.momentum})"
+
+    if self.irrep is not None:
+      _str += f"_{self.irrep})"
+
+    return _str
 
   def __repr__(self):
-    if self.irrep is None:
-      return f"{self.name}({self.psq})"
-    else:
-      return f"{self.name}({self.psq}_{self.irrep})"
+    return self.__str__()
 
   def __hash__(self):
     return hash(self.__repr__())
@@ -274,6 +294,10 @@ class NonInteractingLevel:
 
   def __iter__(self):
     yield from self._particles
+
+  @property
+  def particles(self):
+    return self._particles
 
 
 class NonInteractingOperators(NamedTuple):

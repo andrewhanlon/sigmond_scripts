@@ -361,7 +361,7 @@ def _getAveragedOperator(operator, averaged_channel, get_had_spat=False, get_had
 
       if get_had_irrep:
         had_irrep_str = op_info.getHadronLGIrrep(had_num)
-        had_str += f"_{had_irrep_str}" 
+        had_str += f"{had_irrep_str}" 
 
       obs_name += f"{had_name}({had_str})"
 
@@ -371,11 +371,11 @@ def _getAveragedOperator(operator, averaged_channel, get_had_spat=False, get_had
 
 # TODO: use flavor_map in operator_info/operator.py
 NAME_MAP = {
-    'pion': 'pi',
+    'pion': 'P',
     'eta': 'e',
     'phi': 'p',
-    'kaon': 'k',
-    'kbar': 'kb',
+    'kaon': 'K',
+    'kbar': 'k',
     'nucleon': 'N',
     'delta': 'D',
     'sigma': 'S',

@@ -2,151 +2,362 @@
 
 import os
 
-import h5py
 import numpy as np
 import xml.etree.ElementTree as ET
+import h5py
+
+import tqdm
+import argparse
+
 from sortedcontainers import SortedSet
+
+import defs
 
 import sigmond
 
-import defs
-import excluded_ops
-import missing_sh_ops
+import sys
+sys.path.insert(1, "../../analysis/")
+import operator_info.operator
 
-base_data_dir = "/latticeQCD/raid0/ahanlon/data/D200/"
 
-FORCE_HERM = False
-AVERAGE_DATA = False
-EXCLUDE_OPERATORS = True
+#data_type_dirs = ['isodoublet_strange_nucleonlambda', 'isosinglet_nonstrange_nucleonnucleon', 'isoquartet_strange_nucleonsigma', 'isodoublet_nonstrange', 'isoquartet_nonstrange_fermionic', 'isosinglet_strange_fermionic', 'single_hadrons', 'isotriplet_nonstrange_nucleonnucleon', 'isosinglet_doublystrange_lambdalambda', 'isoquintet_doublystrange_sigmasigma']
+data_type_dirs = ['single_hadrons']
+
+TMAX = 25
 
 def main():
-  for ensemble in defs.ensembles:
-    print(f"starting for ensemble {ensemble}")
-    for channel in os.listdir(base_data_dir):
-      search_dir = os.path.join(base_data_dir, channel)
-      if channel == "single_hadrons":
-        channel_data = find_sh_data(ensemble, search_dir)
-        if AVERAGE_DATA:
-          channel_data = average_sh_data(channel_data)
-          write_averaged_sh_to_file(channel_data, ensemble)
+  parser = argparse.ArgumentParser(description="Convert D200 data")
+  parser.add_argument("-i", "--input", type=str, required=True, metavar='input directory',
+                      help="Specify directory containing raw data")
+  parser.add_argument("-o", "--output", type=str, required=True, metavar='output directory',
+                      help="Specify output directory to write averaged data")
+  parser.add_argument("-e", "--ensembles-file", type=str, required=True, metavar='ensembles file',
+                      help="Specify the ensembles file to use")
+  parser.add_argument("-t", "--ave-sources", action='store_true',
+                      help="Specify if averaging over sources should be done")
+  parser.add_argument("-a", "--ave-equiv", action='store_true',
+                      help="Specify if averaging over equivalent momentum frames and irrep rows should be done (will also assume averaging over sources")
+
+  args = parser.parse_args()
+
+  ensemble = defs.ensemble
+
+  for data_type_dir in data_type_dirs:
+    print(data_type_dir, flush=True)
+    corr_files = dict()
+    channels = list()
+    for replica in ensemble.replica:
+      print(f"replica {replica}", flush=True)
+      corr_files[replica] = dict()
+      for source in ensemble.sources:
+        print(f"source {source}", flush=True)
+        data_dir = os.path.join(ensemble.name, replica, f"src{source[0]}", defs.parity_name[source[1]], data_type_dir)
+        search_dir = os.path.join(args.input, data_dir)
+        print(f"searching in {search_dir}", flush=True)
+        corr_files[replica][source] = get_corr_files(defs.ensemble_name, replica, search_dir, args.ensembles_file)
+        channels.extend(list(corr_files[replica][source].keys()))
+
+    '''
+    # TODO: check all elements of correlators have same keys
+    all_equal = all(chans==channels[0] for chans in channels)
+    if not all_equal:
+      print("not all equal\n\n")
+      for corrs_num, corrs in enumerate(correlators):
+        print(f"corrs num {corrs_num}")
+        print("--------------------")
+        for corr in sorted(corrs):
+          print(f"\t{corr}")
+        print()
+      sys.exit()
+
+    channels = channels[0]
+    '''
+
+    channels = set(channels)
+
+    if args.ave_equiv:
+      print("Averaging over all equivalent momentum and irrep rows", flush=True)
+      averaged_channels = dict()
+      for channel in channels:
+        psq = channel.momentum[0]**2 + channel.momentum[1]**2 + channel.momentum[2]**2
+        averaged_channel = defs.AveragedChannel(psq, channel.irrep, channel.isospin, channel.strangeness)
+        if averaged_channel not in averaged_channels:
+          averaged_channels[averaged_channel] = list()
+
+        averaged_channels[averaged_channel].append(channel)
+
+      for averaged_channel, channels in averaged_channels.items():
+        print(f"Averaged Channel: {averaged_channel!s}", flush=True)
+        for channel in channels:
+          print(f"  * {channel!s}", flush=True)
+        print("", flush=True)
+
+      for averaged_channel, channels in tqdm.tqdm(averaged_channels.items()):
+        op_lists = list()
+        for replica in ensemble.replica:
+          corrs_to_average = list()
+          for channel in channels:
+            for source in ensemble.sources:
+              try:
+                correlators = corr_files[replica][source][channel]
+              except KeyError:
+                continue
+              correlator_data, op_list = get_data(correlators, defs.ensemble_name, replica, ensemble.Nt, source[0], args.ensembles_file)
+              op_list = average_op_list(op_list)
+              op_lists.append(op_list)
+              corrs_to_average.append(correlator_data)
+          
+          averaged_corr_data, op_list, num_averages = average_data(corrs_to_average, op_lists)
+
+          replica_ensemble_name = f"{ensemble.name}_{replica}"
+          hdf5_file = get_hdf5_file(args.output, replica_ensemble_name, data_type_dir, averaged_channel)
+          write_data(averaged_corr_data, averaged_channel, (op_list, num_averages), hdf5_file, replica)
+
+
+    else:
+      print(f"Averaging over all sources: {args.ave_sources}", flush=True)
+      for channel in tqdm.tqdm(channels):
+        if args.ave_sources:
+          op_lists = list()
+          for replica in ensemble.replica:
+            corrs_to_average = list()
+            for source in ensemble.sources:
+              try:
+                correlators = corr_files[replica][source][channel]
+              except KeyError:
+                continue
+              correlator_data, op_list = get_data(correlators, defs.ensemble_name, replica, ensemble.Nt, source[0], args.ensembles_file)
+              op_lists.append(op_list)
+              corrs_to_average.append(correlator_data)
+
+            averaged_corr_data, op_list, num_averages = average_data(corrs_to_average, op_lists)
+
+            replica_ensemble_name = f"{ensemble.name}_{replica}"
+            hdf5_file = get_hdf5_file(args.output, replica_ensemble_name, data_type_dir, channel)
+            write_data(averaged_corr_data, channel, (op_list, num_averages), hdf5_file, replica)
+
         else:
-          write_sh_to_file(channel_data, ensemble)
-      
+          for replica in ensemble.replica:
+            replica_ensemble_name = f"{ensemble.name}_{replica}"
+            for source in ensemble.sources:
+              try:
+                correlators = corr_files[replica][source][channel]
+              except KeyError:
+                continue
+              correlator_data, op_list = get_data(correlators, defs.ensemble_name, replica, ensemble.Nt, source[0], args.ensembles_file)
+
+              hdf5_file = get_hdf5_file(args.output, replica_ensemble_name, data_type_dir, channel, source)
+              write_data(correlator_data, channel, (op_list, None), hdf5_file, replica)
+
+
+def average_data(corrs_to_average, op_lists):
+  num_bins = [corrs.shape[0] for corrs in corrs_to_average]
+  if len(set(num_bins)) != 1:
+    print("mishaped averages!")
+    sys.exit()
+
+  num_bins = num_bins[0]
+
+  num_tseps = max([corrs.shape[-1] for corrs in corrs_to_average])
+  final_op_list = SortedSet()
+  for op_list in op_lists:
+    final_op_list.update(op_list)
+  final_op_list = list(final_op_list)
+
+  num_ave_op_list = [0]*len(final_op_list)
+  for op_list in op_lists:
+    for op in op_list:
+      ind = final_op_list.index(op)
+      num_ave_op_list[ind] += 1
+
+  ave_corr_data = np.zeros((num_bins, len(final_op_list), len(final_op_list), num_tseps), dtype=np.complex128)
+
+  num_averages = np.zeros((len(final_op_list), len(final_op_list)), dtype=np.int32)
+
+  for corr_data, op_list in zip(corrs_to_average, op_lists):
+    num_tsep = corr_data.shape[-1]
+    for src_i, src_op in enumerate(op_list):
+      final_src_i = final_op_list.index(src_op)
+      for snk_i, snk_op in enumerate(op_list):
+        final_snk_i = final_op_list.index(snk_op)
+        num_averages[final_snk_i,final_src_i] += 1
+
+        ave_corr_data[:,final_snk_i,final_src_i,:num_tsep] += corr_data[:,snk_i,src_i,:]
+
+  for src_i in range(len(final_op_list)):
+    for snk_i in range(len(final_op_list)):
+      if num_averages[snk_i,src_i] == 0:
+        all_zeros = not np.any(ave_corr_data[:,snk_i,src_i,:])
+        if not all_zeros:
+          print("not all zero!")
+          sys.exit()
       else:
-        channel_data = find_data(ensemble, search_dir)
-        if AVERAGE_DATA:
-          channel_data = average_data(channel_data)
-          write_averaged_to_file(channel_data, ensemble, channel)
+        ave_corr_data[:,snk_i,src_i,:] /= num_averages[snk_i,src_i]
+
+
+  return ave_corr_data, final_op_list, num_ave_op_list
+
+
+def write_data(data, channel, op_list_info, hdf5_file, replica):
+  exists = os.path.isfile(hdf5_file)
+
+  f_hand = h5py.File(hdf5_file, 'a')
+  if not exists:
+    configs = [f"{replica}n{c_num}" for c_num in defs.config_indices[replica]]
+    f_hand.attrs.create("cfg_list", configs)
+
+  channel_group = f_hand.create_group(channel.data_channel_str())
+  channel_group.attrs.create('op_list', op_list_info[0])
+  if op_list_info[1] is not None:
+    channel_group.attrs.create('op_occurences', op_list_info[1])
+  channel_group.create_dataset('data', data=np.squeeze(data))
+
+  f_hand.close()
+
+
+def get_data(correlators, ensemble_name, replica, ensemble_Nt, tsrc, ensembles_file):
+  mcobs_xml = ET.Element("MCObservables")
+  corr_data_xml = ET.SubElement(mcobs_xml, "BLCorrelatorData")
+
+  file_list_infos = list()
+
+  for data_file in correlators['data_files']:
+    stub, ext = os.path.splitext(data_file)
+    suffix = int(ext[1:])
+    file_list_info = sigmond.FileListInfo(stub, suffix, suffix, False)
+    corr_data_xml.append(file_list_info.xml())
+    file_list_infos.append(file_list_info)
+
+  mcobs_xml_handler = sigmond.XMLHandler()
+  mcobs_xml_handler.set_from_string(ET.tostring(mcobs_xml))
+  sampling_info = sigmond.MCSamplingInfo()
+  ensemble_info = sigmond.MCEnsembleInfo(ensemble_name, ensembles_file)
+  bins_info = sigmond.MCBinsInfo(ensemble_info)
+  bins_info.addOmissions(defs.omissions[replica])
+  obs_get_handler = sigmond.MCObsGetHandler(mcobs_xml_handler, bins_info, sampling_info)
+  obs_handler = sigmond.MCObsHandler(obs_get_handler, False)
+
+  corr_handler = sigmond.BLCorrelatorDataHandler(file_list_infos, set(), set(), ensemble_info)
+
+  operators = set()
+  tmin = None
+  tmax = None
+  for corr in correlators['correlators']:
+    src_op_str = corr.getSource()
+    snk_op_str = corr.getSink()
+    operators.add(src_op_str)
+    operators.add(snk_op_str)
+
+    if tmin is None:
+      keys = corr_handler.getOrderedKeys(corr)
+      tmin = keys[0].getTimeIndex()
+      tmax = keys[-1].getTimeIndex()
+
+  if TMAX is not None:
+    tmax = TMAX
+
+  operators = sorted(list([operator_info.operator.Operator(op) for op in operators]))
+  operators = [op.operator_info for op in operators]
+
+  corr_data = np.zeros((bins_info.getNumberOfBins(), len(operators), len(operators), tmax+1), dtype=np.complex128)
+
+  for snk_i, snk_op in enumerate(operators):
+    bl_op = snk_op.getBasicLapH()
+    is_fermionic = bl_op.isBaryon() or bl_op.isMesonBaryon()
+    forward = not snk_op.isBackwards()
+
+    for src_i, src_op in enumerate(operators[snk_i:], start=snk_i):
+      correlator = sigmond.CorrelatorInfo(snk_op, src_op)
+      correlator_opp = sigmond.CorrelatorInfo(src_op, snk_op)
+      for tsep in range(tmin, tmax+1):
+        correlator_time = sigmond.CorrelatorAtTimeInfo(correlator, tsep, False, False)
+        correlator_time_re_obsinfo = sigmond.MCObsInfo(correlator_time, sigmond.ComplexArg.RealPart)
+        correlator_time_im_obsinfo = sigmond.MCObsInfo(correlator_time, sigmond.ComplexArg.ImaginaryPart)
+
+        has_re = obs_handler.queryBins(correlator_time_re_obsinfo)
+        has_im = obs_handler.queryBins(correlator_time_im_obsinfo)
+        has_data = has_re or has_im
+
+        if has_re and has_im:
+          data = np.array(obs_handler.getBins(correlator_time_re_obsinfo).array()) + 1j*np.array(obs_handler.getBins(correlator_time_im_obsinfo).array())
+        elif has_re:
+          data = np.array(obs_handler.getBins(correlator_time_re_obsinfo).array())
+        elif has_im:
+          data = 1j*np.array(obs_handler.getBins(correlator_time_im_obsinfo).array())
+
+        correlator_opp_time = sigmond.CorrelatorAtTimeInfo(correlator_opp, tsep, False, False)
+        correlator_opp_time_re_obsinfo = sigmond.MCObsInfo(correlator_opp_time, sigmond.ComplexArg.RealPart)
+        correlator_opp_time_im_obsinfo = sigmond.MCObsInfo(correlator_opp_time, sigmond.ComplexArg.ImaginaryPart)
+
+        has_opp_re = obs_handler.queryBins(correlator_opp_time_re_obsinfo)
+        has_opp_im = obs_handler.queryBins(correlator_opp_time_im_obsinfo)
+        has_opp_data = has_opp_re or has_opp_im
+
+        if has_opp_re and has_opp_im:
+          data_opp = np.array(obs_handler.getBins(correlator_opp_time_re_obsinfo).array()) + 1j*np.array(obs_handler.getBins(correlator_opp_time_im_obsinfo).array())
+        elif has_opp_re:
+          data_opp = np.array(obs_handler.getBins(correlator_opp_time_re_obsinfo).array())
+        elif has_opp_im:
+          data_opp = 1j*np.array(obs_handler.getBins(correlator_opp_time_im_obsinfo).array())
+
+        if has_data and has_opp_data:
+          data = 0.5*(data + np.conjugate(data_opp))
+        elif has_data:
+          data = data
+        elif has_opp_data:
+          data = np.conjugate(data_opp)
         else:
-          write_to_file(channel_data, ensemble, channel)
+          continue
 
-      print("done")
+        if is_fermionic and not forward:
+          data = -data
 
+        if forward:
+          corr_data[:,snk_i,src_i,tsep] = data
+          corr_data[:,src_i,snk_i,tsep] = np.conjugate(data)
+        else:
+          corr_data[:,snk_i,src_i,tsep] = np.conjugate(data)
+          corr_data[:,src_i,snk_i,tsep] = data
 
-def write_averaged_sh_to_file(data, ensemble_name):
-  os.makedirs(defs.output_dir, exist_ok=True)
-  filename = os.path.join(defs.output_dir, f"{ensemble_name}_single_hadrons.hdf5")
-  h5_file = h5py.File(filename, 'w')
-  replica = ensemble_name.split('_')[-1]
-  configs = [f"{replica}n{c_num}" for c_num in defs.configs[ensemble_name]]
-  h5_file.attrs.create("cfgList", configs)
-  h5_file.attrs.create("spatExt", defs.spatial_extent[ensemble_name])
   op_list = list()
-  for flavor, averaged_channels in data.items():
-    flavor_group = h5_file.create_group(flavor)
-    bin_datas = list()
-    op_list = list()
-    for averaged_channel, bin_data in averaged_channels.items():
-      bin_datas.append(bin_data)
-      op_list.append(f"pSq{averaged_channel.psq}")
-    flavor_group.attrs.create('opList', op_list)
-    flavor_group.create_dataset("data", data=np.stack(bin_datas,axis=-1))
+  for operator in operators:
+    operator.setForwards()
+    op_list.append(operator.op_str())
 
-  h5_file.close()
+  return corr_data, op_list
 
-def write_sh_to_file(data, ensemble_name):
-  os.makedirs(defs.output_dir, exist_ok=True)
-  filename = os.path.join(defs.output_dir, f"{ensemble_name}_single_hadrons.hdf5")
-  h5_file = h5py.File(filename, 'w')
-  replica = ensemble_name.split('_')[-1]
-  configs = [f"{replica}n{c_num}" for c_num in defs.configs[ensemble_name]]
-  h5_file.attrs.create("cfgList", configs)
-  h5_file.attrs.create("spatExt", defs.spatial_extent[ensemble_name])
-  for flavor, averaged_channels in data.items():
-    flavor_group = h5_file.create_group(flavor)
-    bin_datas = list()
-    for averaged_channel, equivalent_frames in averaged_channels.items():
-      average_channel_group = flavor_group.create_group(repr(averaged_channel))
-      for equivalent_frame, bin_data in equivalent_frames.items():
-        equivalent_group = average_channel_group.create_group(repr(equivalent_frame))
-        equivalent_group.create_dataset("data", data=bin_data)
 
-  h5_file.close()
-
-def write_averaged_to_file(the_data, ensemble_name, the_channel):
-  os.makedirs(defs.output_dir, exist_ok=True)
-  filename = os.path.join(defs.output_dir, f"{ensemble_name}_{the_channel}.hdf5")
-  h5_file = h5py.File(filename, 'w')
-  replica = ensemble_name.split('_')[-1]
-  configs = [f"{replica}n{c_num}" for c_num in defs.configs[ensemble_name]]
-  h5_file.attrs.create("cfgList", configs)
-  h5_file.attrs.create("spatExt", defs.spatial_extent[ensemble_name])
-
-  for channel, (op_list, data) in the_data.items():
-    channel_group = h5_file.create_group(repr(channel))
-    channel_group.attrs.create('opList', op_list)
-    channel_group.create_dataset("data", data=data)
-
-  h5_file.close()
-
-def write_to_file(the_data, ensemble_name, the_channel):
-  os.makedirs(defs.output_dir, exist_ok=True)
-  filename = os.path.join(defs.output_dir, f"{ensemble_name}_{the_channel}.hdf5")
-  h5_file = h5py.File(filename, 'w')
-  replica = ensemble_name.split('_')[-1]
-  configs = [f"{replica}n{c_num}" for c_num in defs.configs[ensemble_name]]
-  h5_file.attrs.create("cfgList", configs)
-  h5_file.attrs.create("spatExt", defs.spatial_extent[ensemble_name])
-
-  for channel, equivalent_frames in the_data.items():
-    channel_group = h5_file.create_group(repr(channel))
-    for equivalent_frame, (op_list, data) in equivalent_frames.items():
-      op_list = [op.op_str() for op in op_list]
-      equivalent_frame_group = channel_group.create_group(repr(equivalent_frame))
-      equivalent_frame_group.attrs.create('opList', op_list)
-      equivalent_frame_group.create_dataset("data", data=data)
-
-  h5_file.close()
-
-def find_data(ensemble_name, search_dir):
-  ensemble_info = sigmond.MCEnsembleInfo(ensemble_name, 'ensembles.xml')
-
-  # search for data files
-  print(f"Searching for correlators and time separations in {search_dir}")
+def get_corr_files(ensemble_name, replica, search_dir, ensembles_file):
   file_list_infos = dict()
   for root, dirs, files in os.walk(search_dir, topdown=True):
     for filename in files:
-      base, ext = os.path.splitext(filename)
-      full_base = os.path.join(root, base)
+      full_filename = os.path.join(root, filename)
+      try:
+        file_type = sigmond.getFileID(full_filename)
+      except ValueError:
+        continue
+
+      if file_type != sigmond.FileType.Correlator:
+        continue
+
+      base, ext = os.path.splitext(full_filename)
 
       try:
         suffix = int(ext[1:])
       except ValueError:
         continue
 
-      if full_base in file_list_infos:
-        if suffix < file_list_infos[full_base][0]:
-          file_list_infos[full_base][0] = suffix
-        elif suffix > file_list_infos[full_base][1]:
-          file_list_infos[full_base][1] = suffix
+      if base in file_list_infos:
+        if suffix < file_list_infos[base][0]:
+          file_list_infos[base][0] = suffix
+        elif suffix > file_list_infos[base][1]:
+          file_list_infos[base][1] = suffix
       else:
-        file_list_infos[full_base] = [suffix, suffix]
+        file_list_infos[base] = [suffix, suffix]
 
   file_list_infos = [sigmond.FileListInfo(stub, suffix[0], suffix[1], False)
                      for stub, suffix in file_list_infos.items()]
 
-
-  # create sigmond handlers
   mcobs_xml = ET.Element("MCObservables")
   corr_data_xml = ET.SubElement(mcobs_xml, "BLCorrelatorData")
   for file_list_info in file_list_infos:
@@ -154,345 +365,74 @@ def find_data(ensemble_name, search_dir):
 
   mcobs_xml_handler = sigmond.XMLHandler()
   mcobs_xml_handler.set_from_string(ET.tostring(mcobs_xml))
+  ensemble_info = sigmond.MCEnsembleInfo(ensemble_name, ensembles_file)
   sampling_info = sigmond.MCSamplingInfo()
   bins_info = sigmond.MCBinsInfo(ensemble_info)
-  bins_info.addOmissions(defs.omissions[ensemble_name])
+  bins_info.addOmissions(defs.omissions[replica])
   obs_get_handler = sigmond.MCObsGetHandler(mcobs_xml_handler, bins_info, sampling_info)
   obs_handler = sigmond.MCObsHandler(obs_get_handler, False)
 
   corr_handler = sigmond.BLCorrelatorDataHandler(file_list_infos, set(), set(), ensemble_info)
-  corrs = corr_handler.getCorrelatorSet()
 
-  # search through found data
-  operators = dict()
-  max_tsep = 0
-  time_seps = dict()
-  for corr in corrs:
-    op_snk = corr.getSink()
-    op_src = corr.getSource()
-    if EXCLUDE_OPERATORS and (op_snk.op_str() in excluded_ops.excluded_operators or op_src.op_str() in excluded_ops.excluded_operators):
-      continue
+  corr_files = dict()
+  for corr in corr_handler.getCorrelatorSet():
+    channel = get_channel(corr)
+    if channel not in corr_files:
+      corr_files[channel] = dict()
+      corr_files[channel]['data_files'] = list()
+      corr_files[channel]['correlators'] = list()
 
-    keys = corr_handler.getOrderedKeys(corr)
-    tmin = keys[0].getTimeIndex()
-    tmax = keys[-1].getTimeIndex()
-    if tmax > max_tsep:
-      max_tsep = tmax
-    time_seps[corr] = (tmin, tmax)
+    corr_files[channel]['data_files'].append(corr_handler.getFileName(corr))
+    corr_files[channel]['correlators'].append(corr)
 
-    op_snk_bl = op_snk.getBasicLapH()
-    op_src_bl = op_src.getBasicLapH()
-    P = (op_src_bl.getXMomentum(), op_src_bl.getYMomentum(), op_src_bl.getZMomentum())
-    Psq = P[0]**2 + P[1]**2 + P[2]**2
-    irrep = op_src_bl.getLGIrrep()
-    irrep_row = op_src_bl.getLGIrrepRow()
-    averaged_channel = defs.AveragedChannel(Psq, irrep)
-    equivalent_frame = defs.EquivalentFrame(P, irrep_row)
-    if averaged_channel not in operators:
-      operators[averaged_channel] = dict()
-    if equivalent_frame not in operators[averaged_channel]:
-      operators[averaged_channel][equivalent_frame] = SortedSet()
-
-    operators[averaged_channel][equivalent_frame].add(op_snk)
-    operators[averaged_channel][equivalent_frame].add(op_src)
-
-  print("Done searching for all correlators and time separations")
-  print("Now finding data")
-
-  data = dict()
-  for averaged_channel, channel_ops in operators.items():
-    print(f"Working on {averaged_channel}")
-    data[averaged_channel] = dict()
-    for equivalent_frame, operators in channel_ops.items():
-      print(f"\tWorking on {equivalent_frame}")
-      operator_list = list(operators)
-
-      bin_data = np.zeros((len(defs.configs[ensemble_name]), max_tsep+1, len(operator_list), len(operator_list)), dtype=np.complex128)
-      for op_snk_i, op_snk in enumerate(operator_list):
-        snk_op_phase = defs.phases.get(op_snk.op_str(), 1)
-        for op_src_i, op_src in enumerate(operator_list[op_snk_i:], start=op_snk_i):
-          src_op_phase = defs.phases.get(op_src.op_str(), 1)
-          phase = snk_op_phase*np.conj(src_op_phase)
-
-          corr_info = sigmond.CorrelatorInfo(op_snk, op_src)
-          corr_info_opposite = sigmond.CorrelatorInfo(op_src, op_snk)
-          if corr_info_opposite not in time_seps:
-            trange = time_seps[corr_info]
-          elif corr_info not in time_seps:
-            trange = time_seps[corr_info_opposite]
-          else:
-            trange1 = time_seps[corr_info]
-            trange2 = time_seps[corr_info_opposite]
-            trange = (max(trange1[0], trange2[0]), min(trange1[1], trange2[1]))
-
-          corr_time_info = sigmond.CorrelatorAtTimeInfo(corr_info, 0, False, False)
-          corr_time_info_opposite = sigmond.CorrelatorAtTimeInfo(corr_info_opposite, 0, False, False)
-          for tsep in range(trange[0], trange[1]+1):
-            corr_time_info.resetTimeSeparation(tsep)
-            corr_time_info_opposite.resetTimeSeparation(tsep)
-
-            obs_info_re = sigmond.MCObsInfo(corr_time_info, sigmond.ComplexArg.RealPart)
-            obs_info_im = sigmond.MCObsInfo(corr_time_info, sigmond.ComplexArg.ImaginaryPart)
-
-            obs_info_opposite_re = sigmond.MCObsInfo(corr_time_info_opposite, sigmond.ComplexArg.RealPart)
-            obs_info_opposite_im = sigmond.MCObsInfo(corr_time_info_opposite, sigmond.ComplexArg.ImaginaryPart)
-
-            if corr_info_opposite not in time_seps:
-              the_data = np.array([phase*(re + im*1j) for re, im in zip(obs_handler.getBins(obs_info_re).array(), obs_handler.getBins(obs_info_im).array())])
-
-              bin_data[:,tsep,op_snk_i,op_src_i] = the_data
-              bin_data[:,tsep,op_src_i,op_snk_i] = np.conj(the_data)
-
-            elif corr_info not in time_seps:
-              the_data = np.array([np.conj(phase)*(re + im*1j) for re, im in zip(obs_handler.getBins(obs_info_opposite_re).array(), obs_handler.getBins(obs_info_opposite_im).array())])
-
-              bin_data[:,tsep,op_snk_i,op_src_i] = np.conj(the_data)
-              bin_data[:,tsep,op_src_i,op_snk_i] = the_data
-
-            elif corr_info == corr_info_opposite:
-              if FORCE_HERM:
-                the_data = np.array(obs_handler.getBins(obs_info_re).array())
-              else:
-                the_data = np.array([(re + im*1j) for re, im in zip(obs_handler.getBins(obs_info_re).array(), obs_handler.getBins(obs_info_im).array())])
-
-              bin_data[:,tsep,op_snk_i,op_src_i] = the_data
-
-            else:
-              the_data = np.array([phase*(re + im*1j) for re, im in zip(obs_handler.getBins(obs_info_re).array(), obs_handler.getBins(obs_info_im).array())])
-              the_data_opposite = np.array([np.conj(phase)*(re + im*1j) for re, im in zip(obs_handler.getBins(obs_info_opposite_re).array(), obs_handler.getBins(obs_info_opposite_im).array())])
-
-              if FORCE_HERM:
-                bin_data[:,tsep,op_snk_i,op_src_i] = 0.5*(the_data + np.conj(the_data_opposite))
-                bin_data[:,tsep,op_src_i,op_snk_i] = 0.5*(np.conj(the_data) + the_data_opposite)
-              else:
-                bin_data[:,tsep,op_snk_i,op_src_i] = the_data
-                bin_data[:,tsep,op_src_i,op_snk_i] = the_data_opposite
-
-      data[averaged_channel][equivalent_frame] = (operator_list, bin_data)
-      obs_handler.clearData()
-
-  return data
-
-def find_sh_data(ensemble_name, search_dir):
-  ensemble_info = sigmond.MCEnsembleInfo(ensemble_name, 'ensembles.xml')
-
-  # search for data files
-  print(f"Searching for correlators and time separations in {search_dir}")
-  file_list_infos = dict()
-  for root, dirs, files in os.walk(search_dir, topdown=True):
-    for filename in files:
-      base, ext = os.path.splitext(filename)
-      full_base = os.path.join(root, base)
-
-      try:
-        suffix = int(ext[1:])
-      except ValueError:
-        continue
-
-      if full_base in file_list_infos:
-        if suffix < file_list_infos[full_base][0]:
-          file_list_infos[full_base][0] = suffix
-        elif suffix > file_list_infos[full_base][1]:
-          file_list_infos[full_base][1] = suffix
-      else:
-        file_list_infos[full_base] = [suffix, suffix]
-
-  file_list_infos = [sigmond.FileListInfo(stub, suffix[0], suffix[1], False)
-                     for stub, suffix in file_list_infos.items()]
+  return corr_files
 
 
-  # create sigmond handlers
-  mcobs_xml = ET.Element("MCObservables")
-  corr_data_xml = ET.SubElement(mcobs_xml, "BLCorrelatorData")
-  for file_list_info in file_list_infos:
-    corr_data_xml.append(file_list_info.xml())
+def get_hdf5_file(base_output_dir, ensemble_name, data_type_dir, channel, source=None):
+  output_dir = os.path.join(base_output_dir, ensemble_name, data_type_dir)
+  os.makedirs(output_dir, exist_ok=True)
 
-  mcobs_xml_handler = sigmond.XMLHandler()
-  mcobs_xml_handler.set_from_string(ET.tostring(mcobs_xml))
-  sampling_info = sigmond.MCSamplingInfo()
-  bins_info = sigmond.MCBinsInfo(ensemble_info)
-  bins_info.addOmissions(defs.omissions[ensemble_name])
-  obs_get_handler = sigmond.MCObsGetHandler(mcobs_xml_handler, bins_info, sampling_info)
-  obs_handler = sigmond.MCObsHandler(obs_get_handler, False)
-
-  corr_handler = sigmond.BLCorrelatorDataHandler(file_list_infos, set(), set(), ensemble_info)
-  corrs = corr_handler.getCorrelatorSet()
-
-  # search through found data
-  operators = dict()
-  max_tsep = 0
-  time_seps = dict()
-  for corr in corrs:
-    if not corr.isSinkSourceSame():
-      print("aren't sh ops diagonal?")
-      exit()
-
-    op_src = corr.getSource()
-    if op_src.op_str() in missing_sh_ops.missing_operators:
-      continue
-
-    keys = corr_handler.getOrderedKeys(corr)
-    tmin = keys[0].getTimeIndex()
-    tmax = keys[-1].getTimeIndex()
-    if tmax > max_tsep:
-      max_tsep = tmax
-    time_seps[corr] = (tmin, tmax)
-
-    op_src = corr.getSource()
-    op_src_bl = op_src.getBasicLapH()
-    P = (op_src_bl.getXMomentum(), op_src_bl.getYMomentum(), op_src_bl.getZMomentum())
-    Psq = P[0]**2 + P[1]**2 + P[2]**2
-    irrep = op_src_bl.getLGIrrep()
-    irrep_row = op_src_bl.getLGIrrepRow()
-    flavor = op_src_bl.getFlavor()
-    averaged_channel = defs.AveragedChannel(Psq, irrep)
-    equivalent_frame = defs.EquivalentFrame(P, irrep_row)
-    if flavor not in operators:
-      operators[flavor] = dict()
-    if averaged_channel not in operators[flavor]:
-      operators[flavor][averaged_channel] = dict()
-    if equivalent_frame in operators[flavor][averaged_channel]:
-      print("aren't sh ops 1x1?")
-      exit()
-
-    operators[flavor][averaged_channel][equivalent_frame] = op_src
-
-  print("Done searching for all correlators and time separations")
-  print("Now finding data")
-
-  data = dict()
-  for flavor, averaged_channels in operators.items():
-    print(f"Working on {flavor}")
-    data[flavor] = dict()
-    for averaged_channel, channel_ops in averaged_channels.items():
-      print(f"\tWorking on {averaged_channel}")
-      data[flavor][averaged_channel] = dict()
-      for equivalent_frame, operator in channel_ops.items():
-        print(f"\t\tWorking on {equivalent_frame}")
-        bin_data = np.zeros((len(defs.configs[ensemble_name]), max_tsep+1), dtype=np.complex128)
-        corr_info = sigmond.CorrelatorInfo(operator, operator)
-        trange = time_seps[corr_info]
-        corr_time_info = sigmond.CorrelatorAtTimeInfo(corr_info, 0, False, False)
-        for tsep in range(trange[0], trange[1]+1):
-          corr_time_info.resetTimeSeparation(tsep)
-
-          if FORCE_HERM:
-            obs_info_re = sigmond.MCObsInfo(corr_time_info, sigmond.ComplexArg.RealPart)
-
-            bin_data[:,tsep] = np.array([obs_handler.getBins(obs_info_re).array()])
-          else:
-            obs_info_re = sigmond.MCObsInfo(corr_time_info, sigmond.ComplexArg.RealPart)
-            obs_info_im = sigmond.MCObsInfo(corr_time_info, sigmond.ComplexArg.ImaginaryPart)
-
-            bin_data[:,tsep] = np.array([(re + im*1j) for re, im in zip(obs_handler.getBins(obs_info_re).array(), obs_handler.getBins(obs_info_im).array())])
-
-
-        data[flavor][averaged_channel][equivalent_frame] = bin_data
-        obs_handler.clearData()
-
-  return data
-
-def average_data(data):
-  averaged_data = dict()
-  for averaged_channel, equivalent_frames in data.items():
-    averaged_data[averaged_channel] = dict()
-    bin_datas = list()
-    averaged_op_list = list()
-    for equivalent_frame, (operators, bin_data) in equivalent_frames.items():
-      averaged_op_list, reorder_list = get_averaged_op_list(operators, averaged_op_list)
-      bin_data = bin_data[:,:,reorder_list,:]
-      bin_data = bin_data[:,:,:,reorder_list]
-      bin_datas.append(bin_data)
-
-    temp_averaged_data = sum(bin_datas) / len(bin_datas)
-    averaged_data[averaged_channel] = (averaged_op_list, temp_averaged_data)
-
-  return averaged_data
-
-def average_sh_data(data):
-  averaged_data = dict()
-  for flavor, averaged_channels in data.items():
-    averaged_data[flavor] = dict()
-    for averaged_channel, equivalent_frames in averaged_channels.items():
-      averaged_data[flavor][averaged_channel] = dict()
-      bin_datas = list()
-      for equivalent_frame, bin_data in equivalent_frames.items():
-        bin_datas.append(bin_data)
-
-      temp_averaged_data = sum(bin_datas) / len(bin_datas)
-      averaged_data[flavor][averaged_channel] = temp_averaged_data
-
-  return averaged_data
-
-def get_averaged_op_list(operators, current_averaged_list):
-  averaged_op_list = list()
-  for operator in operators:
-    short_op_name = get_short_name(operator)
-    if short_op_name in averaged_op_list:
-      averaged_op_list = get_alt_short_names(operators)
-      break
-
-    averaged_op_list.append(short_op_name)
-
-  reorder_list = sorted(range(len(averaged_op_list)), key=lambda k: averaged_op_list[k])
-  averaged_op_list = sorted(averaged_op_list)
-  if current_averaged_list and averaged_op_list != current_averaged_list:
-    print("mismatch")
-    exit()
-
-  return averaged_op_list, reorder_list
-
-def get_alt_short_names(operators):
-  short_name_list = list()
-  for operator in operators:
-    short_op_name = get_alt_short_name(operator)
-    if short_op_name in short_name_list:
-      print("name conflict")
-      exit()
-
-    short_name_list.append(short_op_name)
-
-  return short_name_list
-      
-
-def get_short_name(operator):
-  operator = operator.getBasicLapH()
-  if operator.getNumberOfHadrons() == 1:
-    return f"{defs.name_map[operator.getFlavor()]} {operator.getHadronSpatialType(1)}_{operator.getHadronSpatialIdNumber(1)}"
+  if source is not None:
+    hdf5_file =f"{ensemble_name}_{channel.iso_strange_str()}_t0{source[0]}_{defs.parity_name[source[1]]}.hdf5"
   else:
-    short_name = ""
-    for had_num in range(1, operator.getNumberOfHadrons()+1):
-      had_name = defs.name_map[operator.getHadronFlavor(had_num)]
-      had_psq = operator.getHadronXMomentum(had_num)**2 + operator.getHadronYMomentum(had_num)**2 + operator.getHadronZMomentum(had_num)**2
+    hdf5_file = f"{ensemble_name}_{channel.iso_strange_str()}.hdf5"
 
-      short_name += f"{had_name}({had_psq}) "
+  hdf5_file = os.path.join(output_dir, hdf5_file)
 
-    short_name = short_name[:-1]
-    if (cgid := operator.getLGClebschGordonIdNum()) > 0:
-      short_name += f" {cgid}"
+  return hdf5_file
 
-  return short_name
+def get_channel(correlator):
+  op = correlator.getSink().getBasicLapH()
+  P = (op.getXMomentum(), op.getYMomentum(), op.getZMomentum())
+  irrep = op.getLGIrrep()
+  irrep_row = op.getLGIrrepRow()
+  isospin = defs.isospin_map.get(op.getIsospin(), op.getIsospin())
+  strangeness = op.getStrangeness()
+  channel = defs.Channel(P, irrep, irrep_row, isospin, strangeness)
+  return channel
 
-def get_alt_short_name(operator):
-  operator = operator.getBasicLapH()
-  if operator.getNumberOfHadrons() == 1:
-    return f"{defs.name_map[operator.getFlavor()]} {operator.getHadronSpatialType(1)}_{operator.getHadronSpatialIdNumber(1)}"
-  else:
-    short_name = ""
-    for had_num in range(1, operator.getNumberOfHadrons()+1):
-      had_name = defs.name_map[operator.getHadronFlavor(had_num)]
-      had_psq = operator.getHadronXMomentum(had_num)**2 + operator.getHadronYMomentum(had_num)**2 + operator.getHadronZMomentum(had_num)**2
-      spat_type = operator.getHadronSpatialType(had_num)
-      spat_id = operator.getHadronSpatialIdNumber(had_num)
+def average_op_list(op_list):
+  new_op_list = list()
+  for op in op_list:
+    tokens = op.split(' ')
+    if tokens[1].startswith('P'): # single hadron
+      mom = tokens[1].split('(')[1].rstrip(')').split(',')
+      psq = str(int(mom[0])**2 + int(mom[1])**2 + int(mom[2])**2)
+      tokens[1] = f"PSQ={psq}"
+      tokens[2] = tokens[2].split('_')[0]
+      new_op_list.append(' '.join(tokens))
 
-      short_name += f"{had_name}({had_psq},{spat_type}{spat_id}) "
+    else: # multi hadron
+      tokens[1] = tokens[1].split('_')[0]
+      for i in range(2, len(tokens)):
+        if tokens[i].startswith('[P'):
+          mom = tokens[i].split('(')[1].rstrip(')').split(',')
+          psq = str(int(mom[0])**2 + int(mom[1])**2 + int(mom[2])**2)
+          tokens[i] = f"[PSQ={psq}"
 
-    short_name = short_name[:-1]
-    if (cgid := operator.getLGClebschGordonIdNum()) > 0:
-      short_name += f" {cgid}"
+      new_op_list.append(' '.join(tokens))
 
-  return short_name
-
+  return new_op_list
 
 
 if __name__ == "__main__":

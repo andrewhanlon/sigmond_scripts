@@ -3,6 +3,14 @@
   <Infos>
 
      <EnsembleInfo>
+        <Id>cls21_e250_r001</Id>
+        <NStreams>1</NStreams>
+        <NMeas>1009</NMeas>
+        <NSpace>96</NSpace>
+        <NTime>192</NTime>
+     </EnsembleInfo>
+
+     <EnsembleInfo>
         <Id>cls21_d200_r000</Id>
         <NStreams>1</NStreams>
         <NMeas>2001</NMeas>

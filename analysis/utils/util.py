@@ -271,7 +271,8 @@ def create_doc(title, with_tikz=False):
   doc.packages.append(pylatex.Package('amsmath'))
   doc.packages.append(pylatex.Package('float'))
   doc.packages.append(pylatex.Package('caption', {'labelformat': 'empty', 'justification': 'centering'}))
-  #doc.packages.append(pylatex.Package('todonotes'))
+#   doc.packages.append(pylatex.Package('todonotes'))
+  doc.packages.append(pylatex.NoEscape(r"\usepackage{longtable}[=v4.13]"))
 
   # I don't think these are needed
   #doc.packages.append(pylatex.Package('needspace'))

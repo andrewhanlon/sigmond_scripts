@@ -44,6 +44,18 @@ ensembles = {
             (52, True),
           ]
         ),
+    "E250":
+        Ensemble(
+          "cls21_e250",
+          192,
+          ['r001'],
+          [
+            (0, True), (0, False),
+            (1, True), (1, False),
+            (2, True), (2, False),
+            (3, True), (3, False),
+          ]
+        ),
     "C103":
         Ensemble(
           "cls21_c103",
@@ -85,6 +97,7 @@ config_indices = {
     "cls21_n200_r000": list(range(1, 856, 2)),
     "cls21_n203_r000": list(range(1, 757, 2)),
     "cls21_n203_r001": list(range(2, 787, 2)),
+    "cls21_e250_r001": list(range(1, 502, 4)) + list(range(503, 902, 2)) + list(range(905, 1010, 4)),
 }
 
 omissions = {
@@ -96,6 +109,7 @@ omissions = {
     "cls21_n200_r000": set(range(1, 856, 2)),
     "cls21_n203_r000": set(range(1, 757, 2)),
     "cls21_n203_r001": set(range(0, 788, 2)),
+    "cls21_e250_r001": set(list(range(0, 1009))) -  set(list(range(0, 501, 4)) + list(range(502, 901, 2)) + list(range(904, 1009, 4))),
 }
 
 

@@ -3,7 +3,31 @@
   <Infos>
 
      <EnsembleInfo>
+        <Id>cls21_e250_r001</Id>
+        <NStreams>1</NStreams>
+        <NMeas>1009</NMeas>
+        <NSpace>96</NSpace>
+        <NTime>192</NTime>
+     </EnsembleInfo>
+
+     <EnsembleInfo>
+        <Id>cls21_e250</Id>
+        <NStreams>1</NStreams>
+        <NMeas>1009</NMeas>
+        <NSpace>96</NSpace>
+        <NTime>192</NTime>
+     </EnsembleInfo>
+
+     <EnsembleInfo>
         <Id>cls21_d200_r000</Id>
+        <NStreams>1</NStreams>
+        <NMeas>2001</NMeas>
+        <NSpace>64</NSpace>
+        <NTime>128</NTime>
+     </EnsembleInfo>
+
+     <EnsembleInfo>
+        <Id>cls21_d200</Id>
         <NStreams>1</NStreams>
         <NMeas>2001</NMeas>
         <NSpace>64</NSpace>
@@ -29,13 +53,21 @@
      <EnsembleInfo>
         <Id>cls21_n203</Id>
         <NStreams>2</NStreams>
-        <NMeas>771</NMeas>
+        <NMeas>1543</NMeas>
         <NSpace>48</NSpace>
         <NTime>128</NTime>
      </EnsembleInfo>
 
      <EnsembleInfo>
         <Id>cls21_n200_r000</Id>
+        <NStreams>1</NStreams>
+        <NMeas>856</NMeas>
+        <NSpace>48</NSpace>
+        <NTime>128</NTime>
+     </EnsembleInfo>
+
+     <EnsembleInfo>
+        <Id>cls21_n200</Id>
         <NStreams>1</NStreams>
         <NMeas>856</NMeas>
         <NSpace>48</NSpace>
