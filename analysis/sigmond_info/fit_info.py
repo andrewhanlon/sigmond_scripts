@@ -25,6 +25,7 @@ class FitModel(MultiValueEnum):
   LogTimeForwardSingleExponential = 10, "log-1-exp"
   LogTimeForwardTwoExponential = 11, "log-2-exp"
   TimeForwardMultiExponential = 12, "multi-exp"
+  TimeForwardSTIGeomSeriesExponential = 13, "sti-geom"
 
   @property
   def short_name(self):
@@ -53,6 +54,7 @@ FIT_MODEL_SHORT_NAMES = {
     FitModel.LogTimeForwardSingleExponential: "log-1-exp",
     FitModel.LogTimeForwardTwoExponential: "log-2-exp",
     FitModel.TimeForwardMultiExponential: "multi-exp",
+    FitModel.TimeForwardSTIGeomSeriesExponential: "sti-geom"
 }
 
 
@@ -128,6 +130,13 @@ class FitInfo:
       FitModel.TimeForwardMultiExponential: [
           "E0","E1","E2","E3",
           "A0","A1","A2","A3",
+      ],
+      FitModel.TimeForwardSTIGeomSeriesExponential: [
+          "FirstEnergy",
+          "FirstAmplitude",
+          "SqrtGapToSecondEnergy",
+          "SecondAmplitudeRatio",
+          "STIAmplitudeRatio"
       ],
   }
 

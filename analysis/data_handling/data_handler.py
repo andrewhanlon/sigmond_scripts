@@ -154,7 +154,7 @@ class DataHandler(metaclass=util.Singleton):
 
     data_file = self.rotated_datafile(rotated_basis)
     if not os.path.isfile(data_file):
-      logging.error(f"No basis {rotated_basis.basis_name} with {rotated_basis.pivot_info}")
+      logging.error(f"No basis {rotated_basis.name} with {rotated_basis.pivot_info}")
 
     file_type = sigmond.getFileID(data_file)
     if file_type == sigmond.FileType.Bins:

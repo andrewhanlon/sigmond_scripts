@@ -470,8 +470,19 @@ class Spectrum(tasks.task.Task):
     os.makedirs(plotdir, exist_ok=True)
     return plotdir
 
+  def tmin_relabelled_plotdir(self, operator_set_name):
+    plotdir = os.path.join(self.plotdir, "tmin_plots", self.task_name, f"rebin{self.rebin}_relabelled", operator_set_name)
+    os.makedirs(plotdir, exist_ok=True)
+    return plotdir
+
   def tmin_plotfile(self, operator_set_name, level, fit_info, show_shift, extension):
     plotdir = self.tmin_plotdir(operator_set_name)
+    shift_str = "D_" if show_shift else ""
+    plotfile = f"tmin_{fit_info.plotfile}_{shift_str}{level}.{extension.value}"
+    return os.path.join(plotdir, plotfile)
+
+  def tmin_relabelled_plotfile(self, operator_set_name, level, fit_info, show_shift, extension):
+    plotdir = self.tmin_relabelled_plotdir(operator_set_name)
     shift_str = "D_" if show_shift else ""
     plotfile = f"tmin_{fit_info.plotfile}_{shift_str}{level}.{extension.value}"
     return os.path.join(plotdir, plotfile)
@@ -777,6 +788,7 @@ class Spectrum(tasks.task.Task):
 
     filename = os.path.join(self.results_dir, f"spectrum_{self.ensemble_name}_{self.task_name}_rebin{self.rebin}")
     util.compile_pdf(doc, filename, self.latex_compiler)
+    self._reorderTminFitPlots()
           
   def _addZfactors(self, doc):
     with doc.create(pylatex.Section("Overlap factors")):
@@ -878,6 +890,21 @@ class Spectrum(tasks.task.Task):
                           with doc.create(pylatex.SubFigure(position='b', width=pylatex.NoEscape(r'0.33\linewidth'))) as fig:
                             util.add_image(fig, self.results_dir, plot_file, width='1.0', caption=cap)
 
+  def _reorderTminFitPlots(self):
+    for operator_set, tmin_fit_infos in self.tmin_infos.items():
+        if isinstance(operator_set, str):
+          if operator_set != self.sh_name:
+            logging.critical("What?")
+        else:
+            new_level = 0
+            for level, energy in self.energies[operator_set].items():
+                tmin_fit_info = tmin_fit_infos[level]
+                for fit_info in tmin_fit_info:
+                    for shift in [True, False]:
+                        plotfile = self.tmin_plotfile(repr(operator_set), level, fit_info, shift, util.PlotExtension.grace)
+                        new_plotfile = self.tmin_relabelled_plotfile(repr(operator_set), new_level, fit_info, shift, util.PlotExtension.grace)
+                        shutil.copyfile(plotfile,new_plotfile)
+                new_level+=1
 
   def _addFittedEnergies(self, doc):
     with doc.create(pylatex.Section("Fitted Energies")):
