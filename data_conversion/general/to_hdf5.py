@@ -18,6 +18,7 @@ sys.path.insert(1, "../../analysis/")
 import operator_info.operator
 
 ensembles_to_do = ["N203"]
+src_names = ['kaons_t0', 'pions_t0']
 
 def main():
   parser = argparse.ArgumentParser(description="Convert general data")
@@ -38,108 +39,114 @@ def main():
     ensemble = defs.ensembles[ensemble_key]
     print(f"Working on ensemble {ensemble.name}", flush=True)
 
-    corr_files = dict()
-    channels = list()
-    for replica in ensemble.replica:
-      replica_ensemble_name = f"{ensemble.name}_{replica}"
-      print(f"replica {replica}", flush=True)
-      corr_files[replica] = dict()
-      for source in ensemble.sources:
-        print(f"source {source}", flush=True)
-        data_dir = os.path.join(ensemble.name, replica, f"src{source[0]}", defs.parity_name[source[1]])
-        search_dir = os.path.join(args.input, data_dir)
-        print(f"searching in {search_dir}", flush=True)
-        corr_files[replica][source] = get_corr_files(replica_ensemble_name, search_dir, args.ensembles_file)
-        channels.append(corr_files[replica][source].keys())
+    for src_name in src_names:
+      print(f"  Working on source name {src_name}", flush=True)
+      corr_files = dict()
+      channels = list()
+      for replica in ensemble.replica:
+        replica_ensemble_name = f"{ensemble.name}_{replica}"
+        print(f"replica {replica}", flush=True)
+        corr_files[replica] = dict()
+        for source in ensemble.sources:
+          print(f"source {source}", flush=True)
+          data_dir = os.path.join(ensemble.name, replica, f"{src_name}{source[0]}", defs.parity_name[source[1]])
+          search_dir = os.path.join(args.input, data_dir)
+          print(f"searching in {search_dir}", flush=True)
+          corr_files[replica][source] = get_corr_files(replica_ensemble_name, search_dir, args.ensembles_file)
+          channels.append(corr_files[replica][source].keys())
 
-    # TODO: check all elements of correlators have same keys
-    all_equal = all(chans==channels[0] for chans in channels)
-    if not all_equal:
-      print("not all equal\n\n")
-      for corrs_num, corrs in enumerate(correlators):
-        print(f"corrs num {corrs_num}")
-        print("--------------------")
-        for corr in sorted(corrs):
-          print(f"\t{corr}")
-        print()
-      sys.exit()
+      # TODO: check all elements of correlators have same keys
+      all_equal = all(chans==channels[0] for chans in channels)
+      if not all_equal:
+        print("not all equal\n\n")
+        for corrs_num, corrs in enumerate(correlators):
+          print(f"corrs num {corrs_num}")
+          print("--------------------")
+          for corr in sorted(corrs):
+            print(f"\t{corr}")
+          print()
+        sys.exit()
 
-    channels = channels[0]
+      channels = channels[0]
 
-    if args.ave_equiv:
-      print("Averaging over all equivalent momentum and irrep rows", flush=True)
-      averaged_channels = dict()
-      for channel in channels:
-        psq = channel.momentum[0]**2 + channel.momentum[1]**2 + channel.momentum[2]**2
-        averaged_channel = defs.AveragedChannel(psq, channel.irrep, channel.isospin, channel.strangeness)
-        if averaged_channel not in averaged_channels:
-          averaged_channels[averaged_channel] = list()
-
-        averaged_channels[averaged_channel].append(channel)
-
-      for averaged_channel, channels in averaged_channels.items():
-        print(f"Averaged Channel: {averaged_channel!s}", flush=True)
+      if args.ave_equiv:
+        print("Averaging over all equivalent momentum and irrep rows", flush=True)
+        averaged_channels = dict()
         for channel in channels:
-          print(f"  * {channel!s}", flush=True)
-        print("", flush=True)
+          psq = channel.momentum[0]**2 + channel.momentum[1]**2 + channel.momentum[2]**2
+          if psq == 9:
+            psq_test = max([pi**2 for pi in channel.momentum])
+            if psq_test != psq:
+              continue
+          averaged_channel = defs.AveragedChannel(psq, channel.irrep, channel.isospin, channel.strangeness)
+          if averaged_channel not in averaged_channels:
+            averaged_channels[averaged_channel] = list()
 
-      for averaged_channel, channels in tqdm.tqdm(averaged_channels.items()):
-        op_lists = list()
-        for replica in ensemble.replica:
-          replica_ensemble_name = f"{ensemble.name}_{replica}"
-          corrs_to_average = list()
+          averaged_channels[averaged_channel].append(channel)
+
+        for averaged_channel, channels in averaged_channels.items():
+          print(f"Averaged Channel: {averaged_channel!s}", flush=True)
           for channel in channels:
-            for source in ensemble.sources:
-              correlators = corr_files[replica][source][channel]
-              correlator_data, op_list = get_data(correlators, replica_ensemble_name, ensemble.Nt, source[0], args.ensembles_file)
-              op_list = average_op_list(op_list)
-              op_lists.append(op_list)
-              corrs_to_average.append(correlator_data)
+            print(f"  * {channel!s}", flush=True)
+          print("", flush=True)
 
-          averaged_corr_data = np.mean(corrs_to_average, axis=0)
-
-          all_equal = all(op_list==op_lists[0] for op_list in op_lists)
-          if not all_equal:
-            print(f"{averaged_channel!s}: not all op lists equal")
-            continue
-          
-          hdf5_file = get_hdf5_file(args.output, replica_ensemble_name, averaged_channel)
-          write_data(averaged_corr_data, averaged_channel, op_lists[0], hdf5_file, replica, replica_ensemble_name)
-
-
-    else:
-      print(f"Averaging over all sources: {args.ave_sources}", flush=True)
-      for channel in tqdm.tqdm(channels):
-        if args.ave_sources:
+        for averaged_channel, channels in tqdm.tqdm(averaged_channels.items()):
           op_lists = list()
           for replica in ensemble.replica:
             replica_ensemble_name = f"{ensemble.name}_{replica}"
             corrs_to_average = list()
-            for source in ensemble.sources:
-              correlators = corr_files[replica][source][channel]
-              correlator_data, op_list = get_data(correlators, replica_ensemble_name, ensemble.Nt, source[0], args.ensembles_file)
-              op_lists.append(op_list)
-              corrs_to_average.append(correlator_data)
+            for channel in channels:
+              for source in ensemble.sources:
+                correlators = corr_files[replica][source][channel]
+                correlator_data, op_list = get_data(correlators, replica_ensemble_name, ensemble.Nt, source[0], args.ensembles_file)
+                op_list = average_op_list(op_list)
+                op_lists.append(op_list)
+                corrs_to_average.append(correlator_data)
 
             averaged_corr_data = np.mean(corrs_to_average, axis=0)
 
             all_equal = all(op_list==op_lists[0] for op_list in op_lists)
             if not all_equal:
-              print("not all op lists equal")
-              sys.exit()
+              print(f"{averaged_channel!s}: not all op lists equal")
+              continue
             
-            hdf5_file = get_hdf5_file(args.output, replica_ensemble_name, channel)
-            write_data(averaged_corr_data, channel, op_lists[0], hdf5_file, replica, replica_ensemble_name)
+            hdf5_file = get_hdf5_file(args.output, replica_ensemble_name, src_name, averaged_channel)
+            write_data(averaged_corr_data, averaged_channel, op_lists[0], hdf5_file, replica, replica_ensemble_name)
 
-        else:
-          for replica in ensemble.replica:
-            replica_ensemble_name = f"{ensemble.name}_{replica}"
-            for source in ensemble.sources:
-              correlators = corr_files[replica][source][channel]
-              correlator_data, op_list = get_data(correlators, replica_ensemble_name, ensemble.Nt, source[0], args.ensembles_file)
 
-              hdf5_file = get_hdf5_file(args.output, replica_ensemble_name, channel, source)
-              write_data(correlator_data, channel, op_list, hdf5_file, replica, replica_ensemble_name)
+      else:
+        print(f"Averaging over all sources: {args.ave_sources}", flush=True)
+        for channel in tqdm.tqdm(channels):
+          if args.ave_sources:
+            op_lists = list()
+            for replica in ensemble.replica:
+              replica_ensemble_name = f"{ensemble.name}_{replica}"
+              corrs_to_average = list()
+              for source in ensemble.sources:
+                correlators = corr_files[replica][source][channel]
+                correlator_data, op_list = get_data(correlators, replica_ensemble_name, ensemble.Nt, source[0], args.ensembles_file)
+                op_lists.append(op_list)
+                corrs_to_average.append(correlator_data)
+
+              averaged_corr_data = np.mean(corrs_to_average, axis=0)
+
+              all_equal = all(op_list==op_lists[0] for op_list in op_lists)
+              if not all_equal:
+                print("not all op lists equal")
+                sys.exit()
+              
+              hdf5_file = get_hdf5_file(args.output, replica_ensemble_name, src_name, channel)
+              write_data(averaged_corr_data, channel, op_lists[0], hdf5_file, replica, replica_ensemble_name)
+
+          else:
+            for replica in ensemble.replica:
+              replica_ensemble_name = f"{ensemble.name}_{replica}"
+              for source in ensemble.sources:
+                correlators = corr_files[replica][source][channel]
+                correlator_data, op_list = get_data(correlators, replica_ensemble_name, ensemble.Nt, source[0], args.ensembles_file)
+
+                hdf5_file = get_hdf5_file(args.output, replica_ensemble_name, src_name, channel, source)
+                write_data(correlator_data, channel, op_list, hdf5_file, replica, replica_ensemble_name)
 
 
 def write_data(data, channel, op_list, hdf5_file, replica, replica_ensemble_name):
@@ -341,14 +348,14 @@ def get_corr_files(ensemble_name, search_dir, ensembles_file):
   return corr_files
 
 
-def get_hdf5_file(base_output_dir, ensemble_name, channel, source=None):
-  output_dir = os.path.join(base_output_dir, ensemble_name)
+def get_hdf5_file(base_output_dir, ensemble_name, src_name, channel, source=None):
+  output_dir = os.path.join(base_output_dir, ensemble_name, src_name)
   os.makedirs(output_dir, exist_ok=True)
 
   if source is not None:
-    hdf5_file =f"{ensemble_name}_{channel.iso_strange_str()}_t0{source[0]}_{defs.parity_name[source[1]]}.hdf5"
+    hdf5_file =f"{ensemble_name}_{src_name}_{channel.iso_strange_str()}_t0{source[0]}_{defs.parity_name[source[1]]}.hdf5"
   else:
-    hdf5_file = f"{ensemble_name}_{channel.iso_strange_str()}.hdf5"
+    hdf5_file = f"{ensemble_name}_{src_name}_{channel.iso_strange_str()}.hdf5"
 
   hdf5_file = os.path.join(output_dir, hdf5_file)
 
