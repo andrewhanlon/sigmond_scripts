@@ -501,7 +501,7 @@ class SigmondInput:
       ET.SubElement(chosen_fit_xml, "Name").text = extra_options['chosen_fit_info'].getObsName()
       ET.SubElement(chosen_fit_xml, "IDIndex").text = str(extra_options['chosen_fit_info'].getObsIndex())
 
-    if fit_info.is_tmin_vary and 'spatial_extent' in extra_options and 'non_interacting_level' in extra_options:
+    if (fit_info.is_tmin_vary or fit_info.is_tmax_vary) and 'spatial_extent' in extra_options and 'non_interacting_level' in extra_options:
       if fit_info.ratio:
         energy_xml = ET.SubElement(xml, "DoReconstructEnergy")
       else:
@@ -522,7 +522,7 @@ class SigmondInput:
     xml.append(fit_tag)
 
     if 'plotfile' in extra_options:
-      if fit_info.is_tmin_vary:
+      if fit_info.is_tmin_vary or fit_info.is_tmax_vary:
         plot_tag = ET.SubElement(xml, "PlotInfo")
         ET.SubElement(plot_tag, "PlotFile").text = extra_options['plotfile']
         if 'plot_info' in extra_options:

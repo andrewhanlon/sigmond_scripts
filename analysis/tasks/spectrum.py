@@ -341,7 +341,7 @@ class Spectrum(tasks.task.Task):
 
           fit_info = sigmond_info.fit_info.FitInfo(
               operator, fit_model, tmin, tmax, subtractvev, ratio, exclude_times, noise_cutoff,
-              non_interacting_operators, -1, max_level)
+              non_interacting_operators, -1, -1, max_level)
 
           spectrum[operator_set].append(fit_info)
           flagged_levels[operator_set].append(flag)
@@ -352,8 +352,18 @@ class Spectrum(tasks.task.Task):
               fit_model = sigmond_info.fit_info.FitModel(tmin_fit_info['model'])
               ratio = tmin_fit_info.get('ratio', False)
               ratio = tmin_fit_info['ratio']
-              tmin = tmin_fit_info['tmin_min']
-              tmin_max = tmin_fit_info['tmin_max']
+              tmin_min = tmin
+              tmin_max = -1
+              tmax_min = -1
+              tmax_max = tmax
+              if ('tmin_min' in tmin_fit_info.keys()) and ('tmin_max' in tmin_fit_info.keys()):
+                  tmin_min = tmin_fit_info['tmin_min']
+                  tmin_max = tmin_fit_info['tmin_max']
+              elif ('tmax_min' in tmin_fit_info.keys()) and ('tmax_max' in tmin_fit_info.keys()):
+                  tmax_min = tmin_fit_info['tmax_min']
+                  tmax_max = tmin_fit_info['tmax_max']
+              else:
+                  logging.error(f"Invalid TminVary or TmaxVary config")
               if 'extra_tmaxes' in tmin_fit_info:
                 tmaxes = tmin_fit_info.get('extra_tmaxes')
                 if isinstance(tmaxes, int):
@@ -371,11 +381,18 @@ class Spectrum(tasks.task.Task):
               else:
                 tmaxes = [tmax]
 
-              for tmin_tmax in sorted(tmaxes):
-                fit_info = sigmond_info.fit_info.FitInfo(
-                    operator, fit_model, tmin, tmin_tmax, subtractvev, ratio, exclude_times, noise_cutoff,
-                    non_interacting_operators, tmin_max)
+              if tmax_min<0:
+                for tmin_tmax in sorted(tmaxes):
+                    fit_info = sigmond_info.fit_info.FitInfo(
+                        operator, fit_model, tmin_min, tmin_tmax, subtractvev, ratio, exclude_times, noise_cutoff,
+                        non_interacting_operators, tmin_max)
 
+                    if fit_info not in tmin_info_list:
+                      tmin_info_list.append(fit_info)
+              else:
+                fit_info = sigmond_info.fit_info.FitInfo(
+                        operator, fit_model, tmin_min, tmax_max, subtractvev, ratio, exclude_times, noise_cutoff,
+                        non_interacting_operators, tmin_max, tmax_min)
                 if fit_info not in tmin_info_list:
                   tmin_info_list.append(fit_info)
 
@@ -486,7 +503,6 @@ class Spectrum(tasks.task.Task):
     shift_str = "D_" if show_shift else ""
     plotfile = f"tmin_{fit_info.plotfile}_{shift_str}{level}.{extension.value}"
     return os.path.join(plotdir, plotfile)
-
 
   def getSigmondInputs(self):
     sigmond_inputs = list()
@@ -1114,8 +1130,6 @@ class Spectrum(tasks.task.Task):
 
     for obs_info in samplings_handler.getKeys():
       np_data = util.get_samplings(obs_handler, obs_info)
-      dset = hdf5_h.create_dataset(obs_info.getObsName(), data=np_data)
-      dset.attrs.create("test","test")
       val = obs_handler.getEstimate(obs_info).getFullEstimate()
       err = obs_handler.getEstimate(obs_info).getSymmetricError()
       fests.write(f"{obs_info.getObsName()},{val},{err}\n")

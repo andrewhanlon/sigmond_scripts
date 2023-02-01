@@ -26,6 +26,7 @@ class FitModel(MultiValueEnum):
   LogTimeForwardTwoExponential = 11, "log-2-exp"
   TimeForwardMultiExponential = 12, "multi-exp"
   TimeForwardSTIGeomSeriesExponential = 13, "sti-geom"
+  TimeForwardTruncGeomSeriesExponential = 14, "trunc-geom"
 
   @property
   def short_name(self):
@@ -54,7 +55,8 @@ FIT_MODEL_SHORT_NAMES = {
     FitModel.LogTimeForwardSingleExponential: "log-1-exp",
     FitModel.LogTimeForwardTwoExponential: "log-2-exp",
     FitModel.TimeForwardMultiExponential: "multi-exp",
-    FitModel.TimeForwardSTIGeomSeriesExponential: "sti-geom"
+    FitModel.TimeForwardSTIGeomSeriesExponential: "sti-geom",
+    FitModel.TimeForwardTruncGeomSeriesExponential: "trunc-geom"
 }
 
 
@@ -138,11 +140,17 @@ class FitInfo:
           "SecondAmplitudeRatio",
           "STIAmplitudeRatio"
       ],
+      FitModel.TimeForwardTruncGeomSeriesExponential: [
+          "FirstEnergy",
+          "FirstAmplitude",
+          "SqrtGapToSecondEnergy",
+          "SecondAmplitudeRatio",
+      ],
   }
 
   def __init__(self, operator, model, tmin, tmax, subtractvev=False, ratio=False,
-               exclude_times=[], noise_cutoff=0.0, non_interacting_operators=None, tmin_max=-1,
-               max_level = 4):
+               exclude_times=[], noise_cutoff=0.0, non_interacting_operators=None, 
+               tmin_max=-1, tmax_min=-1, max_level = 4):
     """
     Args:
       operator (sigmondbind.OperatorInfo):
@@ -170,6 +178,7 @@ class FitInfo:
     self.non_interacting_operators = non_interacting_operators
 
     self.tmin_max = tmin_max
+    self.tmax_min = tmax_min #for tmax vary plot
 
   @classmethod
   def createFromObservable(cls, obs_info):
@@ -260,11 +269,18 @@ class FitInfo:
     if self.is_tmin_vary:
       _fit_type = f"{_fit_type}TminVary"
 
+    if self.is_tmax_vary:
+      _fit_type = f"{_fit_type}TmaxVary"
+    
     return _fit_type
 
   @property
   def is_tmin_vary(self):
     return self.tmin_max > 0
+
+  @property
+  def is_tmax_vary(self):
+    return self.tmax_min > 0
 
   @property
   def is_log_fit(self):
@@ -304,6 +320,10 @@ class FitInfo:
       ET.SubElement(xml, "TminFirst").text = str(self.tmin)
       ET.SubElement(xml, "TminLast").text = str(self.tmin_max)
       ET.SubElement(xml, "Tmax").text = str(self.tmax)
+    elif self.is_tmax_vary > 0:
+      ET.SubElement(xml, "TmaxFirst").text = str(self.tmax_min)
+      ET.SubElement(xml, "TmaxLast").text = str(self.tmax)
+      ET.SubElement(xml, "Tmin").text = str(self.tmin)
     else:
       ET.SubElement(xml, "MinimumTimeSeparation").text = str(self.tmin)
       ET.SubElement(xml, "MaximumTimeSeparation").text = str(self.tmax)
@@ -311,7 +331,7 @@ class FitInfo:
     if self.exclude_times:
       ET.SubElement(xml, "ExcludeTimes").text = " ".join(str(t) for t in self.exclude_times)
 
-    if self.noise_cutoff and not self.is_tmin_vary:
+    if self.noise_cutoff and not self.is_tmin_vary and not self.is_tmax_vary:
       ET.SubElement(xml, "LargeTimeNoiseCutoff").text = str(self.noise_cutoff)
 
     if self.is_log_fit:
@@ -337,6 +357,11 @@ class FitInfo:
     name = f"{self.operator.compact_str}T{self.tmin}-{self.tmax}"
     if self.is_tmin_vary > 0:
       name += f"-{self.tmin_max}"
+    
+    if self.is_tmax_vary > 0:
+      name += f"-{self.tmax_min}" #is not set up properly so that when reading the logfile
+                                    #sigmond scripts thinks this is a tmin plot, but I have no good ideas rn
+                                    #to fix it
 
     if self.subtractvev:
       name += "S"
