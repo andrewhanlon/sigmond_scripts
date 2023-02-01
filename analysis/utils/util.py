@@ -583,6 +583,7 @@ def _suggest_spectum_yml_file(filedir, proj_name, channels, data_files, data_han
     #find scattering particles
     single_hadrons = dict()
     single_hadron_names = ['N','pi','X','D','S','Kb','k','P','L','kb'] ##figure out how I can automatically get this list
+    hadron_number = 0
     for channel in channels:
       data_files = data_files + data_handler.getChannelDataFiles(channel)
       operators = data_handler.getChannelOperators(channel)
