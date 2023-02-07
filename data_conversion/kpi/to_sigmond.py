@@ -95,7 +95,7 @@ def write_data(data, ensemble_name, channel):
   for obs_info, data_bins in data.items():
     obs_handler.putBins(obs_info, sigmond.RVector(data_bins))
     xml_out = sigmond.XMLHandler("output", "")
-    obs_handler.writeBinsToFile({obs_info}, bin_file, xml_out, sigmond.WriteMode.Protect)
+    obs_handler.writeBinsToFile({obs_info}, bin_file, xml_out, sigmond.WriteMode.Protect, 'D')
 
 
 def extend_data(data):

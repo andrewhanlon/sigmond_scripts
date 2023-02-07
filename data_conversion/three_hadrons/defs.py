@@ -1,6 +1,6 @@
 from typing import NamedTuple
 
-base_data_dir = "/disk2/research/data/three_hadrons"
+base_data_dir = "/disk2/research/data/three_hadrons/raw"
 output_dir = "/disk2/research/data/three_hadrons/sigmond"
 
 class Ensemble(NamedTuple):
@@ -17,11 +17,12 @@ ensembles = [
 ]
 '''
 ensembles = [
+'''
     Ensemble(
         "cls21_n203",
         ['r000', 'r001'],
         [(32, 'fwd'), (52, 'fwd')],
-        ['KKp_Kpp']
+        ['kaons', 'pions', 'KKp_Kpp']
     ),
     Ensemble(
         "cls21_n200",
@@ -35,6 +36,7 @@ ensembles = [
         [(35, 'fwd'), (92, 'bwd')],
         ['pions', 'kaons', 'KKp_Kpp']
     ),
+'''
     Ensemble(
         "cls21_e250",
         ['r001'],

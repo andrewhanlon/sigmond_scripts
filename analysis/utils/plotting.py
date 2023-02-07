@@ -93,6 +93,14 @@ def spectrum(thresholds, energies, non_interacting_energies, latex_map, rotate_i
   FRAME_WIDTH *= plot_width_factor
   global PERCENT_ROOM
   PERCENT_ROOM /= plot_width_factor
+  # START remove
+  '''
+  global FRAME_HEIGHT
+  FRAME_WIDTH = 12.21
+  FRAME_HEIGHT = 6.789
+  PERCENT_ROOM *= plot_width_factor
+  '''
+  # END remove
 
   # create doc and tikz
   doc = util.create_tikz_doc()
