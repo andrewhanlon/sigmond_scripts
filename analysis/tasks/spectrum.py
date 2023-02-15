@@ -1134,7 +1134,7 @@ class Spectrum(tasks.task.Task):
       err = obs_handler.getEstimate(obs_info).getSymmetricError()
       fests.write(f"{obs_info.getObsName()},{val},{err}\n")
 
-    hdf5_h.close()
+#     hdf5_h.close()
     fests.close()
     
     #write qsqr to file
@@ -1199,10 +1199,10 @@ class Spectrum(tasks.task.Task):
     samplings_handler = sigmond.SamplingsGetHandler(
         self.bins_info, self.sampling_info, set([self.samplings_filename]))
 
-    hdf5_filename = self.hdf5_filename
-    if os.path.exists(hdf5_filename):
-      os.remove(hdf5_filename)
-    hdf5_h = h5py.File(hdf5_filename, 'w')
+#     hdf5_filename = self.hdf5_filename
+#     if os.path.exists(hdf5_filename):
+#       os.remove(hdf5_filename)
+#     hdf5_h = h5py.File(hdf5_filename, 'w')
 
     for obs_info in samplings_handler.getKeys():
       np_data = util.get_samplings(obs_handler, obs_info)
