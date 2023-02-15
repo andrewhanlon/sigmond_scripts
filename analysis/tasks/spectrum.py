@@ -698,7 +698,7 @@ class Spectrum(tasks.task.Task):
           energy_samplings_obs.append(elab_ref)
           energy_samplings_obs.append(ecm_ref)
             
-      energy_samplings_obs.extend(denergies)
+#       energy_samplings_obs.extend(denergies)
 
       sigmond_input.writeToFile(
           self.samplings_filename, energy_samplings_obs,
@@ -1109,10 +1109,10 @@ class Spectrum(tasks.task.Task):
     samplings_handler = sigmond.SamplingsGetHandler(
         self.bins_info, self.sampling_info, set([self.samplings_filename]))
 
-    hdf5_filename = self.hdf5_filename
-    if os.path.exists(hdf5_filename):
-      os.remove(hdf5_filename)
-    hdf5_h = h5py.File(hdf5_filename, 'w')
+#     hdf5_filename = self.hdf5_filename
+#     if os.path.exists(hdf5_filename):
+#       os.remove(hdf5_filename)
+#     hdf5_h = h5py.File(hdf5_filename, 'w')
     
     est_filename = self.estimates_filename
     fests = open(est_filename, 'w+')
@@ -1199,10 +1199,10 @@ class Spectrum(tasks.task.Task):
     samplings_handler = sigmond.SamplingsGetHandler(
         self.bins_info, self.sampling_info, set([self.samplings_filename]))
 
-#     hdf5_filename = self.hdf5_filename
-#     if os.path.exists(hdf5_filename):
-#       os.remove(hdf5_filename)
-#     hdf5_h = h5py.File(hdf5_filename, 'w')
+    hdf5_filename = self.hdf5_filename
+    if os.path.exists(hdf5_filename):
+      os.remove(hdf5_filename)
+    hdf5_h = h5py.File(hdf5_filename, 'w')
 
     for obs_info in samplings_handler.getKeys():
       np_data = util.get_samplings(obs_handler, obs_info)
