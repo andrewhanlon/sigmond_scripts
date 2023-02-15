@@ -46,7 +46,6 @@ class DataFiles:
     for file_list in file_lists:
       file_stub = file_list.getFileStub()
       if file_stub in self._bl_corr_files:
-
         min_file = self._bl_corr_files[file_stub].getMinFileNumber()
         max_file = self._bl_corr_files[file_stub].getMaxFileNumber()
         old_min_file = min_file
@@ -55,6 +54,8 @@ class DataFiles:
           min_file = file_list.getMinFileNumber()
         if file_list.getMaxFileNumber() > max_file:
           max_file = file_list.getMaxFileNumber()
+        
+        min_file = 0
 
         overwrite = self._bl_corr_files[file_stub].isModeOverwrite() and file_list.isModeOverwrite()
         new_file_list = sigmond.FileListInfo(file_stub, min_file, max_file, overwrite)
