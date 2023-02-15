@@ -27,6 +27,8 @@ class FitModel(MultiValueEnum):
   TimeForwardMultiExponential = 12, "multi-exp"
   TimeForwardSTIGeomSeriesExponential = 13, "sti-geom"
   TimeForwardTruncGeomSeriesExponential = 14, "trunc-geom"
+  TimeForwardDoubleExpRatio = 15, "two-exp-ratio"
+  TimeForwardTwoIndExp = 16, "two-ind-exp"
 
   @property
   def short_name(self):
@@ -56,7 +58,9 @@ FIT_MODEL_SHORT_NAMES = {
     FitModel.LogTimeForwardTwoExponential: "log-2-exp",
     FitModel.TimeForwardMultiExponential: "multi-exp",
     FitModel.TimeForwardSTIGeomSeriesExponential: "sti-geom",
-    FitModel.TimeForwardTruncGeomSeriesExponential: "trunc-geom"
+    FitModel.TimeForwardTruncGeomSeriesExponential: "trunc-geom",
+    FitModel.TimeForwardDoubleExpRatio: "two-exp-ratio",
+    FitModel.TimeForwardTwoIndExp: "two-ind-exp",
 }
 
 
@@ -145,6 +149,22 @@ class FitInfo:
           "FirstAmplitude",
           "SqrtGapToSecondEnergy",
           "SecondAmplitudeRatio",
+      ],
+      FitModel.TimeForwardDoubleExpRatio: [
+          "Energy",
+          "Amplitude",
+          "NumGap",
+          "NumGapAmp",
+          "SH1Gap",
+          "SH1GapAmp",
+          "SH2Gap",
+          "SH2GapAmp",
+      ],
+      FitModel.TimeForwardTwoIndExp: [
+          "Energy",
+          "Amplitude",
+          "Energy1",
+          "Amplitude1",
       ],
   }
 
@@ -388,7 +408,7 @@ class FitInfo:
 
   @property
   def amplitude_observable(self):
-    if(self.model==FitModel.TimeForwardMultiExponential):
+    if (self.model==FitModel.TimeForwardMultiExponential) or (self.model==FitModel.TimeForwardDoubleExpRatio):
         return sigmond.MCObsInfo(self.obs_name, self.obs_id(4))
     return sigmond.MCObsInfo(self.obs_name, self.obs_id(1))
 
