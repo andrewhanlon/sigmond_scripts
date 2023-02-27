@@ -272,11 +272,21 @@ class Spectrum(tasks.task.Task):
           tmin_infos[self.sh_name][scattering_particle] = list()
           for tmin_fit_info in tmin_info_conf:
             fit_model = sigmond_info.fit_info.FitModel(tmin_fit_info['model'])
-            tmin = tmin_fit_info['tmin_min']
-            tmin_max = tmin_fit_info['tmin_max']
+            tmin_min = fit_info.tmin
+            tmin_max = -1
+            tmax_min = -1
+            tmax_max = fit_info.tmax
+            if ('tmin_min' in tmin_fit_info.keys()) and ('tmin_max' in tmin_fit_info.keys()):
+                tmin_min = tmin_fit_info['tmin_min']
+                tmin_max = tmin_fit_info['tmin_max']
+            elif ('tmax_min' in tmin_fit_info.keys()) and ('tmax_max' in tmin_fit_info.keys()):
+                tmax_min = tmin_fit_info['tmax_min']
+                tmax_max = tmin_fit_info['tmax_max']
+            else:
+                logging.error(f"Invalid TminVary or TmaxVary config")
 
             if 'extra_tmaxes' in tmin_fit_info:
-              tmaxes = tmin_fit_info.pop('extra_tmaxes')
+              tmaxes = tmin_fit_info.get('extra_tmaxes')
               if isinstance(tmaxes, int):
                 tmaxes = [int(tmaxes)]
               elif '-' in tmaxes:
@@ -292,12 +302,24 @@ class Spectrum(tasks.task.Task):
             else:
               tmaxes = [fit_info.tmax]
 
-            for tmin_tmax in sorted(tmaxes):
-              tmin_fit_info = sigmond_info.fit_info.FitInfo(
-                  operator, fit_model, tmin, tmin_tmax, subtractvev, False,
-                  fit_info.exclude_times, fit_info.noise_cutoff, None, tmin_max)
-              tmin_infos[self.sh_name][scattering_particle].append(tmin_fit_info)
+#             for tmin_tmax in sorted(tmaxes):
+#               tmin_fit_info = sigmond_info.fit_info.FitInfo(
+#                   operator, fit_model, tmin, tmin_tmax, subtractvev, False,
+#                   fit_info.exclude_times, fit_info.noise_cutoff, None, tmin_max)
+#               tmin_infos[self.sh_name][scattering_particle].append(tmin_fit_info)
+            
+            if tmax_min<0:
+                for tmin_tmax in sorted(tmaxes):
+                    tmin_fit_info = sigmond_info.fit_info.FitInfo(
+                        operator, fit_model, tmin_min, tmin_tmax, subtractvev, False, fit_info.exclude_times, 
+                        fit_info.noise_cutoff, None, tmin_max)
 
+                    tmin_infos[self.sh_name][scattering_particle].append(tmin_fit_info)
+            else:
+                tmin_fit_info = sigmond_info.fit_info.FitInfo(
+                        operator, fit_model, tmin_min, tmax_max, subtractvev, False, fit_info.exclude_times, 
+                        fit_info.noise_cutoff, None, tmin_max, tmax_min)
+                tmin_infos[self.sh_name][scattering_particle].append(tmin_fit_info)
 
       except KeyError as err:
         logging.error(f"Missing required key in 'scattering_particles': {err}")

@@ -29,6 +29,7 @@ class FitModel(MultiValueEnum):
   TimeForwardTruncGeomSeriesExponential = 14, "trunc-geom"
   TimeForwardDoubleExpRatio = 15, "two-exp-ratio"
   TimeForwardTwoIndExp = 16, "two-ind-exp"
+  TimeForwardGeomSeriesSTI = 17, "geom-sti" #colin wrote this one
 
   @property
   def short_name(self):
@@ -61,6 +62,7 @@ FIT_MODEL_SHORT_NAMES = {
     FitModel.TimeForwardTruncGeomSeriesExponential: "trunc-geom",
     FitModel.TimeForwardDoubleExpRatio: "two-exp-ratio",
     FitModel.TimeForwardTwoIndExp: "two-ind-exp",
+    FitModel.TimeForwardGeomSeriesSTI: "geom-sti",
 }
 
 
@@ -142,7 +144,8 @@ class FitInfo:
           "FirstAmplitude",
           "SqrtGapToSecondEnergy",
           "SecondAmplitudeRatio",
-          "STIAmplitudeRatio"
+          "STIAmplitudeRatio1",
+          "STIAmplitudeRatio2"
       ],
       FitModel.TimeForwardTruncGeomSeriesExponential: [
           "FirstEnergy",
@@ -165,6 +168,16 @@ class FitInfo:
           "Amplitude",
           "Energy1",
           "Amplitude1",
+      ],
+      FitModel.TimeForwardGeomSeriesSTI: [
+          "FirstEnergy",
+          "FirstAmplitude",
+          "SqrtGapToSecondEnergy",
+          "SecondAmplitudeRatio",
+          "STIAmplitude1",
+          "STIAmplitude2",
+          "STIAmplitude3",
+          "STIAmplitude4",
       ],
   }
 
@@ -362,6 +375,11 @@ class FitInfo:
     ET.SubElement(model_xml, "Type").text = self.model_name
     if self.model_name == "TimeForwardMultiExponential":
         ET.SubElement(model_xml, "MaxLevel").text = str(self.max_level)
+        
+    if self.model_name == "TimeForwardGeomSeriesSTI":
+        ET.SubElement(model_xml, "NumberOfSTIEnergies").text = str(4)
+        ET.SubElement(model_xml, "STIEnergyGap").text = str(1.0)
+        ET.SubElement(model_xml, "STIEnergyStep").text = str(0.5)
 
     param_count = 0
     for param in self.PARAMETERS[self.model]:
