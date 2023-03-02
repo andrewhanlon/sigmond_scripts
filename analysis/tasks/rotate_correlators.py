@@ -38,7 +38,8 @@ class RotateCorrelators(tasks.task.Task):
           are calculated
       **plot_info (PlotInfo): info about the plot
       **write_to_file (bool): write correlator data to csv files
-          in results directory
+          in results directory and the samplings to hdf5.
+              Should only be ran with max_simultaneous: 1.
     """
     self.hermitian = True
     self.operator_bases = operator_bases
@@ -69,7 +70,9 @@ class RotateCorrelators(tasks.task.Task):
       remove_off_diag: false
       diagonly_time: 10
       rotate_mode: bins # or samplings_all, samplings_unsubt, samplings
-      write_to_file: true # optional, writes rotated correlators to csv files if flag present
+      write_to_file: true # optional, if flag present writes rotated 
+              correlators to csv files and the samplings to hdf5.
+              Should only be ran with max_simultaneous: 1.
 
       plot_info:
         corrname: standard
@@ -165,8 +168,12 @@ class RotateCorrelators(tasks.task.Task):
     plotfile = f"{plotstub}_{level}.{extension.value}"
     return os.path.join(plotdir, plotfile)
 
+  def samplings_file_hdf5(self):
+    return os.path.join(self.results_dir, "rotated_correlators.hdf5[rotated_correlators]")
+
   def getSigmondInputs(self):
     sigmond_inputs = list()
+    overwrite = True
     for operator_basis in self.operator_bases:
       logging.info(f"Working on basis {operator_basis.name}")
 
@@ -213,6 +220,16 @@ class RotateCorrelators(tasks.task.Task):
           symbol_type=self.plot_info.symbol_type, rescale=self.plot_info.rescale,
           remove_off_diag=self.remove_off_diag, diagonly_time=self.diagonly_time,
           improved_ops=operator_basis.verifyOptimizedOps(self.logdir))
+        
+      if self.write_to_file:
+          if overwrite:
+            write_mode = sigmond.WriteMode.Overwrite
+            overwrite = False
+          else:
+            write_mode = sigmond.WriteMode.Update
+          sigmond_input.writeCorrMatToFile(
+              self.samplings_file_hdf5(),corr_mat,file_mode=write_mode,
+          )
 
       sigmond_input.write()
       sigmond_inputs.append(sigmond_input)

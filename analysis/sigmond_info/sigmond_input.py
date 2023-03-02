@@ -1175,3 +1175,35 @@ class SigmondInput:
 
     self._addTask(xml)
 
+  def writeCorrMatToFile(self, file_name, corrs,
+                  file_type=sigmond_info.sigmond_info.DataFormat.samplings, 
+                  file_mode=sigmond.WriteMode.Overwrite, tmin=None, tmax=None):
+    """Adds a 'WriteToFile' task to the SigmondInput object
+
+    Args:
+      file_name (str): Specifies the file to write to
+      corrs (sigmond.CorrelatorMatrixInfo):The correlation Matrix info
+      **file_type (DataFormat): whether the data should be written as samplings or samplings
+      **file_mode (sigmondbind.WriteMode): Specifies the write mode
+          to use
+      **tmin (int): min t to write
+      **tmax (int): max t to write
+    """
+
+    if not corrs:
+      logging.warning("No correlators passed to writeCorrMatToFile")
+
+    xml = ET.Element("Task")
+    ET.SubElement(xml, "Action").text = "WriteCorrMatToFile"
+    ET.SubElement(xml, "FileName").text = file_name
+    ET.SubElement(xml, "FileType").text = "samplings" #file_type.name
+    ET.SubElement(xml, "FileFormat").text = "hdf5" #file_type.name
+    ET.SubElement(xml, "WriteMode").text = str(file_mode)
+    xml.append(corrs.xml())
+    
+    if tmin:
+        ET.SubElement(xml, "MinTimeSep").text = str(tmin)
+    if tmax:
+        ET.SubElement(xml, "MaxTimeSep").text = str(tmax)
+    self._addTask(xml)
+

@@ -200,7 +200,7 @@ class Executor:
       logging.error(f"sigmond_batch not found at '{self.sigmond_batch}'")
 
     if self.mode == "local":
-      try:
+      try: #if task=rotate and write_to_file=True, max_sim should be 1
         self.simultaneous_jobs = self.exec_options.get('max_simultaneous', multiprocessing.cpu_count())
       except ValueError as err:
         logging.error("Invalid value passed to 'max_simultaneous'")
