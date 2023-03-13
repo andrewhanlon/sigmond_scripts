@@ -227,8 +227,19 @@ class RotateCorrelators(tasks.task.Task):
             overwrite = False
           else:
             write_mode = sigmond.WriteMode.Update
+            
+          rot_op_infos = set()
+          this_rot_op = operator_info.operator.Operator(resulting_op)
+          rot_op_infos.add(this_rot_op.operator_info)
+          for i in range(1,len(op_infos)):
+            this_compact_string = this_rot_op.compact_str[:-1]
+            this_compact_string+=f"{i}"
+            this_rot_op = operator_info.operator.Operator.createFromCompact(this_compact_string);
+            rot_op_infos.add(this_rot_op.operator_info)
+#           
+          rot_corr_mat = sigmond.CorrelatorMatrixInfo(rot_op_infos, True, subtractvev)
           sigmond_input.writeCorrMatToFile(
-              self.samplings_file_hdf5(),corr_mat,file_mode=write_mode,
+              self.samplings_file_hdf5(),rot_corr_mat,file_mode=write_mode,
           )
 
       sigmond_input.write()
