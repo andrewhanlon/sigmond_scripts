@@ -85,6 +85,7 @@ class Spectrum(tasks.task.Task):
     self.plot_width_factor = extra_options.pop('plot_width_factor', 1.)
     self.non_interacting_energy_labels = extra_options.pop('non_interacting_energy_labels', False)
     self.single_hadrons = extra_options.pop('single_hadrons',list())
+    self.write_params_to_file = extra_options.pop('write_params_to_file',False)
 
     util.check_extra_keys(extra_options, 'Spectrum.initialize')
     
@@ -98,6 +99,7 @@ class Spectrum(tasks.task.Task):
       noise_cutoff: 3.    # optional
       non_interacting_energy_labels: true #optional
       reorder: false   # optional
+      write_params_to_file: false #optional
       
       # optional
       minimizer_info:
@@ -459,6 +461,11 @@ class Spectrum(tasks.task.Task):
     filename = f"energy_samplings_{self.task_name}_rebin{self.rebin}.smp"
     return os.path.join(self.samplings_dir, filename)
 
+  @property
+  def params_filename(self):
+    filename = f"param_samplings_{self.task_name}_rebin{self.rebin}.hdf5[params]"
+    return os.path.join(self.samplings_dir, filename)
+
   def zfactor_plotdir(self, operator_set_name):
     plotdir = os.path.join(self.plotdir, "zfactors", self.task_name, f"rebin{self.rebin}", operator_set_name)
     os.makedirs(plotdir, exist_ok=True)
@@ -532,6 +539,9 @@ class Spectrum(tasks.task.Task):
     if os.path.exists(self.samplings_filename):
       os.remove(self.samplings_filename)
 
+    if os.path.exists(self.params_filename):
+      os.remove(self.params_filename)
+    
     default_data_files = self.data_handler.data_files
     # get reference observable data files
     if self.reference_fit_info is not None:
@@ -692,6 +702,7 @@ class Spectrum(tasks.task.Task):
 
       # Get all the energies
       energy_samplings_obs = list()
+      all_fit_param_obs = list()
       for level, fit_info in enumerate(fit_infos):
         channel = fit_info.operator.channel
         samp_dir = f"PSQ{channel.psq}/{channel.irrep}"
@@ -706,6 +717,8 @@ class Spectrum(tasks.task.Task):
 
         energy_samplings_obs.append(elab)
         energy_samplings_obs.append(ecm)
+        for i in range(fit_info.num_params):
+            all_fit_param_obs.append( fit_info.fit_param_obs(i) )
 
       
         if self.reference_fit_info is not None:
@@ -725,6 +738,13 @@ class Spectrum(tasks.task.Task):
       sigmond_input.writeToFile(
           self.samplings_filename, energy_samplings_obs,
           file_type=sigmond_info.sigmond_info.DataFormat.samplings, file_mode=sigmond.WriteMode.Protect)
+      
+      if self.write_params_to_file:
+        sigmond_input.writeToFile(
+          self.params_filename, all_fit_param_obs,
+          file_type=sigmond_info.sigmond_info.DataFormat.samplings, file_mode=sigmond.WriteMode.Update,
+          hdf5 = True
+        )
 
       sigmond_input.write()
       sigmond_inputs.append(sigmond_input)
@@ -733,6 +753,7 @@ class Spectrum(tasks.task.Task):
 
   def _addReferenceAndScatteringFits(self, sigmond_input, plot=True):
     energy_samplings_obs = list()
+    all_fit_param_obs = list()
     if self.reference_fit_info is not None:
       if plot:
         plotfile = self.fit_sh_plotfile(self.ref_name, util.PlotExtension.grace)
@@ -754,6 +775,9 @@ class Spectrum(tasks.task.Task):
         sigmond_input.doTemporalCorrelatorFit(
             scat_fit_info, minimizer_info=self.minimizer_info, plotfile=plotfile,
             plot_info=self.fit_plot_info)
+        
+        for i in range(scat_fit_info.num_params):
+            all_fit_param_obs.append( scat_fit_info.fit_param_obs(i) )
 
         for tmin_fit_info in sh_tmin_fit_infos[scattering_particle]:
           tmin_plot_info = self.default_tmin_plot_info.setChosenFit(scat_fit_info)
@@ -787,6 +811,13 @@ class Spectrum(tasks.task.Task):
                               sampling_mode=self.sampling_mode)
         energy_samplings_obs.append(scat_info_ref)
 
+    if plot:
+      sigmond_input.writeToFile(
+          self.params_filename, all_fit_param_obs,
+          file_type=sigmond_info.sigmond_info.DataFormat.samplings, file_mode=sigmond.WriteMode.Overwrite,
+          hdf5 = True
+      )
+        
     return energy_samplings_obs
 
 
@@ -804,6 +835,8 @@ class Spectrum(tasks.task.Task):
         self.spectrum_logs[operator_set] = spectrum_log
 
     self._setEnergies()
+    if self.write_params_to_file:
+      self._include_fit_model()
     doc = util.create_doc(f"Spectrum: {self.ensemble_name} - {self.task_name}", True)
     if self.spectrum:
       with doc.create(pylatex.Section("Spectrum Results")):
@@ -1121,6 +1154,35 @@ class Spectrum(tasks.task.Task):
               data_table2.add_row(data_row)
               new_level += 1
 
+  def _include_fit_model(self):
+    hdf5_h = h5py.File(self.params_filename[:-8],"r+")
+    param_info = hdf5_h.create_group("param_info")
+    for operator_set, fit_infos in self.spectrum.items():
+      logfile = self.spectrum_logs[operator_set].logfile
+      log_xml_root = ET.parse(logfile).getroot()
+      for item in log_xml_root.findall('./Task/DoFit'):
+        if item.find("./Type").text =="TemporalCorrelator" and item.find("./TemporalCorrelatorFit/Model").text =="TimeForwardMultiExponential":
+          corr = item.find('./TemporalCorrelatorFit/GIOperatorString').text
+          param_info_this_corr = param_info.create_group(corr)
+          fit_level = int(item.find('./BestFitResult/FitLevel').text)
+          final_tmin = int(item.find('./BestFitResult/FinalTmin').text)
+          n = []
+          try:
+            for i in range(2,6):
+                n.append(int(item.find(f'./BestFitResult/N{i}').text))
+          except:
+            pass
+
+          mc_observables = [mcobs.text for mcobs in item.findall('./BestFitResult/*/MCObservable')]
+                    
+          param_info_this_corr.attrs.create("FitLevel",fit_level)
+          param_info_this_corr.attrs.create("FinalTmin",final_tmin)
+          for i,this_n in enumerate(n):
+              param_info_this_corr.attrs.create(f"N{i+2}",this_n)
+          param_info_this_corr.attrs.create("FitParams",mc_observables)
+    
+    hdf5_h.close()
+    
 
   def _setEnergies(self):
     # output energies to file
