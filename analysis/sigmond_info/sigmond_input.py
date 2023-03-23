@@ -1031,6 +1031,42 @@ class SigmondInput:
 
     self._addTask(xml)
 
+  def doReconstructRatioFromMultiExpFit(self, result1, result2, numerator, denominator1, denominator2, **extra_options):
+
+    xml = ET.Element("Task")
+    ET.SubElement(xml, "Action").text = "DoFit"
+    ET.SubElement(xml, "Type").text = "ReconstructRatioFromMultiExpFit"
+    if 'minimizer_info' in extra_options:
+      xml.append(extra_options['minimizer_info'].xml())
+    
+    numerator_xml = ET.SubElement(xml, "Numerator")
+    numerator_xml.append(numerator.xml())
+    denominator1_xml = ET.SubElement(xml, "Denominator1")
+    denominator1_xml.append(denominator1.xml())
+    denominator2_xml = ET.SubElement(xml, "Denominator2")
+    denominator2_xml.append(denominator2.xml())
+    ratio_xml = ET.SubElement(xml, "Ratio")
+    ratio_xml.append(result1.xml())
+    fit_ratio_xml = ET.SubElement(xml, "FitRatio")
+    fit_ratio_xml.append(result2.xml())
+
+    if 'plotfile' in extra_options:
+        plot_tag = ET.SubElement(xml, "DoEffectiveEnergyPlot")
+        ET.SubElement(plot_tag, "PlotFile").text = extra_options['plotfile']
+        if 'plot_info' in extra_options:
+          plot_info = extra_options['plot_info']
+          ET.SubElement(plot_tag, "CorrName").text = plot_info.corrname
+          ET.SubElement(plot_tag, "TimeStep").text = str(plot_info.timestep)
+          ET.SubElement(plot_tag, "SymbolColor").text = plot_info.symbol_color.value
+          ET.SubElement(plot_tag, "SymbolType").text = plot_info.symbol_type.value
+          ET.SubElement(plot_tag, "Goodness").text = plot_info.goodness.value
+          ET.SubElement(plot_tag, "ShowApproach")
+          if plot_info.max_relative_error > 0.:
+            ET.SubElement(plot_tag, "MaxRelativeErrorToPlot").text = str(plot_info.max_relative_error)
+
+    self._addTask(xml)
+#     print(ET.tostring(xml))
+
 
   def doLinearSuperposition(self, result, summands, **extra_options):
 
@@ -1151,7 +1187,7 @@ class SigmondInput:
 
   def writeToFile(self, file_name, observables,
                   file_type=sigmond_info.sigmond_info.DataFormat.samplings, 
-                  file_mode=sigmond.WriteMode.Overwrite):
+                  file_mode=sigmond.WriteMode.Overwrite, hdf5 = False):
     """Adds a 'WriteToFile' task to the SigmondInput object
 
     Args:
@@ -1170,6 +1206,9 @@ class SigmondInput:
     ET.SubElement(xml, "FileName").text = file_name
     ET.SubElement(xml, "FileType").text = file_type.name
     ET.SubElement(xml, "WriteMode").text = str(file_mode)
+    if hdf5:
+        ET.SubElement(xml, "FileFormat").text = "hdf5" 
+        
     for observable in observables:
       xml.append(observable.xml())
 
@@ -1197,13 +1236,17 @@ class SigmondInput:
     ET.SubElement(xml, "Action").text = "WriteCorrMatToFile"
     ET.SubElement(xml, "FileName").text = file_name
     ET.SubElement(xml, "FileType").text = "samplings" #file_type.name
-    ET.SubElement(xml, "FileFormat").text = "hdf5" #file_type.name
+    ET.SubElement(xml, "FileFormat").text = "hdf5"
     ET.SubElement(xml, "WriteMode").text = str(file_mode)
     xml.append(corrs.xml())
     
     if tmin:
         ET.SubElement(xml, "MinTimeSep").text = str(tmin)
+    else:
+        ET.SubElement(xml, "MinTimeSep").text = str(0)
     if tmax:
         ET.SubElement(xml, "MaxTimeSep").text = str(tmax)
+    else:
+        ET.SubElement(xml, "MaxTimeSep").text = str(64)
     self._addTask(xml)
 

@@ -13,6 +13,7 @@ import tasks.average_corrs
 import tasks.rotate_correlators
 import tasks.fit_correlators
 import tasks.spectrum
+import tasks.reconstruct_fit_ratio
 import tasks.anisotropy
 import tasks.dispersion
 import data_handling.data_files
@@ -25,6 +26,7 @@ task_map = {
     tasks.rotate_correlators.RotateCorrelators.task_type : tasks.rotate_correlators.RotateCorrelators,
     tasks.fit_correlators.FitCorrelators.task_type       : tasks.fit_correlators.FitCorrelators,
     tasks.spectrum.Spectrum.task_type                    : tasks.spectrum.Spectrum,
+    tasks.reconstruct_fit_ratio.ReconstructFitRatio.task_type : tasks.reconstruct_fit_ratio.ReconstructFitRatio,
     tasks.anisotropy.Anisotropy.task_type                : tasks.anisotropy.Anisotropy,
     tasks.dispersion.Dispersion.task_type                : tasks.dispersion.Dispersion,
 }

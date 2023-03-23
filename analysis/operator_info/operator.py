@@ -273,6 +273,18 @@ class Operator:
       return self
 
   @property
+  def fit_ratio_op(self):
+    if self.operator_type is sigmond.OpKind.GenIrrep:
+      op_str_tokens = self.op_str().split()
+      op_str_tokens[-2] += "fr"
+      op_str = ' '.join(op_str_tokens)
+      ratio_op = Operator(op_str)
+      return ratio_op
+    else:
+      logging.warning("Cannot update IDIndex of BasicLaphOperatorInfo")
+      return self
+    
+  @property
   def psq(self):
     if self.operator_type == sigmond.OpKind.BasicLapH:
       return self.getXMomentum()**2 + self.getYMomentum()**2 + self.getZMomentum()**2
