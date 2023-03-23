@@ -30,6 +30,7 @@ class FitModel(MultiValueEnum):
   TimeForwardDoubleExpRatio = 15, "two-exp-ratio"
   TimeForwardTwoIndExp = 16, "two-ind-exp"
   TimeForwardGeomSeriesSTI = 17, "geom-sti" #colin wrote this one
+  TimeForwardThreeIndExp = 18, "3-ind-exp"
 
   @property
   def short_name(self):
@@ -63,6 +64,7 @@ FIT_MODEL_SHORT_NAMES = {
     FitModel.TimeForwardDoubleExpRatio: "two-exp-ratio",
     FitModel.TimeForwardTwoIndExp: "two-ind-exp",
     FitModel.TimeForwardGeomSeriesSTI: "geom-sti",
+    FitModel.TimeForwardThreeIndExp: "3-ind-exp",
 }
 
 
@@ -168,6 +170,14 @@ class FitInfo:
           "Amplitude",
           "Energy1",
           "Amplitude1",
+      ],
+      FitModel.TimeForwardThreeIndExp: [
+          "Energy",
+          "Amplitude",
+          "Energy1",
+          "Amplitude1",
+          "Energy2",
+          "Amplitude2",
       ],
       FitModel.TimeForwardGeomSeriesSTI: [
           "FirstEnergy",
@@ -423,6 +433,9 @@ class FitInfo:
   @property
   def energy_observable(self):
     return sigmond.MCObsInfo(self.obs_name, self.obs_id(0))
+
+  def fit_param_obs(self, index):
+    return sigmond.MCObsInfo(self.obs_name, self.obs_id(index))
 
   @property
   def amplitude_observable(self):
