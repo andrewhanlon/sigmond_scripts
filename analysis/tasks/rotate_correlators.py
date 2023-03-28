@@ -229,10 +229,10 @@ class RotateCorrelators(tasks.task.Task):
             write_mode = sigmond.WriteMode.Update
             
           rot_op_infos = set()
-          this_rot_op = operator_info.operator.Operator(resulting_op)
-          rot_op_infos.add(this_rot_op.operator_info)
+          rot_op0 = operator_info.operator.Operator(resulting_op)
+          rot_op_infos.add(rot_op0.operator_info)
           for i in range(1,len(op_infos)):
-            this_compact_string = this_rot_op.compact_str[:-1]
+            this_compact_string = rot_op0.compact_str[:-1]
             this_compact_string+=f"{i}"
             this_rot_op = operator_info.operator.Operator.createFromCompact(this_compact_string);
             rot_op_infos.add(this_rot_op.operator_info)
