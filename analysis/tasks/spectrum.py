@@ -1163,23 +1163,28 @@ class Spectrum(tasks.task.Task):
       for item in log_xml_root.findall('./Task/DoFit'):
         if item.find("./Type").text =="TemporalCorrelator" and item.find("./TemporalCorrelatorFit/Model").text =="TimeForwardMultiExponential":
           corr = item.find('./TemporalCorrelatorFit/GIOperatorString').text
-          param_info_this_corr = param_info.create_group(corr)
-          fit_level = int(item.find('./BestFitResult/FitLevel').text)
-          final_tmin = int(item.find('./BestFitResult/FinalTmin').text)
-          n = []
-          try:
-            for i in range(2,6):
-                n.append(int(item.find(f'./BestFitResult/N{i}').text))
-          except:
-            pass
+          if corr not in param_info.keys():
+              param_info_this_corr = param_info.create_group(corr)
+              fit_level = int(item.find('./BestFitResult/FitLevel').text)
+              final_tmin = int(item.find('./BestFitResult/FinalTmin').text)
+              chisqr = float(item.find('./BestFitResult/ChiSquarePerDof').text)
+              final_tmax = int(item.find('./TemporalCorrelatorFit/TimeSeparations').text.split(" ")[-1])
+              n = []
+              try:
+                for i in range(2,6):
+                    n.append(int(item.find(f'./BestFitResult/N{i}').text))
+              except:
+                pass
 
-          mc_observables = [mcobs.text for mcobs in item.findall('./BestFitResult/*/MCObservable')]
-                    
-          param_info_this_corr.attrs.create("FitLevel",fit_level)
-          param_info_this_corr.attrs.create("FinalTmin",final_tmin)
-          for i,this_n in enumerate(n):
-              param_info_this_corr.attrs.create(f"N{i+2}",this_n)
-          param_info_this_corr.attrs.create("FitParams",mc_observables)
+              mc_observables = [mcobs.text for mcobs in item.findall('./BestFitResult/*/MCObservable/Info')]
+
+              param_info_this_corr.attrs.create("FitLevel",fit_level)
+              param_info_this_corr.attrs.create("FinalTmin",final_tmin)
+              param_info_this_corr.attrs.create("FinalTmax",final_tmax)
+              param_info_this_corr.attrs.create("ChiSquarePerDof",chisqr)
+              for i,this_n in enumerate(n):
+                  param_info_this_corr.attrs.create(f"N{i+2}",this_n)
+              param_info_this_corr.attrs.create("FitParams",mc_observables)
     
     hdf5_h.close()
     
