@@ -63,7 +63,7 @@ class SigmondInput:
     sampling_info_xml = sampling_info.xml()
     if precompute and sampling_info.isBootstrapMode():
       bootstrap_xml = sampling_info_xml.find("Bootstrapper")
-      ET.SubElement(bootstrap_xml, "Precompute")
+      ET.SubElement(sampling_info_xml, "Precompute")
     init_tag.append(sampling_info_xml)
     init_tag.append(data_files.xml())
 
