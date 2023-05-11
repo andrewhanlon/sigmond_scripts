@@ -136,6 +136,9 @@ class Spectrum(tasks.task.Task):
 
       # optional
       reference_fit_info:
+        # option 1: if defined in "scattering_particles", uses that info instead
+        scattering_particle: pi
+        # option 2: uses this info for reference fit
         operator: "isotriplet S=0 P=(0,0,0) A1um P 0"
         model: 1-exp
         tmin: 14
@@ -238,8 +241,9 @@ class Spectrum(tasks.task.Task):
 
     ref_fit_info = task_options.pop('reference_fit_info', None)
     if ref_fit_info is not None:
-      ref_fit_info['noise_cutoff'] = ref_fit_info.get('noise_cutoff', global_noise_cutoff)
-      ref_fit_info = sigmond_info.fit_info.FitInfo.createFromConfig(ref_fit_info)
+      if 'scattering_particle' not in ref_fit_info.keys():
+        ref_fit_info['noise_cutoff'] = ref_fit_info.get('noise_cutoff', global_noise_cutoff)
+        ref_fit_info = sigmond_info.fit_info.FitInfo.createFromConfig(ref_fit_info)
     task_options['reference_fit_info'] = ref_fit_info
 
     util.updateOption(task_options, 'bar_color', sigmond_info.sigmond_info.SymbolColor)
@@ -327,6 +331,10 @@ class Spectrum(tasks.task.Task):
         logging.error(f"Missing required key in 'scattering_particles': {err}")
 
     task_options['scattering_particles'] = scattering_particles
+    if ref_fit_info:
+      if type(task_options['reference_fit_info'])==dict:
+        scattering_particle = sigmond_info.sigmond_info.ScatteringParticle(ref_fit_info['scattering_particle'], 0, False)
+        task_options['reference_fit_info'] = task_options['scattering_particles'][scattering_particle]
 
     # get the spectrum now
     spectrum = dict()
@@ -350,7 +358,10 @@ class Spectrum(tasks.task.Task):
           noise_cutoff = level.pop('noise_cutoff', global_noise_cutoff)
           ratio = level.pop('ratio', False)
           flag = level.pop('flag', False)
-          max_level = level.pop('max_level',4)
+          max_level = level.pop('max_level',6)
+          initial_gap = level.pop('initial_gap',1.0)
+          repeating_gap = level.pop('repeating_gap',1.0)
+          sim_fit = level.pop('sim_fit',False)
           util.check_extra_keys(level, "spectrum.level")
 
           if non_interacting_level is None:
@@ -365,7 +376,7 @@ class Spectrum(tasks.task.Task):
 
           fit_info = sigmond_info.fit_info.FitInfo(
               operator, fit_model, tmin, tmax, subtractvev, ratio, exclude_times, noise_cutoff,
-              non_interacting_operators, -1, -1, max_level)
+              non_interacting_operators, -1, -1, max_level,initial_gap,repeating_gap,sim_fit)
 
           spectrum[operator_set].append(fit_info)
           flagged_levels[operator_set].append(flag)
@@ -760,6 +771,8 @@ class Spectrum(tasks.task.Task):
         sigmond_input.doTemporalCorrelatorFit(
             self.reference_fit_info, minimizer_info=self.minimizer_info, plotfile=plotfile,
             plot_info=self.fit_plot_info)
+        for i in range(self.reference_fit_info.num_params):
+            all_fit_param_obs.append( self.reference_fit_info.fit_param_obs(i) )
       else:
         sigmond_input.doTemporalCorrelatorFit(self.reference_fit_info, minimizer_info=self.minimizer_info)
 
@@ -1165,26 +1178,26 @@ class Spectrum(tasks.task.Task):
           corr = item.find('./TemporalCorrelatorFit/GIOperatorString').text
           if corr not in param_info.keys():
               param_info_this_corr = param_info.create_group(corr)
-              fit_level = int(item.find('./BestFitResult/FitLevel').text)
-              final_tmin = int(item.find('./BestFitResult/FinalTmin').text)
-              chisqr = float(item.find('./BestFitResult/ChiSquarePerDof').text)
-              final_tmax = int(item.find('./TemporalCorrelatorFit/TimeSeparations').text.split(" ")[-1])
-              n = []
-              try:
-                for i in range(2,6):
-                    n.append(int(item.find(f'./BestFitResult/N{i}').text))
-              except:
-                pass
+              if item.findall('./BestFitResult'):
+                  fit_level = int(item.find('./BestFitResult/FitLevel').text)
+                  final_tmin = int(item.find('./BestFitResult/FinalTmin').text)
+                  chisqr = float(item.find('./BestFitResult/ChiSquarePerDof').text)
+                  final_tmax = int(item.find('./TemporalCorrelatorFit/TimeSeparations').text.split(" ")[-1])
+                  n = []
+                  try:
+                    for i in range(2,6):
+                        n.append(float(item.find(f'./BestFitResult/N{i}').text))
+                  except:
+                    pass
 
-              mc_observables = [mcobs.text for mcobs in item.findall('./BestFitResult/*/MCObservable/Info')]
-
-              param_info_this_corr.attrs.create("FitLevel",fit_level)
-              param_info_this_corr.attrs.create("FinalTmin",final_tmin)
-              param_info_this_corr.attrs.create("FinalTmax",final_tmax)
-              param_info_this_corr.attrs.create("ChiSquarePerDof",chisqr)
-              for i,this_n in enumerate(n):
-                  param_info_this_corr.attrs.create(f"N{i+2}",this_n)
-              param_info_this_corr.attrs.create("FitParams",mc_observables)
+                  mc_observables = [mcobs.text for mcobs in item.findall('./BestFitResult/*/MCObservable/Info')]
+                  param_info_this_corr.attrs.create("FitLevel",fit_level)
+                  param_info_this_corr.attrs.create("FinalTmin",final_tmin)
+                  param_info_this_corr.attrs.create("FinalTmax",final_tmax)
+                  param_info_this_corr.attrs.create("ChiSquarePerDof",chisqr)
+                  for i,this_n in enumerate(n):
+                      param_info_this_corr.attrs.create(f"N{i+2}",this_n)
+                  param_info_this_corr.attrs.create("FitParams",mc_observables)
     
     hdf5_h.close()
     
