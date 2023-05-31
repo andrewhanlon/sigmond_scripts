@@ -341,6 +341,9 @@ class ReconstructFitRatio(tasks.task.Task):
           ratio = level.pop('ratio', False)
           flag = level.pop('flag', False)
           max_level = level.pop('max_level',4)
+          initial_gap = level.pop('initial_gap',1.0)
+          repeating_gap = level.pop('repeating_gap',1.0)
+          sim_fit = level.pop('sim_fit',False)
           util.check_extra_keys(level, "spectrum.level")
 
           if non_interacting_level is None:
@@ -355,7 +358,7 @@ class ReconstructFitRatio(tasks.task.Task):
 
           fit_info = sigmond_info.fit_info.FitInfo(
               operator, fit_model, tmin, tmax, subtractvev, ratio, exclude_times, noise_cutoff,
-              non_interacting_operators, -1, -1, max_level)
+              non_interacting_operators, -1, -1, max_level,initial_gap,repeating_gap,sim_fit)
 
           spectrum[operator_set].append(fit_info)
           flagged_levels[operator_set].append(flag)

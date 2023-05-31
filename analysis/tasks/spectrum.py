@@ -5,6 +5,7 @@ import xml.etree.ElementTree as ET
 import h5py
 import pylatex
 import numpy as np
+import regex
 
 import tasks.task
 import utils.plotting
@@ -330,6 +331,10 @@ class Spectrum(tasks.task.Task):
       except KeyError as err:
         logging.error(f"Missing required key in 'scattering_particles': {err}")
 
+    scattering_particle_operators = dict()
+    for scattering_particle, fit_info in scattering_particles.items():
+      scattering_particle_operators[scattering_particle] = fit_info.operator
+            
     task_options['scattering_particles'] = scattering_particles
     if ref_fit_info:
       if type(task_options['reference_fit_info'])==dict:
@@ -346,10 +351,20 @@ class Spectrum(tasks.task.Task):
         non_interacting_levels = energy_set.pop('non_interacting_levels', [None]*len(operators))
         levels = energy_set.pop('levels')
         tmin_info_confs = energy_set.pop('tmin_info', [None]*len(operators))
+        ratio_fit_log = energy_set.pop('ratio_log', None )
 
         spectrum[operator_set] = list()
         flagged_levels[operator_set] = list()
         tmin_infos[operator_set] = list()
+        
+        if len(non_interacting_levels) != len(operators):
+            non_interacting_levels += [None]*(len(operators)-len(non_interacting_levels))
+            
+        if ratio_fit_log:
+          ratio_xml = ET.parse(ratio_fit_log)
+          ratio_fit_xmls = {item.find('InteractingOperator/GIOperatorString').text:item for item in ratio_xml.findall(f"./Task/DoFit/[Type='TemporalCorrelatorInteractionRatio']")}
+          sh_fit_xmls = {item.find('TemporalCorrelatorFit/GIOperatorString').text:item for item in ratio_xml.findall(f"./Task/DoFit/[Type='TemporalCorrelator']")}
+        
         for operator, level, non_interacting_level, tmin_info in zip(operators, levels, non_interacting_levels, tmin_info_confs):
           fit_model = sigmond_info.fit_info.FitModel(level.pop('model'))
           tmin = int(level.pop('tmin'))
@@ -362,21 +377,30 @@ class Spectrum(tasks.task.Task):
           initial_gap = level.pop('initial_gap',1.0)
           repeating_gap = level.pop('repeating_gap',1.0)
           sim_fit = level.pop('sim_fit',False)
+          initial_params = level.pop('initial_params',{})
+          if ratio_fit_log:
+            for key, val in [('Energy','FitParameter0'),('Amplitude','FitParameter1')]:
+              initial_params[key] = float(ratio_fit_xmls[str(operator)].find(f'BestFitResult/{val}/MCEstimate/FullEstimate').text)
+            for i, sh in enumerate(non_interacting_level):
+                sh0 = sigmond_info.sigmond_info.ScatteringParticle.create(sh)
+                this_xml = sh_fit_xmls[str(scattering_particles[sh0].operator)]
+                for key, val in [(f'SH{i+1}Gap','FitParameter2'),(f'SH{i+1}GapAmp','FitParameter3')]:
+                    initial_params[key] = float(this_xml.find(f'BestFitResult/{val}/MCEstimate/FullEstimate').text)
+            initial_params["NumGap"] = 1.0
+            initial_params["NumGapAmp"] = 0.2 #make input
+            
           util.check_extra_keys(level, "spectrum.level")
 
           if non_interacting_level is None:
             non_interacting_operators = None
           else:
-            scattering_particle_operators = dict()
-            for scattering_particle, fit_info in scattering_particles.items():
-              scattering_particle_operators[scattering_particle] = fit_info.operator
-
             non_interacting_operators = sigmond_info.sigmond_info.NonInteractingOperators.create(
                 scattering_particle_operators, non_interacting_level)
 
+          
           fit_info = sigmond_info.fit_info.FitInfo(
               operator, fit_model, tmin, tmax, subtractvev, ratio, exclude_times, noise_cutoff,
-              non_interacting_operators, -1, -1, max_level,initial_gap,repeating_gap,sim_fit)
+              non_interacting_operators, -1, -1, max_level,initial_gap,repeating_gap,sim_fit,initial_params)
 
           spectrum[operator_set].append(fit_info)
           flagged_levels[operator_set].append(flag)
@@ -387,6 +411,10 @@ class Spectrum(tasks.task.Task):
               fit_model = sigmond_info.fit_info.FitModel(tmin_fit_info['model'])
               ratio = tmin_fit_info.get('ratio', False)
               ratio = tmin_fit_info['ratio']
+              sim_fit = tmin_fit_info.get('sim_fit', False)
+#               if 'sim_fit' in tmin_fit_info:
+#                 sim_fit = tmin_fit_info['sim_fit']
+#               initial_params = level.pop('initial_params',{})
               tmin_min = tmin
               tmin_max = -1
               tmax_min = -1
@@ -420,14 +448,14 @@ class Spectrum(tasks.task.Task):
                 for tmin_tmax in sorted(tmaxes):
                     fit_info = sigmond_info.fit_info.FitInfo(
                         operator, fit_model, tmin_min, tmin_tmax, subtractvev, ratio, exclude_times, noise_cutoff,
-                        non_interacting_operators, tmin_max)
+                        non_interacting_operators, tmin_max, sim_fit=sim_fit,initial_params =initial_params)
 
                     if fit_info not in tmin_info_list:
                       tmin_info_list.append(fit_info)
               else:
                 fit_info = sigmond_info.fit_info.FitInfo(
                         operator, fit_model, tmin_min, tmax_max, subtractvev, ratio, exclude_times, noise_cutoff,
-                        non_interacting_operators, tmin_max, tmax_min)
+                        non_interacting_operators, tmin_max, tmax_min, sim_fit=sim_fit,initial_params =initial_params)
                 if fit_info not in tmin_info_list:
                   tmin_info_list.append(fit_info)
 
@@ -612,24 +640,30 @@ class Spectrum(tasks.task.Task):
         energy_obs = fit_info.energy_observable
         amplitude_obs = fit_info.amplitude_observable
 
-        plotfile = self.fit_plotfile(repr(operator_set), level, util.PlotExtension.grace)
-        sigmond_input.doTemporalCorrelatorFit(
-            fit_info, minimizer_info=self.minimizer_info, plotfile=plotfile,
-            plot_info=self.fit_plot_info)
-
-        if fit_info.is_log_fit:
-          sigmond_input.doExp(amplitude_obs, amplitude_obs, sampling_mode=self.sampling_mode)
 
         non_interacting_level = list()
         non_interacting_amp = list()
+        non_interacting_scattering_fit_info = []
         if fit_info.non_interacting_operators is not None: 
           for scattering_particle in fit_info.non_interacting_operators.non_interacting_level:
             scattering_particle_fit_info = self.scattering_particles[scattering_particle]
+            non_interacting_scattering_fit_info.append(scattering_particle_fit_info)
             at_rest_scattering_particle = sigmond_info.sigmond_info.ScatteringParticle(scattering_particle.name, 0, False)
             at_rest_scattering_particle_fit_info = self.scattering_particles[at_rest_scattering_particle]
 
             non_interacting_level.append((at_rest_scattering_particle_fit_info.energy_observable, scattering_particle.psq))
             non_interacting_amp.append(scattering_particle_fit_info.amplitude_observable)
+            
+        
+        plotfile = self.fit_plotfile(repr(operator_set), level, util.PlotExtension.grace)
+        sigmond_input.doTemporalCorrelatorFit(
+            fit_info, minimizer_info=self.minimizer_info, plotfile=plotfile,
+            plot_info=self.fit_plot_info, scattering_fit_info=non_interacting_scattering_fit_info)
+
+        if fit_info.is_log_fit:
+          sigmond_input.doExp(amplitude_obs, amplitude_obs, sampling_mode=self.sampling_mode)
+        
+            
         if tmin_fit_info is not None:
           tmin_plot_info = self.default_tmin_plot_info.setChosenFit(fit_info)
 
@@ -654,12 +688,14 @@ class Spectrum(tasks.task.Task):
               if a_tmin_fit_info.ratio and shift:
                 sigmond_input.doTemporalCorrelatorFit(
                     a_tmin_fit_info, minimizer_info=self.minimizer_info, plotfile=plotfile,
-                    plot_info=tmin_plot_info, chosen_fit_info=shift_energy_obs)
+                    plot_info=tmin_plot_info, chosen_fit_info=shift_energy_obs, 
+                    scattering_fit_info=non_interacting_scattering_fit_info)
               elif a_tmin_fit_info.ratio and not shift:
                 sigmond_input.doTemporalCorrelatorFit(
                     a_tmin_fit_info, minimizer_info=self.minimizer_info, plotfile=plotfile,
                     plot_info=tmin_plot_info, chosen_fit_info=noshift_energy_obs,
-                    non_interacting_level=non_interacting_level, spatial_extent=self.ensemble_spatial_extent)
+                    non_interacting_level=non_interacting_level, spatial_extent=self.ensemble_spatial_extent, 
+                    scattering_fit_info=non_interacting_scattering_fit_info)
               elif not a_tmin_fit_info.ratio and shift:
                 sigmond_input.doTemporalCorrelatorFit(
                     a_tmin_fit_info, minimizer_info=self.minimizer_info, plotfile=plotfile,
@@ -942,11 +978,29 @@ class Spectrum(tasks.task.Task):
                   caption += f", $t_{{\\rm max}} = {fit_info.tmax}$"
                   if fit_info.noise_cutoff > 0.:
                     caption += f" ($\\sigma_{{\\rm cut}} = {round(fit_info.noise_cutoff, 2)}$)"
+                  if fit_info.model==sigmond_info.fit_info.FitModel.TimeForwardDoubleExpRatio and not shift:
+                    continue
                   if shift:
                     list_of_tmin_shift_plots.append((plotfile, caption))
                   else:
                     list_of_tmin_plots.append((plotfile, caption))
 
+              #add other plots to this list
+              sim_plots = []
+              pattern = rf'^tmin_fit_\S+-ROT-{level}_\S+_D_\S+-(?<particle_name>\S+)\[(?P<spatial>[a-zA-Z]+)(?P<spatial_id>\d+)\]-0.pdf$'
+              for test_str in os.listdir(self.tmin_plotdir(repr(operator_set))):
+                  match = regex.match(pattern, test_str)
+                  if match:
+                      matches = match.groupdict()
+                      matches['file'] = os.path.join(self.tmin_plotdir(repr(operator_set)),test_str)
+                      matches['level'] = level
+                      sim_plots.append(matches)
+                    
+              if sim_plots:
+                sim_plots.sort( key=util.sort_plots )
+                for item in sim_plots:
+                  list_of_tmin_shift_plots.append( (item['file'], fr"\newline $a_t \Delta E_{{\rm lab}}$, {sigmond_info.fit_info.FitModel.TimeForwardDoubleExpRatio.short_name} {item['particle_name']} fit" ) )
+                                             
               grouped_shift_plots = [list_of_tmin_shift_plots[n:n+3] for n in range(0, len(list_of_tmin_shift_plots), 3)]
               grouped_plots = [list_of_tmin_plots[n:n+3] for n in range(0, len(list_of_tmin_plots), 3)]
               if grouped_plots:
@@ -1039,6 +1093,31 @@ class Spectrum(tasks.task.Task):
                 else:
                   with doc.create(pylatex.SubFigure(position='b', width=pylatex.NoEscape(r'0.33\linewidth'))) as fig:
                     util.add_image(fig, self.results_dir, plot_file, width='1.0', caption=cap)
+        #collect other graphs
+#         pattern = r'fit_[0-9]-[A-Za-z0-9]*\.agr' #fit_3-3-1p1G1-S[SS0]-0.agr
+        
+        sim_plots = []
+        pattern = r'^fit_(?P<level>\d+)-\S+-(?<particle_name>\S+)\[(?P<spatial>[a-zA-Z]+)(?P<spatial_id>\d+)\]-0.pdf$' #p(?P<psq>\d+)(?P<irrep>\S+)
+        for test_str in os.listdir(self.fit_plotdir(repr(operator_set))):
+            match = regex.match(pattern, test_str)
+            if match:
+                matches = match.groupdict()
+                matches['file'] = os.path.join(self.fit_plotdir(repr(operator_set)),test_str)
+                sim_plots.append(matches)
+#                 print( test_str, matches )
+          
+        if sim_plots:
+            sim_plots.sort( key=util.sort_plots )
+            grouped_sim_plots = [sim_plots[n:n+3] for n in range(0, len(sim_plots), 3)]
+            for group in grouped_sim_plots:
+              with doc.create(pylatex.Figure(position='H')) as subfig:
+                  for plot in group:
+                    cap = f"ROT {plot['level']}, {plot['particle_name']} fit"
+                    if len(group) == 1:
+                      util.add_image(subfig, self.results_dir, plot['file'], width='0.33', caption=cap)
+                    else:
+                      with doc.create(pylatex.SubFigure(position='b', width=pylatex.NoEscape(r'0.33\linewidth'))) as fig:
+                        util.add_image(fig, self.results_dir, plot['file'], width='1.0', caption=cap)
 
 
   def _addFitTable(self, doc):

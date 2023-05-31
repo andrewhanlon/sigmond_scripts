@@ -138,8 +138,8 @@ class FitInfo:
           "SecondAmplitudeRatio",
       ],
       FitModel.TimeForwardMultiExponential: [
-          "E0","E1","E2","E3",
-          "A0","A1","A2","A3",
+          "E0","E1","E2","E3","E4",
+          "A0","A1","A2","A3","A4",
       ],
       FitModel.TimeForwardSTIGeomSeriesExponential: [
           "FirstEnergy",
@@ -193,7 +193,8 @@ class FitInfo:
 
   def __init__(self, operator, model, tmin, tmax, subtractvev=False, ratio=False,
                exclude_times=[], noise_cutoff=0.0, non_interacting_operators=None, 
-               tmin_max=-1, tmax_min=-1, max_level = 4):
+               tmin_max=-1, tmax_min=-1, max_level = 6, initial_gap=1.0, repeating_gap=1.0,
+              sim_fit = False, initial_params = {}):
     """
     Args:
       operator (sigmondbind.OperatorInfo):
@@ -217,6 +218,10 @@ class FitInfo:
     self.exclude_times = exclude_times
     self.noise_cutoff = noise_cutoff
     self.max_level = max_level #for multiseries fit
+    self.initial_gap = initial_gap #for multiseries fit
+    self.repeating_gap = repeating_gap #for multiseries fit
+    self.sim_fit = sim_fit #for simultaneous fits #not actually set up yet
+    self.initial_params = initial_params #for TimeForwardDoubleExpRatio
 
     self.non_interacting_operators = non_interacting_operators
 
@@ -309,11 +314,15 @@ class FitInfo:
     if self.ratio:
       _fit_type = f"{_fit_type}InteractionRatio"
 
+    
     if self.is_tmin_vary:
       _fit_type = f"{_fit_type}TminVary"
 
     if self.is_tmax_vary:
       _fit_type = f"{_fit_type}TmaxVary"
+
+    if self.sim_fit:
+      _fit_type = f"NSimTemporalCorrelator"
     
     return _fit_type
 
@@ -385,17 +394,26 @@ class FitInfo:
     ET.SubElement(model_xml, "Type").text = self.model_name
     if self.model_name == "TimeForwardMultiExponential":
         ET.SubElement(model_xml, "MaxLevel").text = str(self.max_level)
+        ET.SubElement(model_xml, "InitialGap").text = str(self.initial_gap)
+        ET.SubElement(model_xml, "RepeatingGap").text = str(self.repeating_gap)
         
     if self.model_name == "TimeForwardGeomSeriesSTI":
-        ET.SubElement(model_xml, "NumberOfSTIEnergies").text = str(4)
-        ET.SubElement(model_xml, "STIEnergyGap").text = str(1.0)
-        ET.SubElement(model_xml, "STIEnergyStep").text = str(0.5)
-
+        ET.SubElement(model_xml, "NumberOfSTIEnergies").text = str(self.max_level)
+        ET.SubElement(model_xml, "STIEnergyGap").text = str(self.initial_gap)
+        ET.SubElement(model_xml, "STIEnergyStep").text = str(self.repeating_gap)
+        
     param_count = 0
     for param in self.PARAMETERS[self.model]:
       param_xml = ET.SubElement(model_xml, param)
       ET.SubElement(param_xml, "Name").text = self.obs_name
       ET.SubElement(param_xml, "IDIndex").text = str(self.obs_id(param_count))
+      if self.model_name == "TimeForwardDoubleExpRatio" and self.initial_params:
+        if param in self.initial_params.keys():
+            ET.SubElement(param_xml, "InitialValue").text = str(self.initial_params[param])
+#       if self.model_name == "TimeForwardMultiExponential":
+#         ET.SubElement(param_xml, "PriorValue").text = str(self.initial_gap)
+#         ET.SubElement(param_xml, "PriorWidth").text = str(self.repeating_gap)
+            
       param_count += 1
 
     return xml
@@ -431,17 +449,25 @@ class FitInfo:
     return int(id_index)
 
   @property
+  def energy_index(self):
+    return 0
+
+  @property
+  def amplitude_index(self):
+    if (self.model==FitModel.TimeForwardMultiExponential): # or (self.model==FitModel.TimeForwardDoubleExpRatio)
+        return 5
+    return 1
+
+  @property
   def energy_observable(self):
-    return sigmond.MCObsInfo(self.obs_name, self.obs_id(0))
+    return sigmond.MCObsInfo(self.obs_name, self.obs_id(self.energy_index))
 
   def fit_param_obs(self, index):
     return sigmond.MCObsInfo(self.obs_name, self.obs_id(index))
 
   @property
   def amplitude_observable(self):
-    if (self.model==FitModel.TimeForwardMultiExponential) or (self.model==FitModel.TimeForwardDoubleExpRatio):
-        return sigmond.MCObsInfo(self.obs_name, self.obs_id(4))
-    return sigmond.MCObsInfo(self.obs_name, self.obs_id(1))
+    return sigmond.MCObsInfo(self.obs_name, self.obs_id(self.amplitude_index))
 
   def __str__(self):
     return util.xmltostr(self.xml())

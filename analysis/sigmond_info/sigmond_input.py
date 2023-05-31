@@ -6,9 +6,11 @@ creating SigMonD input XML files.
 
 import logging
 import xml.etree.ElementTree as ET
+import copy
 import xml.dom.minidom as minidom
 
 import sigmond_info.sigmond_info
+import sigmond_info.fit_info
 import utils.util as util
 
 import sigmond
@@ -493,14 +495,130 @@ class SigmondInput:
       ET.SubElement(xml, "SamplingMode").text = str(extra_options['sampling_mode'])
     if 'cov_sampling_mode' in extra_options:
       ET.SubElement(xml, "CovMatCalcSamplingMode").text = str(extra_options['cov_sampling_mode'])
+    
+    
+    if 'plotfile' in extra_options:
+      if fit_info.is_tmin_vary or fit_info.is_tmax_vary:
+        plot_tag = ET.Element("PlotInfo")
+        ET.SubElement(plot_tag, "PlotFile").text = extra_options['plotfile']
+        if 'plot_info' in extra_options:
+          plot_info = extra_options['plot_info']
+          ET.SubElement(plot_tag, "CorrName").text = plot_info.obsname
+          ET.SubElement(plot_tag, "SymbolType").text = plot_info.symbol_type.value
+          ET.SubElement(plot_tag, "GoodFitSymbolColor").text = plot_info.goodfit_color.value
+          ET.SubElement(plot_tag, "BadFitSymbolColor").text = plot_info.badfit_color.value
+          if plot_info.correlatedfit_hollow:
+            ET.SubElement(plot_tag, "CorrelatedFitSymbolHollow")
+          if plot_info.uncorrelatedfit_hollow:
+            ET.SubElement(plot_tag, "UncorrelatedFitSymbolHollow")
+          ET.SubElement(plot_tag, "QualityThreshold").text = str(plot_info.quality_threshold)
+          ET.SubElement(plot_tag, "CorrelatedThreshold").text = str(plot_info.correlated_threshold)
 
-    fit_tag = fit_info.xml()
+      else:
+        plot_tag = ET.Element("DoEffectiveEnergyPlot")
+        ET.SubElement(plot_tag, "PlotFile").text = extra_options['plotfile']
+        if 'plot_info' in extra_options:
+          plot_info = extra_options['plot_info']
+          ET.SubElement(plot_tag, "CorrName").text = plot_info.corrname
+          ET.SubElement(plot_tag, "TimeStep").text = str(plot_info.timestep)
+          ET.SubElement(plot_tag, "SymbolColor").text = plot_info.symbol_color.value
+          ET.SubElement(plot_tag, "SymbolType").text = plot_info.symbol_type.value
+          ET.SubElement(plot_tag, "Goodness").text = plot_info.goodness.value
+          ET.SubElement(plot_tag, "ShowApproach")
+          if plot_info.max_relative_error > 0.:
+            ET.SubElement(plot_tag, "MaxRelativeErrorToPlot").text = str(plot_info.max_relative_error)
 
+        if 'reference_energy' in extra_options and extra_options['reference_energy'] is not None:
+          reference_energy = extra_options['reference_energy']
+          ref_energy_tag = ET.SubElement(plot_tag, "ReferenceEnergy")
+          ET.SubElement(ref_energy_tag, "Name").text = reference_energy.getObsName()
+          ET.SubElement(ref_energy_tag, "IDIndex").text = str(reference_energy.getObsIndex())
+
+    
     if 'chosen_fit_info' in extra_options:
-      chosen_fit_xml = ET.SubElement(xml, "ChosenFitInfo")
+      chosen_fit_xml = ET.Element("ChosenFitInfo")
       ET.SubElement(chosen_fit_xml, "Name").text = extra_options['chosen_fit_info'].getObsName()
       ET.SubElement(chosen_fit_xml, "IDIndex").text = str(extra_options['chosen_fit_info'].getObsIndex())
-
+            
+    if fit_info.sim_fit: #just really for advanced ratio fit, maybe specity differently
+        tmin_min = fit_info.tmin
+        tmin_max = fit_info.tmin_max
+        tmax = fit_info.tmax
+        
+        fit_tag2 = ET.Element("Fits")
+        
+        if (fit_info.is_tmin_vary or fit_info.is_tmax_vary):
+            xml.find("Type").text = f"{fit_info.fit_type}TminVary"
+            fit_tag = ET.Element(f"{fit_info.fit_type}TminVaryFit")
+            ET.SubElement(fit_tag, "TminFirst").text = str(tmin_min)
+            ET.SubElement(fit_tag, "TminLast").text = str(tmin_max)
+            ET.SubElement(fit_tag, "Tmax").text = str(tmax)
+            tmin_fit_tag = ET.SubElement(fit_tag, f"{fit_info.fit_type}Fit")
+            tmin_fit_tag.append(fit_tag2)
+        else:
+            fit_tag = ET.Element(f"{fit_info.fit_type}Fit")
+            fit_tag.append(fit_tag2)
+        
+        FinalEnergy = ET.SubElement(xml, "FinalEnergy")
+        ET.SubElement(FinalEnergy, "Name").text = fit_info.obs_name
+        ET.SubElement(FinalEnergy, "IDIndex").text = str(fit_info.obs_id(fit_info.energy_index))
+        FinalAmplitude = ET.SubElement(xml, "FinalAmplitude")
+        ET.SubElement(FinalAmplitude, "Name").text = fit_info.obs_name
+        ET.SubElement(FinalAmplitude, "IDIndex").text = str(fit_info.obs_id(fit_info.amplitude_index))
+        
+        fit_info.sim_fit = False
+        fit_info.tmin_max = -1
+        fit_xml = fit_info.xml()
+        if 'chosen_fit_info' in extra_options:
+            fit_xml.append(chosen_fit_xml)
+        fit_info.tmin_max = tmin_max
+        if 'plotfile' in extra_options:
+            fit_xml.append(plot_tag)
+        if (fit_info.is_tmin_vary or fit_info.is_tmax_vary):
+            fit_xml.remove( fit_xml.find("MinimumTimeSeparation") )
+            fit_xml.remove( fit_xml.find("MaximumTimeSeparation") )
+        for name in fit_xml.findall("Model/*/Name"):
+            name.text = fit_info.obs_name
+                                           
+        fit_tag2.append(fit_xml)
+        if 'scattering_fit_info' in extra_options:
+            for i, scat_fit_info in enumerate(extra_options['scattering_fit_info']):
+                this_xml = copy.deepcopy(scat_fit_info.xml())
+                if (fit_info.is_tmin_vary or fit_info.is_tmax_vary):
+                    chosen_name = this_xml.find('Model/FirstEnergy/Name').text
+                    chosen_id = this_xml.find('Model/FirstEnergy/IDIndex').text
+                    chosen_fit_xml = ET.SubElement( this_xml, "ChosenFitInfo")
+                    ET.SubElement( chosen_fit_xml, "Name").text = chosen_name
+                    ET.SubElement( chosen_fit_xml, "IDIndex").text = chosen_id
+                for name in this_xml.findall('Model/*/Name'):
+                    name.text = fit_info.obs_name+"-"+name.text
+                if fit_info.model==sigmond_info.fit_info.FitModel.TimeForwardDoubleExpRatio:
+                    if (fit_info.is_tmin_vary or fit_info.is_tmax_vary):
+#                         ET.SubElement(this_xml, "Fixed")
+                        this_xml.remove( this_xml.find("MinimumTimeSeparation") )
+                        this_xml.remove( this_xml.find("MaximumTimeSeparation") )
+                    else:
+                        this_xml.find("MinimumTimeSeparation").text = str(tmin_min)
+                        this_xml.find("MaximumTimeSeparation").text = str(tmax)
+                    ratio_name = f'TemporalCorrelatorInteractionRatioFit/Model/SH{i+1}Gap/'
+                    fit_tag2.find(ratio_name+"Name").text=this_xml.find('Model/SqrtGapToSecondEnergy/Name').text
+                    fit_tag2.find(ratio_name+"IDIndex").text=this_xml.find('Model/SqrtGapToSecondEnergy/IDIndex').text
+                    ratio_name = f'TemporalCorrelatorInteractionRatioFit/Model/SH{i+1}GapAmp/'
+                    fit_tag2.find(ratio_name+"Name").text=this_xml.find('Model/SecondAmplitudeRatio/Name').text
+                    fit_tag2.find(ratio_name+"IDIndex").text=this_xml.find('Model/SecondAmplitudeRatio/IDIndex').text
+                    if 'plotfile' in extra_options:
+                        ni_plot_tag = copy.deepcopy(plot_tag)
+                        ni_plot_tag.find('CorrName').text = ni_plot_tag.find('CorrName').text+f"-{scat_fit_info.operator.compact_str}"
+                        ni_plot_tag.find('PlotFile').text = ni_plot_tag.find('PlotFile').text.replace(".agr",f"-{scat_fit_info.operator.compact_str}.agr")
+                        this_xml.append(ni_plot_tag)
+                    fit_tag2.append(this_xml)
+                        
+        
+        fit_info.sim_fit = True
+        
+    else:
+        fit_tag = fit_info.xml()
+        
     if (fit_info.is_tmin_vary or fit_info.is_tmax_vary) and 'spatial_extent' in extra_options and 'non_interacting_level' in extra_options:
       if fit_info.ratio:
         energy_xml = ET.SubElement(xml, "DoReconstructEnergy")
@@ -520,44 +638,17 @@ class SigmondInput:
         ET.SubElement(scat_energy_xml, "IDIndex").text = str(scat_energy_obs.getObsIndex())
 
     xml.append(fit_tag)
+    
+    
+    if 'chosen_fit_info' in extra_options and not fit_info.sim_fit:
+      xml.append(chosen_fit_xml)
 
     if 'plotfile' in extra_options:
-      if fit_info.is_tmin_vary or fit_info.is_tmax_vary:
-        plot_tag = ET.SubElement(xml, "PlotInfo")
-        ET.SubElement(plot_tag, "PlotFile").text = extra_options['plotfile']
-        if 'plot_info' in extra_options:
-          plot_info = extra_options['plot_info']
-          ET.SubElement(plot_tag, "CorrName").text = plot_info.obsname
-          ET.SubElement(plot_tag, "SymbolType").text = plot_info.symbol_type.value
-          ET.SubElement(plot_tag, "GoodFitSymbolColor").text = plot_info.goodfit_color.value
-          ET.SubElement(plot_tag, "BadFitSymbolColor").text = plot_info.badfit_color.value
-          if plot_info.correlatedfit_hollow:
-            ET.SubElement(plot_tag, "CorrelatedFitSymbolHollow")
-          if plot_info.uncorrelatedfit_hollow:
-            ET.SubElement(plot_tag, "UncorrelatedFitSymbolHollow")
-          ET.SubElement(plot_tag, "QualityThreshold").text = str(plot_info.quality_threshold)
-          ET.SubElement(plot_tag, "CorrelatedThreshold").text = str(plot_info.correlated_threshold)
-
-      else:
-        plot_tag = ET.SubElement(fit_tag, "DoEffectiveEnergyPlot")
-        ET.SubElement(plot_tag, "PlotFile").text = extra_options['plotfile']
-        if 'plot_info' in extra_options:
-          plot_info = extra_options['plot_info']
-          ET.SubElement(plot_tag, "CorrName").text = plot_info.corrname
-          ET.SubElement(plot_tag, "TimeStep").text = str(plot_info.timestep)
-          ET.SubElement(plot_tag, "SymbolColor").text = plot_info.symbol_color.value
-          ET.SubElement(plot_tag, "SymbolType").text = plot_info.symbol_type.value
-          ET.SubElement(plot_tag, "Goodness").text = plot_info.goodness.value
-          ET.SubElement(plot_tag, "ShowApproach")
-          if plot_info.max_relative_error > 0.:
-            ET.SubElement(plot_tag, "MaxRelativeErrorToPlot").text = str(plot_info.max_relative_error)
-
-        if 'reference_energy' in extra_options and extra_options['reference_energy'] is not None:
-          reference_energy = extra_options['reference_energy']
-          ref_energy_tag = ET.SubElement(plot_tag, "ReferenceEnergy")
-          ET.SubElement(ref_energy_tag, "Name").text = reference_energy.getObsName()
-          ET.SubElement(ref_energy_tag, "IDIndex").text = str(reference_energy.getObsIndex())
-
+      if not fit_info.sim_fit and (fit_info.is_tmin_vary or fit_info.is_tmax_vary):
+          xml.append(plot_tag)
+      elif not fit_info.sim_fit:
+          fit_tag.append(plot_tag)
+            
     self._addTask(xml)
 
   def doCorrMatrixRotation(self, pivot_info, rotate_mode, correlator_matrix, resulting_operator, 

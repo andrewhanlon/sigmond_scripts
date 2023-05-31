@@ -82,6 +82,8 @@ def updateOption(options, option, option_class):
     except ValueError:
       logging.error(f"Invalid '{option}' for {option_class.__name__}")
 
+def sort_plots( item ):
+    return f"{item['level']}{item['particle_name']}"
 
 #########################################################################################
 # writing samplings to file

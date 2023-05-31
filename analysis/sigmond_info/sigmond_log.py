@@ -197,8 +197,16 @@ class FitLog(SigmondLog):
         fit_results = fit_xml.find("BestFitResult")
         chisq_dof = float(fit_results.findtext("ChiSquarePerDof"))
         quality = float(fit_results.findtext("FitQuality"))
-        energy_fit = fit_results.find("FitParameter0")
-        energy_obs_str = energy_fit.findtext("MCObservable/Info")
+        if "NSimTemporalCorrelator" in fit_xml.findtext("Type"): #need to specity the ratio fit case too
+            energy_fit = fit_xml.find("FinalEnergy")
+            energy_obs_str = energy_fit.findtext("MCObservable/Info")
+            for fit_result in fit_results.findall("./"):
+                if fit_result.findtext("MCObservable/Info")==energy_obs_str:
+                    break
+            energy_fit = fit_result
+        else:
+            energy_fit = fit_results.find("FitParameter0")
+            energy_obs_str = energy_fit.findtext("MCObservable/Info")
         pattern = r"^(?P<obsname>\S+) (?P<obsid>\d+) (?P<simple>s|n) (?P<complex_arg>re|im)$"
         match = regex.match(pattern, energy_obs_str.strip())
         if match.group('simple') != 'n' or match.group('complex_arg') != 're':
@@ -209,7 +217,16 @@ class FitLog(SigmondLog):
         energy_value = float(energy_fit.findtext("MCEstimate/FullEstimate"))
         energy_error = float(energy_fit.findtext("MCEstimate/SymmetricError"))
         energy = util.nice_value(energy_value, energy_error)
-        amplitude_fit = fit_results.find("FitParameter1")
+        
+        if fit_xml.findtext("Type")=="NSimTemporalCorrelator": #need to specity the ratio fit case too
+            amplitude_fit = fit_xml.find("FinalAmplitude")
+            amp_obs_str = amplitude_fit.findtext("MCObservable/Info")
+            for fit_result in fit_results.findall("./"):
+                if fit_result.findtext("MCObservable/Info")==amp_obs_str:
+                    break
+            amplitude_fit = fit_result
+        else:
+            amplitude_fit = fit_results.find("FitParameter1") #not true for some fits
         amplitude_value = float(amplitude_fit.findtext("MCEstimate/FullEstimate"))
         amplitude_error = float(amplitude_fit.findtext("MCEstimate/SymmetricError"))
         amplitude = util.nice_value(amplitude_value, amplitude_error)
