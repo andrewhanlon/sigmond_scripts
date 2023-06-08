@@ -500,9 +500,13 @@ class Spectrum(tasks.task.Task):
     filename = f"energy_samplings_{self.task_name}_rebin{self.rebin}.smp"
     return os.path.join(self.samplings_dir, filename)
 
-  @property
-  def params_filename(self):
-    filename = f"param_samplings_{self.task_name}_rebin{self.rebin}.hdf5[params]"
+  def params_filename(self, tag="", with_root=False):
+    if tag:
+        filename = f"param_samplings_{tag}_{self.task_name}_rebin{self.rebin}.hdf5"
+    else:
+        filename = f"param_samplings_{self.task_name}_rebin{self.rebin}.hdf5"
+    if with_root:
+        filename+="[params]"
     return os.path.join(self.samplings_dir, filename)
 
   def zfactor_plotdir(self, operator_set_name):
@@ -577,9 +581,6 @@ class Spectrum(tasks.task.Task):
 
     if os.path.exists(self.samplings_filename):
       os.remove(self.samplings_filename)
-
-    if os.path.exists(self.params_filename):
-      os.remove(self.params_filename)
     
     default_data_files = self.data_handler.data_files
     # get reference observable data files
@@ -786,10 +787,14 @@ class Spectrum(tasks.task.Task):
           self.samplings_filename, energy_samplings_obs,
           file_type=sigmond_info.sigmond_info.DataFormat.samplings, file_mode=sigmond.WriteMode.Protect)
       
+      param_tag = f"{channel.irrep}({channel.psq})"
+      if os.path.exists(self.params_filename(param_tag)):
+        os.remove(self.params_filename(param_tag))
+    
       if self.write_params_to_file:
         sigmond_input.writeToFile(
-          self.params_filename, all_fit_param_obs,
-          file_type=sigmond_info.sigmond_info.DataFormat.samplings, file_mode=sigmond.WriteMode.Update,
+          self.params_filename(param_tag,True), all_fit_param_obs,
+          file_type=sigmond_info.sigmond_info.DataFormat.samplings, file_mode=sigmond.WriteMode.Overwrite,
           hdf5 = True
         )
 
@@ -861,8 +866,11 @@ class Spectrum(tasks.task.Task):
         energy_samplings_obs.append(scat_info_ref)
 
     if plot:
+      #delete param file
+      if os.path.exists(self.params_filename("sh")):
+        os.remove(self.params_filename("sh"))
       sigmond_input.writeToFile(
-          self.params_filename, all_fit_param_obs,
+          self.params_filename("sh",True), all_fit_param_obs,
           file_type=sigmond_info.sigmond_info.DataFormat.samplings, file_mode=sigmond.WriteMode.Overwrite,
           hdf5 = True
       )
@@ -885,6 +893,7 @@ class Spectrum(tasks.task.Task):
 
     self._setEnergies()
     if self.write_params_to_file:
+      self._combine_param_files()
       self._include_fit_model()
     doc = util.create_doc(f"Spectrum: {self.ensemble_name} - {self.task_name}", True)
     if self.spectrum:
@@ -1246,10 +1255,64 @@ class Spectrum(tasks.task.Task):
               data_table2.add_row(data_row)
               new_level += 1
 
-  def _include_fit_model(self):
-    hdf5_h = h5py.File(self.params_filename[:-8],"r+")
-    param_info = hdf5_h.create_group("param_info")
+  def _combine_param_files(self):
+    
+    if os.path.exists(self.params_filename()):
+        os.remove(self.params_filename())
+        
+    outfile = h5py.File(self.params_filename(), "a")
+    #single hadrons
+    if os.path.exists(self.params_filename("sh")):
+        hdf5_h = h5py.File(self.params_filename("sh"),"r+")
+        outfile.create_group('Info')
+        for info in hdf5_h['Info'].keys():
+            data=hdf5_h['Info'][info][()]
+            outfile['Info'].create_dataset(info,data.shape,data=data )
+            
+        if 'params' not in outfile.keys():
+            outfile.create_group('params')
+        for irrep in hdf5_h['params'].keys():
+            if type(hdf5_h['params'][irrep])==h5py._hl.dataset.Dataset:
+                if irrep not in outfile['params'].keys():
+                    data=hdf5_h['params'][irrep][()]
+                    outfile['params'].create_dataset(irrep,data.shape,data=data)
+            else:
+                if irrep not in outfile['params'].keys():
+                    outfile['params'].create_group(irrep)
+                for value in hdf5_h['params'][irrep].keys():
+                    data=hdf5_h['params'][irrep][value][()]
+                    outfile['params'][irrep].create_dataset(value,data.shape,data=data)
+            
+        hdf5_h.close()
+        os.remove(self.params_filename("sh"))
+        
     for operator_set, fit_infos in self.spectrum.items():
+        channel = fit_infos[0].operator.channel
+        param_tag = f"{channel.irrep}({channel.psq})"
+        hdf5_h = h5py.File(self.params_filename(param_tag),"r+")
+        if 'params' not in outfile.keys():
+            outfile.create_group('params')
+        for irrep in hdf5_h['params'].keys():
+            if type(hdf5_h['params'][irrep])==h5py._hl.dataset.Dataset:
+                if irrep not in outfile['params'].keys():
+                    data=hdf5_h['params'][irrep][()]
+                    outfile['params'].create_dataset(irrep,data.shape,data=data)
+            else:
+                if irrep not in outfile['params'].keys():
+                    outfile['params'].create_group(irrep)
+                for value in hdf5_h['params'][irrep].keys():
+                    data=hdf5_h['params'][irrep][value][()]
+                    outfile['params'][irrep].create_dataset(value,data.shape,data=data)
+        hdf5_h.close()
+        os.remove(self.params_filename(param_tag))
+    outfile.close()
+            
+  def _include_fit_model(self):
+    #include single hadrons
+    hdf5_h = h5py.File(self.params_filename(),"r+")
+    for operator_set, fit_infos in self.spectrum.items():
+      
+      param_info = hdf5_h.create_group("param_info")
       logfile = self.spectrum_logs[operator_set].logfile
       log_xml_root = ET.parse(logfile).getroot()
       for item in log_xml_root.findall('./Task/DoFit'):
