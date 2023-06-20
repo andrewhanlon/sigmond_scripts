@@ -4,9 +4,12 @@ import logging
 from typing import NamedTuple
 import concurrent.futures
 import multiprocessing
+import datetime
+import math, time
 
 import yaml
 import progressbar
+from simple_slurm import Slurm
 
 import tasks.view_data
 import tasks.average_corrs
@@ -31,7 +34,7 @@ task_map = {
     tasks.dispersion.Dispersion.task_type                : tasks.dispersion.Dispersion,
 }
 
-
+            
 class ProjectInfo(NamedTuple):
   project_dir: str
   raw_data_dirs: list
@@ -191,6 +194,12 @@ class Executor:
     self.mode = mode
     self.sigmond_batch = sigmond_batch
     self.exec_options = exec_options
+    
+    #for slurm:
+    self.email = None
+    self.max_hours = 10
+    self.partition = 'blue'
+    self.max_mem_in_mb = 3000
 
     # check sigmond_batch
     try:
@@ -201,14 +210,20 @@ class Executor:
     except FileNotFoundError:
       logging.error(f"sigmond_batch not found at '{self.sigmond_batch}'")
 
-    if self.mode == "local":
+    if self.mode == "local" or self.mode == "slurm":
       try: #if task=rotate and write_to_file=True, max_sim should be 1
         self.simultaneous_jobs = self.exec_options.get('max_simultaneous', multiprocessing.cpu_count())
       except ValueError as err:
         logging.error("Invalid value passed to 'max_simultaneous'")
+      if self.mode == "slurm":
+        self.email = self.exec_options.get('email', None)
+        self.max_hours = self.exec_options.get('max_hours', 10)
+        self.partition = self.exec_options.get('partition', 'blue') #figure out how to detect this?
+        self.max_mem_in_mb = self.exec_options.get('max_mem_in_mb', 3000) #figure out how to detect this?
 
       logging.info("Local execution with {} max simultaneous jobs".format(self.simultaneous_jobs))
       logging.info("Sigmond batch binary: {}".format(self.sigmond_batch))
+        
 
     elif self.mode == "PBS":
       logging.critical("PBS execution not yet supported...")
@@ -237,8 +252,55 @@ class Executor:
         pbar.update(len(status.done))
         status = concurrent.futures.wait(futures, return_when=concurrent.futures.FIRST_COMPLETED)
       pbar.finish()
+    
+    if self.mode == "slurm":
+      if len(sigmond_inputs) < self.simultaneous_jobs:
+        self.simultaneous_jobs = len(sigmond_inputs)
+        
+      n_tasks_per_node = math.ceil( len(sigmond_inputs)/self.simultaneous_jobs )
+        
+      jobs = []
+    
+      groups = [sigmond_inputs[n:n+n_tasks_per_node] for n in range(0, len(sigmond_inputs), n_tasks_per_node)]
+    
+      for group in groups:
+          slurm = Slurm(job_name='run_sigmond')
+          slurm.add_arguments( partition=self.partition )
+          slurm.add_arguments( time=datetime.timedelta(hours=self.max_hours) )
+          slurm.add_arguments( nodes=1 ) 
+          slurm.add_arguments( ntasks_per_node=1 ) 
+          slurm.add_arguments( mem=f'{self.max_mem_in_mb}mb' ) 
+          if group==groups[-1] and self.email:
+              slurm.add_arguments( mail_type='END' ) 
+              slurm.add_arguments( mail_user=self.email )
+#           print(slurm)
+        
+          command = ""
+          for sig_input in group:
+              command+=f"{self.sigmond_batch} {sig_input.filename};"
+          
+          jobs.append(slurm.sbatch(command))
+            
+      #wait for job to finish
+      for job in jobs:
+          wait_for_job_completion(job)
+        
 
-
+def wait_for_job_completion(job_id):
+    slurm = Slurm()
+    while True:
+        output = subprocess.check_output(["squeue", "-j", str(job_id), "-h"], universal_newlines=True)
+        lines = output.strip().split("\n")
+        if '' in lines:
+            lines.remove('')
+        if not lines:
+            print(f"Job {job_id} completed."+" "*50)
+            break
+        else:
+            output = subprocess.check_output(["squeue", "-j", str(job_id), "-h"], universal_newlines=True)
+            print(output.strip(), end="\r" ) 
+            time.sleep(2)  # Adjust the sleep time as needed
+            
 def create_config():
   logging.critical("Interactive mode not currently supported")
 

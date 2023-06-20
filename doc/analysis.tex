@@ -161,6 +161,18 @@ The commands specified with the \key{extra} key will be placed in the PBS runscr
 \runsigmond{} will run one sigmond job per core.
 Therefore, if you specify 4 nodes and 16 processes per node, then $4 \times 16$ sigmond processes will be placed in a single runscript.
 More runscripts will be created if more \sigmond{} input files exist.
+Or, you can run your jobs on a SLURM cluster
+\begin{lstlisting}[language=yaml]
+  Execute:
+    mode: slurm
+    sigmond_batch: /home/user/sigmond/build/sigmond_batch
+    max_simultaneous: 20 # optional, default is number of processors on machine
+    email: user@mail.com # optional
+    partition: green # optional, default 'blue'
+    max_hours: 5 # optional, default 10
+    max_mem_in_mb: 3000 # optional, default 3000
+\end{lstlisting}
+where 'max_simultaneous' is the max number of jobs it will submit. If there are more sigmond inputs than jobs, then it will serialize the jobs. 
 
 \subsection{MCBinsInfo Block}
 
