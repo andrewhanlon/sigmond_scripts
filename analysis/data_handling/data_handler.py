@@ -1,4 +1,5 @@
 import os
+import h5py
 
 from typing import NamedTuple
 import logging
@@ -276,6 +277,14 @@ def _find_data_files(data_dir):
   for root, dirs, files in os.walk(data_dir, topdown=True):
     for filename in files:
       full_filename = os.path.join(root, filename)
+      roots = []
+      try:
+        with h5py.File(full_filename, 'r') as h5py_file:
+          roots = list(h5py_file.keys())
+          roots.remove("Info")
+      except OSError as err:
+        pass
+        
       try:
         file_type = sigmond.getFileID(full_filename)
       except ValueError:
@@ -290,10 +299,18 @@ def _find_data_files(data_dir):
         bl_vev_files.add(full_filename)
       elif file_type == sigmond.FileType.Bins:
         logging.info(f"Found Bins file '{full_filename}'")
-        bin_files.add(full_filename)
+        if roots:
+            for root in roots:
+                bin_files.add(f"{full_filename}[{root}]")
+        else:
+            bin_files.add(full_filename)
       elif file_type == sigmond.FileType.Samplings:
         logging.info(f"Found Samplings file '{full_filename}'")
-        smp_files.add(full_filename)
+        if roots:
+            for root in roots:
+                smp_files.add(f"{full_filename}[{root}]")
+        else:
+            smp_files.add(full_filename)
       else:
         logging.error(f"Unrecognized filetype {file_type}")
 
