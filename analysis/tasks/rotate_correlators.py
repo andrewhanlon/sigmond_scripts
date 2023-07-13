@@ -168,8 +168,8 @@ class RotateCorrelators(tasks.task.Task):
     plotfile = f"{plotstub}_{level}.{extension.value}"
     return os.path.join(plotdir, plotfile)
 
-  def samplings_file_hdf5(self):
-    return os.path.join(self.results_dir, "rotated_correlators.hdf5[rotated_correlators]")
+  def samplings_file_hdf5(self, irrep, mom):
+    return os.path.join(self.results_dir, f"rotated_correlators.hdf5[{irrep}_PSQ{mom}]")
 
   def getSigmondInputs(self):
     sigmond_inputs = list()
@@ -239,7 +239,7 @@ class RotateCorrelators(tasks.task.Task):
 #           
           rot_corr_mat = sigmond.CorrelatorMatrixInfo(rot_op_infos, True, subtractvev)
           sigmond_input.writeCorrMatToFile(
-              self.samplings_file_hdf5(),rot_corr_mat,file_mode=write_mode,
+              self.samplings_file_hdf5(operator_basis.channel.irrep,operator_basis.channel.psq),rot_corr_mat,file_mode=write_mode,
           )
 
       sigmond_input.write()
