@@ -300,15 +300,15 @@ def _find_data_files(data_dir):
       elif file_type == sigmond.FileType.Bins:
         logging.info(f"Found Bins file '{full_filename}'")
         if roots:
-            for root in roots:
-                bin_files.add(f"{full_filename}[{root}]")
+            for hroot in roots:
+                bin_files.add(f"{full_filename}[{hroot}]")
         else:
             bin_files.add(full_filename)
       elif file_type == sigmond.FileType.Samplings:
         logging.info(f"Found Samplings file '{full_filename}'")
         if roots:
-            for root in roots:
-                smp_files.add(f"{full_filename}[{root}]")
+            for hroot in roots:
+                smp_files.add(f"{full_filename}[{hroot}]")
         else:
             smp_files.add(full_filename)
       else:
