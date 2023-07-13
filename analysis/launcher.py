@@ -273,12 +273,10 @@ class Executor:
           if group==groups[-1] and self.email:
               slurm.add_arguments( mail_type='END' ) 
               slurm.add_arguments( mail_user=self.email )
-#           print(slurm)
         
           command = ""
           for sig_input in group:
               command+=f"{self.sigmond_batch} {sig_input.filename};"
-          
           jobs.append(slurm.sbatch(command))
             
       #wait for job to finish
