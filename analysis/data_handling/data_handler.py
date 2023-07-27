@@ -217,7 +217,6 @@ class DataHandler(metaclass=util.Singleton):
 
     logging.info("done")
 
-
   def _findLaphData(self, data_files):
     laph_corr_handler = sigmond.BLCorrelatorDataHandler(data_files.bl_corr_files, set(), set(), self.ensemble_info)
     laph_vev_handler = sigmond.BLVEVDataHandler(data_files.bl_vev_files, set(), self.ensemble_info)
@@ -262,7 +261,7 @@ class DataHandler(metaclass=util.Singleton):
 
       else:
         logging.warning(f"Ignoring observable '{mc_obs}'")
-
+        
     return data
 
 
@@ -280,16 +279,21 @@ def _find_data_files(data_dir):
       roots = []
       try:
         with h5py.File(full_filename, 'r') as h5py_file:
+          if h5py_file['Info']['FIdentifier'][()].decode()=="Sigmond--SamplingsFile":
+            file_type = sigmond.FileType.Samplings
+          elif h5py_file['Info']['FIdentifier'][()].decode()=="Sigmond--BinsFile":
+            file_type = sigmond.FileType.Bins
           roots = list(h5py_file.keys())
           roots.remove("Info")
       except OSError as err:
         pass
-        
-      try:
-        file_type = sigmond.getFileID(full_filename)
-      except ValueError:
-        logging.warning(f"Invalid file '{full_filename}'")
-        continue
+
+      if not roots: 
+        try:
+          file_type = sigmond.getFileID(full_filename)
+        except ValueError:
+          logging.warning(f"Invalid file '{full_filename}'")
+          continue
 
       if file_type == sigmond.FileType.Correlator:
         logging.info(f"Found BasicLaph Correlator file '{full_filename}'")
