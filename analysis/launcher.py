@@ -4,6 +4,7 @@ import logging
 from typing import NamedTuple
 import concurrent.futures
 import multiprocessing
+import xml.etree.ElementTree as ET
 import datetime
 import math, time
 
@@ -331,7 +332,15 @@ def _get_bins_info(bins_info_config, ensembles_file):
     
   logging.info("Ensemble: {}".format(ensemble_info))
 
-  bins_info = sigmond.MCBinsInfo(ensemble_info)
+  if 'keep_first' in bins_info_config:
+    new_bins_info = ET.Element('MCBinsInfo')
+    new_bins_info.append(ensemble_info.xml())
+    tweaks = ET.SubElement(new_bins_info,'TweakEnsemble')
+    ET.SubElement(tweaks,'KeepFirst').text = str(bins_info_config['keep_first'])
+    ET.SubElement(tweaks,'KeepLast').text = str(bins_info_config['keep_last'])
+    bins_info = sigmond.MCBinsInfo(sigmond.XMLHandler().set_from_string(ET.tostring(new_bins_info)))
+  else:
+    bins_info = sigmond.MCBinsInfo(ensemble_info)
   bins_info.setRebin(bins_info_config.get('rebin', 1))
   bins_info.addOmissions(set(bins_info_config.get("omissions", [])))
   logging.info("Rebin: {}".format(bins_info.getRebinFactor()))
