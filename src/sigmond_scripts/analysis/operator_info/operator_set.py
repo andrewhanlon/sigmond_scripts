@@ -4,29 +4,30 @@ import logging
 from sortedcontainers import SortedSet
 from typing import NamedTuple
 
-import utils.util as util
-import operator_info.operator
-import operator_info.channel
-import sigmond_info.sigmond_input
-import data_handling.data_handler
+import sigmond_scripts.analysis.utils.util as util
+import sigmond_scripts.analysis.operator_info.operator as operator
+import sigmond_scripts.analysis.operator_info.channel as channel
+import sigmond_scripts.analysis.sigmond_info.sigmond_input as sigmond_input
+import sigmond_scripts.analysis.sigmond_info.sigmond_info as sigmond_info
+#import sigmond_scripts.analysis.data_handling.data_handler as data_handler
 
 import sigmond
 
 def getOperatorSet(options):
-  operators = [operator_info.operator.Operator(op) for op in options.pop('operators', list())]
+  operators = [operator.Operator(op) for op in options.pop('operators', list())]
   if (pivot_info := options.pop('pivot_info', False)):
     try:
       name = options.pop('name')
       opops = options.pop('optimized_operators', list())
-      pivot_info = sigmond_info.sigmond_info.PivotInfo(**pivot_info)
-      operator_set = operator_info.operator_set.RotatedOperatorSet(name, pivot_info, opops, *operators)
+      pivot_info = sigmond_info.PivotInfo(**pivot_info)
+      operator_set = sigmond_scripts.analysis.operator_info.operator_set.RotatedOperatorSet(name, pivot_info, opops, *operators)
     except KeyError as err:
       logging.error("RotatedOperatorSet missing key {err}")
 
   elif (name := options.pop('name', False)):
-    operator_set = operator_info.operator_set.NamedOperatorSet(name, *operators)
+    operator_set = sigmond_scripts.analysis.operator_info.operator_set.NamedOperatorSet(name, *operators)
   else:
-    operator_set = operator_info.operator_set.OperatorSet(*operators)
+    operator_set = sigmond_scripts.analysis.operator_info.operator_set.OperatorSet(*operators)
 
   return operator_set
 
@@ -164,7 +165,7 @@ class NamedOperatorSet(OperatorSet):
   def __ge__(self, other):
     return self.__cmp() >= other.__cmp()
 
-
+"""
 class RotatedOperatorSet(NamedOperatorSet):
 
   def __init__(self, name, pivot_info, optimized_ops, *operators):
@@ -177,9 +178,9 @@ class RotatedOperatorSet(NamedOperatorSet):
 
   def _verifyOperators(self, operators):
     operators = SortedSet(operators)
-    pivot_file = data_handling.data_handler.DataHandler().pivotfile(self)
+    pivot_file = data_handler.DataHandler().pivotfile(self)
     if (pivot_exists := os.path.isfile(pivot_file)):
-      original_operators = SortedSet([operator_info.operator.Operator(op) for op in sigmond.getOperatorBasis(pivot_file)])
+      original_operators = SortedSet([operator.Operator(op) for op in sigmond.getOperatorBasis(pivot_file)])
 
     if self._optimized_ops and operators:
       return operators
@@ -218,7 +219,7 @@ class RotatedOperatorSet(NamedOperatorSet):
     all_impopsets = []
     for opop,oplog_file in zip(self._optimized_ops,opop_logfiles):
       if oplog_file is not None:
-        oplog = sigmond_info.sigmond_log.RotationLog(oplog_file)
+        oplog = sigmond_log.RotationLog(oplog_file)
         this_impopset = oplog.improved_operators
         all_present = True
         for impop in this_impopset:
@@ -237,8 +238,8 @@ class RotatedOperatorSet(NamedOperatorSet):
           all_impopsets.append(this_impopset)
     return all_impopsets
 
-  def getRotatedOperators(self):
-    return data_handling.data_handler.DataHandler().getRotatedOperators(self)
+  #def getRotatedOperators(self):
+  #  return data_handler.DataHandler().getRotatedOperators(self)
 
   @property
   def name(self):
@@ -277,6 +278,7 @@ class RotatedOperatorSet(NamedOperatorSet):
 
   def __ge__(self, other):
     return self.__cmp() >= other.__cmp()
+"""
 
 
 def write_operators(op_file, operators, read_only=True, check_file=True):
@@ -324,7 +326,7 @@ def read_operators(opset_name):
   f_handler = open(op_file, 'r')
   ops = list()
   for op_str in f_handler:
-    op = operator_info.operator.Operator(op_str)
+    op = operator.Operator(op_str)
     ops.append(op)
 
   return ops

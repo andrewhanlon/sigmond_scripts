@@ -6,8 +6,8 @@ from aenum import MultiValueEnum
 import regex
 
 import sigmond
-import utils.util as util
-import operator_info.operator
+import sigmond_scripts.analysis.utils.util as util
+import sigmond_scripts.analysis.operator_info.operator
 
 
 
@@ -27,14 +27,33 @@ class FitModel(MultiValueEnum):
   TimeForwardMultiExponential = 12, "multi-exp"
   TimeForwardSTIGeomSeriesExponential = 13, "sti-geom"
   TimeForwardTruncGeomSeriesExponential = 14, "trunc-geom"
-  TimeForwardDoubleExpRatio = 15, "two-exp-ratio"
-  TimeForwardTwoIndExp = 16, "two-ind-exp"
-  TimeForwardGeomSeriesSTI = 17, "geom-sti" #colin wrote this one
-  TimeForwardThreeIndExp = 18, "3-ind-exp"
+  TimeForwardDoubleExpRatio1 = 15, "two-exp-ratio1"
+  TimeForwardDoubleExpRatio2 = 16, "two-exp-ratio"
+  TimeForwardTwoIndExp = 17, "two-ind-exp"
+  TimeForwardGeomSeriesSTI = 18, "geom-sti" #colin wrote this one
+  DegThreeExpConspiracy = 19, "3-exp-deg-cons"
+  TimeForwardThreeExponential = 22, "3-exp"
+  TimeForwardFourExponential = 23, "4-exp"
+  TwoExpConspiracy = 24, "2-exp-cons"
+  DegTwoExpConspiracy = 25, "2-exp-deg-cons"
+  TimeForwardThreeIndExponential = 26, "3-ind-exp"
+  TimeForwardTwoExponentialForCons = 27, "2-exp-shifted"
+  #TimeForwardThreeIndExponential = 26, "3-ind-exp"
+  #TimeForwardThreeIndExp = 19, "3-ind-exp"
+  #TimeForwardConspiracy = 20, "conspiracy"
+  #TimeForwardConspiracyPlus = 21, "conspiracy2"
+  #TimeForwardThreeExponential = 22, "3-exp"
+  #TimeForwardFourExponential = 23, "4-exp"
+  #TimeForwardThreeDepExponential = 24, "3-dep-exp"
+  # OneStateConspiracy = 20, "conspiracy"
 
   @property
   def short_name(self):
     return FIT_MODEL_SHORT_NAMES[self]
+  
+  @property
+  def sigmond_object(self):
+    return FIT_MODEL_SIGMOND[self]
 
   @property
   def has_gap(self):
@@ -43,6 +62,10 @@ class FitModel(MultiValueEnum):
   @property
   def has_const(self):
     return 'AddedConstant' in FitInfo.PARAMETERS[self]
+  
+  @property
+  def num_params(self):
+    return len(FitInfo.PARAMETERS[self])
 
 
 FIT_MODEL_SHORT_NAMES = {
@@ -61,10 +84,60 @@ FIT_MODEL_SHORT_NAMES = {
     FitModel.TimeForwardMultiExponential: "multi-exp",
     FitModel.TimeForwardSTIGeomSeriesExponential: "sti-geom",
     FitModel.TimeForwardTruncGeomSeriesExponential: "trunc-geom",
-    FitModel.TimeForwardDoubleExpRatio: "two-exp-ratio",
+    FitModel.TimeForwardDoubleExpRatio1: "two-exp-ratio1",
+    FitModel.TimeForwardDoubleExpRatio2: "two-exp-ratio",
     FitModel.TimeForwardTwoIndExp: "two-ind-exp",
     FitModel.TimeForwardGeomSeriesSTI: "geom-sti",
-    FitModel.TimeForwardThreeIndExp: "3-ind-exp",
+    FitModel.TimeForwardThreeExponential: "3-exp",
+    FitModel.TimeForwardFourExponential: "4-exp",
+    FitModel.TwoExpConspiracy: "2-exp-cons",
+    FitModel.DegTwoExpConspiracy: "2-exp-deg-cons",
+    FitModel.DegThreeExpConspiracy: "3-exp-deg-cons",
+    FitModel.TimeForwardThreeIndExponential: "3-ind-exp",
+    FitModel.TimeForwardTwoExponentialForCons: "2-exp-shifted",
+    #FitModel.TimeForwardThreeIndExp: "3-ind-exp",
+    #FitModel.TimeForwardConspiracy: "conspiracy",
+    #FitModel.TimeForwardConspiracyPlus: "conspiracy2",
+    #FitModel.TimeForwardThreeExponential: "3-exp",
+    #FitModel.TimeForwardFourExponential: "4-exp",
+    #FitModel.TimeForwardThreeDepExponential: "3-dep-exp",
+    # FitModel.OneStateConspiracy: "conspiracy"
+}
+
+FIT_MODEL_SIGMOND = {
+    FitModel.TimeForwardSingleExponential: sigmond.TimeForwardSingleExponential,
+    # FitModel.TimeSymSingleExponential: "1-exp-sym",
+    # FitModel.TimeForwardSingleExponentialPlusConstant: "1-exp-const",
+    # FitModel.TimeSymSingleExponentialPlusConstant: "1-exp-sym-const",
+    FitModel.TimeForwardTwoExponential: sigmond.TimeForwardTwoExponential,
+    # FitModel.TimeSymTwoExponential: "2-exp-sym",
+    # FitModel.TimeForwardTwoExponentialPlusConstant: "2-exp-const",
+    # FitModel.TimeSymTwoExponentialPlusConstant: "2-exp-sym-const",
+    # FitModel.TimeForwardGeomSeriesExponential: "geom",
+    # FitModel.TimeSymGeomSeriesExponential: "geom-sym",
+    # FitModel.LogTimeForwardSingleExponential: "log-1-exp",
+    # FitModel.LogTimeForwardTwoExponential: "log-2-exp",
+    # FitModel.TimeForwardMultiExponential: "multi-exp",
+    # FitModel.TimeForwardSTIGeomSeriesExponential: "sti-geom",
+    # FitModel.TimeForwardTruncGeomSeriesExponential: "trunc-geom",
+    # FitModel.TimeForwardDoubleExpRatio1: "two-exp-ratio1",
+    # FitModel.TimeForwardDoubleExpRatio2: "two-exp-ratio",
+    # FitModel.TimeForwardTwoIndExp: "two-ind-exp",
+    # FitModel.TimeForwardGeomSeriesSTI: "geom-sti",
+    # FitModel.TimeForwardThreeIndExp: "3-ind-exp",
+    # FitModel.TimeForwardConspiracy: "conspiracy",
+    # FitModel.TimeForwardConspiracyPlus: "conspiracy2",
+    # FitModel.TimeForwardThreeExponential: "3-exp",
+    # FitModel.TimeForwardFourExponential: "4-exp",
+    # FitModel.TimeForwardThreeDepExponential: "3-dep-exp",
+    # FitModel.OneStateConspiracy: "conspiracy"
+    #FitModel.TimeForwardThreeExponential: "3-exp",
+    #FitModel.TimeForwardFourExponential: "4-exp",
+    FitModel.TwoExpConspiracy: sigmond.TwoExpConspiracy,
+    FitModel.DegTwoExpConspiracy: sigmond.DegTwoExpConspiracy,
+    #FitModel.DegThreeExpConspiracy: "3-exp-deg-cons",
+    #FitModel.TimeForwardThreeIndExponential: "3-ind-exp",
+    FitModel.TimeForwardTwoExponentialForCons: sigmond.TimeForwardTwoExponentialForCons,
 }
 
 
@@ -155,7 +228,15 @@ class FitInfo:
           "SqrtGapToSecondEnergy",
           "SecondAmplitudeRatio",
       ],
-      FitModel.TimeForwardDoubleExpRatio: [
+      FitModel.TimeForwardDoubleExpRatio1: [
+          "Energy",
+          "Amplitude",
+          "NumGap",
+          "NumGapAmp",
+          "SHGap",
+          "SHGapAmp",
+      ],
+      FitModel.TimeForwardDoubleExpRatio2: [
           "Energy",
           "Amplitude",
           "NumGap",
@@ -171,14 +252,6 @@ class FitInfo:
           "Energy1",
           "Amplitude1",
       ],
-      FitModel.TimeForwardThreeIndExp: [
-          "Energy",
-          "Amplitude",
-          "Energy1",
-          "Amplitude1",
-          "Energy2",
-          "Amplitude2",
-      ],
       FitModel.TimeForwardGeomSeriesSTI: [
           "FirstEnergy",
           "FirstAmplitude",
@@ -189,12 +262,70 @@ class FitInfo:
           "STIAmplitude3",
           "STIAmplitude4",
       ],
+      FitModel.TimeForwardThreeExponential: [
+          "FirstEnergy",
+          "FirstAmplitude",
+          "SqrtGapToSecondEnergy",
+          "SecondAmplitudeRatio",
+          "SqrtGapToThirdEnergy",
+          "ThirdAmplitudeRatio",
+      ],
+      FitModel.TimeForwardFourExponential: [
+          "FirstEnergy",
+          "FirstAmplitude",
+          "SqrtGapToSecondEnergy",
+          "SecondAmplitudeRatio",
+          "SqrtGapToThirdEnergy",
+          "ThirdAmplitudeRatio",
+          "FourthAmplitudeRatio",
+      ],
+      FitModel.TwoExpConspiracy: [
+          "FirstEnergy",
+          "FirstAmplitude",
+          "SqrtGapToSecondEnergy",
+          "SqrtGapToThirdEnergy",
+          "SecondAmplitudeRatio",
+          "ThirdAmplitudeRatio",
+          "FourthAmplitudeRatio",
+          "delta2",
+          "delta3",
+          "delta4",
+      ],
+      FitModel.DegTwoExpConspiracy: [
+          "FirstEnergy",
+          "FirstAmplitude",
+          "SqrtGapToSecondEnergy",
+          "SecondAmplitudeRatio",
+          "delta1",
+          "ThirdAmplitudeRatio",
+          "delta2",
+      ],
+      FitModel.DegThreeExpConspiracy: [
+          "FirstEnergy",
+          "FirstAmplitude",
+          "SqrtGapToSecondEnergy",
+          "SecondAmplitudeRatio",
+          "delta2",
+          "SqrtGapToThirdEnergy",
+          "ThirdAmplitudeRatio",
+          "delta3",
+          "FourthAmplitudeRatio",
+          "delta4",
+          "FifthAmplitudeRatio",
+      ],
+      FitModel.TimeForwardTwoExponentialForCons: [
+          "FirstEnergy",
+          "FirstAmplitude",
+          "SqrtGapToSecondEnergyShift",
+          "SqrtGapToSecondEnergy",
+          "SecondAmplitudeRatio"
+      ],
   }
 
   def __init__(self, operator, model, tmin, tmax, subtractvev=False, ratio=False,
                exclude_times=[], noise_cutoff=0.0, non_interacting_operators=None, 
                tmin_max=-1, tmax_min=-1, max_level = 6, initial_gap=1.0, repeating_gap=1.0,
-              sim_fit = False, initial_params = {}):
+              sim_fit = False, initial_params = {}, priors = {}):
     """
     Args:
       operator (sigmondbind.OperatorInfo):
@@ -218,10 +349,11 @@ class FitInfo:
     self.exclude_times = exclude_times
     self.noise_cutoff = noise_cutoff
     self.max_level = max_level #for multiseries fit
-    self.initial_gap = initial_gap #for multiseries fit
-    self.repeating_gap = repeating_gap #for multiseries fit
-    self.sim_fit = sim_fit #for simultaneous fits #not actually set up yet
+    self.initial_gap = initial_gap #for multiseries fit (and hijacked for others)
+    self.repeating_gap = repeating_gap #for multiseries fit (and hijacked for others)
+    self.sim_fit = sim_fit #for simultaneous fits #not actually set up yet #for TimeForwardDoubleExpRatio
     self.initial_params = initial_params #for TimeForwardDoubleExpRatio
+    self.priors = priors 
 
     self.non_interacting_operators = non_interacting_operators
 
@@ -283,7 +415,7 @@ class FitInfo:
       return cls(operator, model, **config)
 
     except KeyError as err:
-      logging.error("Missing {err} in fit_info")
+      logging.error(f"Missing {err} in fit_info")
 
   @property
   def has_gap(self):
@@ -296,6 +428,10 @@ class FitInfo:
   @property
   def num_params(self):
     return len(self.PARAMETERS[self.model])
+  
+  @property
+  def param_names(self):
+    return self.PARAMETERS[self.model]
 
   @property
   def model_value(self):
@@ -383,8 +519,15 @@ class FitInfo:
     if self.exclude_times:
       ET.SubElement(xml, "ExcludeTimes").text = " ".join(str(t) for t in self.exclude_times)
 
-    if self.noise_cutoff and not self.is_tmin_vary and not self.is_tmax_vary:
+    if self.noise_cutoff: # and not self.is_tmin_vary and not self.is_tmax_vary:
       ET.SubElement(xml, "LargeTimeNoiseCutoff").text = str(self.noise_cutoff)
+
+    if self.priors:
+      priors_xml = ET.SubElement(xml, "Priors")
+      for prior in self.priors:
+        prior_xml = ET.SubElement(priors_xml, prior)
+        for pinput in self.priors[prior]:
+          ET.SubElement(prior_xml, pinput).text = str(self.priors[prior][pinput])
 
     if self.is_log_fit:
       model_xml = ET.SubElement(xml, "LogModel")
@@ -407,14 +550,15 @@ class FitInfo:
       param_xml = ET.SubElement(model_xml, param)
       ET.SubElement(param_xml, "Name").text = self.obs_name
       ET.SubElement(param_xml, "IDIndex").text = str(self.obs_id(param_count))
-      if self.model_name == "TimeForwardDoubleExpRatio" and self.initial_params:
+      if "TimeForwardDoubleExpRatio" in self.model_name and self.initial_params:
         if param in self.initial_params.keys():
             ET.SubElement(param_xml, "InitialValue").text = str(self.initial_params[param])
-#       if self.model_name == "TimeForwardMultiExponential":
-#         ET.SubElement(param_xml, "PriorValue").text = str(self.initial_gap)
-#         ET.SubElement(param_xml, "PriorWidth").text = str(self.repeating_gap)
-            
       param_count += 1
+
+    if "TimeForwardConspiracy" in self.model_name:
+      ET.SubElement(model_xml, "SH1Gap").text = str(self.initial_gap)
+      ET.SubElement(model_xml, "SH2Gap").text = str(self.repeating_gap)
+            
 
     return xml
 
@@ -477,7 +621,7 @@ class FitInfo:
 
   def __cmp(self):
     tup_rep = (self.operator, self.model_value, self.tmin, self.tmax,
-               ":".join(map(str, self.exclude_times)), self.ratio, self.noise_cutoff)
+               ":".join(map(str, self.exclude_times)), self.ratio, self.sim_fit, self.noise_cutoff)
 
     return tup_rep
 

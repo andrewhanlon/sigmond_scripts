@@ -3,7 +3,7 @@ from enum import Enum
 from aenum import MultiValueEnum
 from typing import NamedTuple
 
-import utils.util as util
+import sigmond_scripts.analysis.utils.util as util
 import sigmond
 
 class Goodness(Enum):

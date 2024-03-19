@@ -4,7 +4,7 @@ import xml.etree.ElementTree as ET
 from typing import NamedTuple
 
 import sigmond
-import utils.util as util
+import sigmond_scripts.analysis.utils.util as util
 
 
 class FileInfo(NamedTuple):

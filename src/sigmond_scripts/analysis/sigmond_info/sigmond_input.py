@@ -8,10 +8,11 @@ import logging
 import xml.etree.ElementTree as ET
 import copy
 import xml.dom.minidom as minidom
+import numpy as np
 
-import sigmond_info.sigmond_info
-import sigmond_info.fit_info
-import utils.util as util
+import sigmond_scripts.analysis.sigmond_info.sigmond_info as sigmond_info
+import sigmond_scripts.analysis.sigmond_info.fit_info as fit_info_lib
+import sigmond_scripts.analysis.utils.util as util
 
 import sigmond
 
@@ -89,6 +90,9 @@ class SigmondInput:
 
     logging.info("Wrote XML to: {}".format(self.filename))
 
+  def to_str(self):
+    return minidom.parseString(
+      ET.tostring(self.sigmondXML, 'utf-8')).toprettyxml(indent="  ")
 
   def doCorrelatorCheck(self, operators, mintime, maxtime, **extra_options):
     """Adds a 'DoChecks' task of type 'TemporalCorrelatorMatrix'
@@ -466,7 +470,6 @@ class SigmondInput:
           being fit
       **minimizer_info (sigmond_xml.MinimizerInfo): Specifies the
           info for the Minimizer.
-      **subtractvev (bool): 
       **sampling_mode (sigmond_xml.SamplingMode): specifies a
           sampling mode to use for the fit.
       **cov_sampling_mode (sigmond_xml.SamplingMode): specifies the
@@ -485,6 +488,18 @@ class SigmondInput:
       **anisotropy (MCObsInfo): If wanting to do absolute/difference
           energy and have an anisotropy
     """
+
+    conspiracy_fits = [
+      fit_info_lib.FitModel.TwoExpConspiracy,
+      # fit_info_lib.FitModel.TimeForwardTwoExponential,
+      # fit_info_lib.FitModel.TimeForwardThreeExponential,
+      # fit_info_lib.FitModel.TimeForwardFourExponential,
+      # fit_info_lib.FitModel.TimeForwardThreeIndExponential,
+    ]
+    deg_conspiracy_fits = [
+      fit_info_lib.FitModel.DegTwoExpConspiracy,
+      fit_info_lib.FitModel.DegThreeExpConspiracy,
+    ]
 
     xml = ET.Element("Task")
     ET.SubElement(xml, "Action").text = "DoFit"
@@ -540,19 +555,28 @@ class SigmondInput:
       ET.SubElement(chosen_fit_xml, "Name").text = extra_options['chosen_fit_info'].getObsName()
       ET.SubElement(chosen_fit_xml, "IDIndex").text = str(extra_options['chosen_fit_info'].getObsIndex())
             
-    if fit_info.sim_fit: #just really for advanced ratio fit, maybe specity differently
+    if fit_info.sim_fit: 
         tmin_min = fit_info.tmin
         tmin_max = fit_info.tmin_max
-        tmax = fit_info.tmax
+        tmax_min = fit_info.tmax_min
+        tmax_max = fit_info.tmax
         
         fit_tag2 = ET.Element("Fits")
         
-        if (fit_info.is_tmin_vary or fit_info.is_tmax_vary):
+        if fit_info.is_tmin_vary:
             xml.find("Type").text = f"{fit_info.fit_type}TminVary"
             fit_tag = ET.Element(f"{fit_info.fit_type}TminVaryFit")
             ET.SubElement(fit_tag, "TminFirst").text = str(tmin_min)
             ET.SubElement(fit_tag, "TminLast").text = str(tmin_max)
-            ET.SubElement(fit_tag, "Tmax").text = str(tmax)
+            ET.SubElement(fit_tag, "Tmax").text = str(tmax_max)
+            tmin_fit_tag = ET.SubElement(fit_tag, f"{fit_info.fit_type}Fit")
+            tmin_fit_tag.append(fit_tag2)
+        elif fit_info.is_tmax_vary:
+            xml.find("Type").text = f"{fit_info.fit_type}TmaxVary"
+            fit_tag = ET.Element(f"{fit_info.fit_type}TmaxVaryFit")
+            ET.SubElement(fit_tag, "TmaxFirst").text = str(tmax_min)
+            ET.SubElement(fit_tag, "TmaxLast").text = str(tmax_max)
+            ET.SubElement(fit_tag, "Tmin").text = str(tmin_min)
             tmin_fit_tag = ET.SubElement(fit_tag, f"{fit_info.fit_type}Fit")
             tmin_fit_tag.append(fit_tag2)
         else:
@@ -568,10 +592,12 @@ class SigmondInput:
         
         fit_info.sim_fit = False
         fit_info.tmin_max = -1
+        fit_info.tmax_min = -1
         fit_xml = fit_info.xml()
         if 'chosen_fit_info' in extra_options:
             fit_xml.append(chosen_fit_xml)
         fit_info.tmin_max = tmin_max
+        fit_info.tmax_min = tmax_min
         if 'plotfile' in extra_options:
             fit_xml.append(plot_tag)
         if (fit_info.is_tmin_vary or fit_info.is_tmax_vary):
@@ -582,36 +608,101 @@ class SigmondInput:
                                            
         fit_tag2.append(fit_xml)
         if 'scattering_fit_info' in extra_options:
-            for i, scat_fit_info in enumerate(extra_options['scattering_fit_info']):
-                this_xml = copy.deepcopy(scat_fit_info.xml())
-                if (fit_info.is_tmin_vary or fit_info.is_tmax_vary):
+            sh_priors = extra_options['sh_priors']
+            twothree = ["Second","Third"]
+            scat_xmls= [copy.deepcopy(scat_fit_info.xml()) for scat_fit_info in extra_options['scattering_fit_info']]
+            if len(scat_xmls)==2:
+              for i, this_xml in enumerate(scat_xmls):
+                  param = this_xml.find("Model/SqrtGapToSecondEnergy")
+                  if i==0:
+                    shift1 = sh_priors[param.find("Name").text][param.tag]["Mean"]
+                  else:
+                    shift1 = np.sqrt(sh_priors[param.find("Name").text][param.tag]["Mean"]**2-shift1*shift1)
+              if np.isnan(shift1):
+                scat_xmls.reverse()
+                extra_options['scattering_fit_info'].reverse()
+
+            for i, this_xml in enumerate(scat_xmls):
+                # this_xml = copy.deepcopy(scat_fit_info.xml())
+                if (fit_info.is_tmin_vary or fit_info.is_tmax_vary): #add shift energy if shift plot
                     chosen_name = this_xml.find('Model/FirstEnergy/Name').text
                     chosen_id = this_xml.find('Model/FirstEnergy/IDIndex').text
                     chosen_fit_xml = ET.SubElement( this_xml, "ChosenFitInfo")
                     ET.SubElement( chosen_fit_xml, "Name").text = chosen_name
                     ET.SubElement( chosen_fit_xml, "IDIndex").text = chosen_id
-                for name in this_xml.findall('Model/*/Name'):
-                    name.text = fit_info.obs_name+"-"+name.text
-                if fit_info.model==sigmond_info.fit_info.FitModel.TimeForwardDoubleExpRatio:
-                    if (fit_info.is_tmin_vary or fit_info.is_tmax_vary):
-#                         ET.SubElement(this_xml, "Fixed")
-                        this_xml.remove( this_xml.find("MinimumTimeSeparation") )
-                        this_xml.remove( this_xml.find("MaximumTimeSeparation") )
-                    else:
-                        this_xml.find("MinimumTimeSeparation").text = str(tmin_min)
-                        this_xml.find("MaximumTimeSeparation").text = str(tmax)
+
+                new_priors_xml = ET.SubElement( this_xml, "Priors")
+                for param in this_xml.findall('Model/*'):
+                    if param.tag!="Type":
+                      new_prior_xml = ET.SubElement( new_priors_xml, param.tag)
+                      if param.tag=="SqrtGapToSecondEnergy":
+                        if i==0:
+                          shift1 = sh_priors[param.find("Name").text][param.tag]["Mean"]
+                          err1 = sh_priors[param.find("Name").text][param.tag]["Error"]
+                        else:
+                          shift1 = np.sqrt(sh_priors[param.find("Name").text][param.tag]["Mean"]**2-shift1*shift1)
+                          err1 = 0.8*shift1 #prior_width_multiplier*sh_priors[param.find("Name").text][param.tag]["Error"]+err1
+                        ET.SubElement( new_prior_xml, "Mean").text = str(shift1)
+                        ET.SubElement( new_prior_xml, "Error").text = str(err1)
+                      else:
+                        ET.SubElement( new_prior_xml, "Mean").text = str(sh_priors[param.find("Name").text][param.tag]["Mean"])
+                        ET.SubElement( new_prior_xml, "Error").text = str(sh_priors[param.find("Name").text][param.tag]["Error"])
+                      param.find("Name").text = fit_info.obs_name+"-"+param.find("Name").text
+                     
+                if (fit_info.is_tmin_vary or fit_info.is_tmax_vary):
+                    ET.SubElement(this_xml, "Fixed")    
+
+                if fit_info.model in conspiracy_fits: #insert other energy
+                    ratio_name = f'TemporalCorrelatorFit/Model/SqrtGapTo{twothree[i]}Energy/'
+                    fit_tag2.find(ratio_name+"Name").text=this_xml.find('Model/SqrtGapToSecondEnergy/Name').text
+                    fit_tag2.find(ratio_name+"IDIndex").text=this_xml.find('Model/SqrtGapToSecondEnergy/IDIndex').text
+                elif fit_info.model in deg_conspiracy_fits:
+                  for i in range(deg_conspiracy_fits.index(fit_info.model)+1):
+                    ratio_name = f'TemporalCorrelatorFit/Model/SqrtGapTo{twothree[i]}Energy/'
+                    fit_tag2.find(ratio_name+"Name").text=this_xml.find(f'Model/SqrtGapTo{twothree[i]}Energy/Name').text
+                    fit_tag2.find(ratio_name+"IDIndex").text=this_xml.find(f'Model/SqrtGapTo{twothree[i]}Energy/IDIndex').text
+                    
+                if fit_info.model==fit_info_lib.FitModel.TimeForwardThreeIndExponential:
+                    ratio_name = f'TemporalCorrelatorFit/Model/SingleHadronEnergy/'
+                    fit_tag2.find(ratio_name+"Name").text=this_xml.find('Model/FirstEnergy/Name').text
+                    fit_tag2.find(ratio_name+"IDIndex").text=this_xml.find('Model/FirstEnergy/IDIndex').text
+
+                if fit_info.model==fit_info_lib.FitModel.TimeForwardDoubleExpRatio1:
                     ratio_name = f'TemporalCorrelatorInteractionRatioFit/Model/SH{i+1}Gap/'
                     fit_tag2.find(ratio_name+"Name").text=this_xml.find('Model/SqrtGapToSecondEnergy/Name').text
                     fit_tag2.find(ratio_name+"IDIndex").text=this_xml.find('Model/SqrtGapToSecondEnergy/IDIndex').text
-                    ratio_name = f'TemporalCorrelatorInteractionRatioFit/Model/SH{i+1}GapAmp/'
-                    fit_tag2.find(ratio_name+"Name").text=this_xml.find('Model/SecondAmplitudeRatio/Name').text
-                    fit_tag2.find(ratio_name+"IDIndex").text=this_xml.find('Model/SecondAmplitudeRatio/IDIndex').text
-                    if 'plotfile' in extra_options:
-                        ni_plot_tag = copy.deepcopy(plot_tag)
-                        ni_plot_tag.find('CorrName').text = ni_plot_tag.find('CorrName').text+f"-{scat_fit_info.operator.compact_str}"
-                        ni_plot_tag.find('PlotFile').text = ni_plot_tag.find('PlotFile').text.replace(".agr",f"-{scat_fit_info.operator.compact_str}.agr")
-                        this_xml.append(ni_plot_tag)
-                    fit_tag2.append(this_xml)
+                    
+                if fit_info.model==fit_info_lib.FitModel.TimeForwardDoubleExpRatio1:
+                    ratio_name = f'TemporalCorrelatorInteractionRatioFit/Model/SHGap/'
+                    fit_tag2.find(ratio_name+"Name").text=this_xml.find('Model/SqrtGapToSecondEnergy/Name').text
+                    fit_tag2.find(ratio_name+"IDIndex").text=this_xml.find('Model/SqrtGapToSecondEnergy/IDIndex').text
+                    # ratio_name = f'TemporalCorrelatorInteractionRatioFit/Model/SHGapAmp/'
+                    # fit_tag2.find(ratio_name+"Name").text=this_xml.find('Model/SecondAmplitudeRatio/Name').text
+                    # fit_tag2.find(ratio_name+"IDIndex").text=this_xml.find('Model/SecondAmplitudeRatio/IDIndex').text
+
+                if fit_info.model==fit_info_lib.FitModel.TwoExpConspiracy and i==0:
+                  shift_parameter = ET.Element("SqrtGapToSecondEnergyShift")
+                  for item in this_xml.findall('Model/SqrtGapToSecondEnergy/*'):
+                    ET.SubElement(shift_parameter, item.tag).text = item.text
+
+                #2exp to shifted 2exp
+                if fit_info.model==fit_info_lib.FitModel.TwoExpConspiracy and i==1:
+                  this_xml.find('Model/Type').text = "TimeForwardTwoExponentialForCons"
+                  this_xml.find('Model').append(shift_parameter)
+
+                # if 'plotfile' in extra_options:
+                #     ni_plot_tag = copy.deepcopy(plot_tag)
+                #     ni_plot_tag.find('CorrName').text = ni_plot_tag.find('CorrName').text+f"-{scat_fit_info.operator.compact_str}"
+                #     ni_plot_tag.find('PlotFile').text = ni_plot_tag.find('PlotFile').text.replace(".agr",f"-{scat_fit_info.operator.compact_str}.agr")
+                #     this_xml.append(ni_plot_tag)
+
+                fit_tag2.append(this_xml)
+                if fit_info.model==fit_info_lib.FitModel.TimeForwardTwoExponential:
+                  break
+                if fit_info.model in deg_conspiracy_fits:
+                  break
+                if fit_info.model==fit_info_lib.FitModel.TimeForwardThreeIndExponential:
+                  break
                         
         
         fit_info.sim_fit = True
@@ -771,12 +862,12 @@ class SigmondInput:
               ET.SubElement(opterm_tag, "Coefficient").text = improved_op[i+1]
 
 
-    if pivot_info.pivot_type is sigmond_info.sigmond_info.PivotType.SinglePivot:
+    if pivot_info.pivot_type is sigmond_info.PivotType.SinglePivot:
       ET.SubElement(pivot_init_tag, "NormTime").text = str(pivot_info.norm_time)
       ET.SubElement(pivot_init_tag, "MetricTime").text = str(pivot_info.metric_time)
       ET.SubElement(pivot_init_tag, "DiagonalizeTime").text = str(pivot_info.diagonalize_time)
       ET.SubElement(pivot_init_tag, "MinimumInverseConditionNumber").text = str(1./pivot_info.max_condition_number)
-    elif pivot_info.pivot_type is sigmond_info.sigmond_info.PivotType.RollingPivot:
+    elif pivot_info.pivot_type is sigmond_info.PivotType.RollingPivot:
       ET.SubElement(pivot_init_tag, "NormTime").text = str(pivot_info.norm_time)
       ET.SubElement(pivot_init_tag, "MetricTime").text = str(pivot_info.metric_time)
       ET.SubElement(pivot_init_tag, "ZMagSqTime").text = str(pivot_info.diagonalize_time)
@@ -795,6 +886,8 @@ class SigmondInput:
       ET.SubElement(write_pivot_tag, "PivotFileName").text = extra_options['pivot_filename']
       if extra_options.get('pivot_overwrite'):
         ET.SubElement(write_pivot_tag, "Overwrite")
+      else:
+        ET.SubElement(write_pivot_tag, "Update")
     if extra_options.get('show_transformation'):
       ET.SubElement(pivot_init_tag, "PrintTransformationMatrix")
     if extra_options.get('set_imaginary_parts_zero'):
@@ -935,6 +1028,60 @@ class SigmondInput:
           ET.SubElement(zmag_tag, "ObsName").text = extra_options['obsname']
         ET.SubElement(zmag_tag, "FileSuffix").text = \
             util.str_to_file(operator.op_str())
+
+    self._addTask(xml)
+
+
+  def doGEVPCheck(self, pivot_type, **extra_options):
+    """Adds a 'doGEVPCheck' task to the SigmondInput object
+
+    Args:
+      pivot_type (PivotType): The pivot type to be used in the rotation
+      **pivot_name (str): A name for the pivot so that it can be used in
+          other tasks.
+      **pivot_filename (str): the filename with the stored pivot
+      **plot_stub (str): a file stub to use for the zfactor plots
+      **operators (list): a list of sigmondbind.OperatorInfo specifying
+          the operators to calculate z-factors for
+      **bar_color (str): a color to use for the bar plots
+      **obsname (str): a name for the plots
+    """
+    xml = ET.Element("Task")
+    ET.SubElement(xml, "Action").text = "DoGEVPCheck"
+    ET.SubElement(xml, "Type").text = pivot_type.name
+    ET.SubElement(xml, "MinTimeSep").text = str(extra_options.pop("tmin",2))
+    ET.SubElement(xml, "MaxTimeSep").text = str(extra_options.pop("tmin",25))
+    # ET.SubElement(xml, "NormTime").text = "tN"
+
+    if 'minimizer_info' in extra_options:
+      xml.append(extra_options['minimizer_info'].xml())
+    pivot_init_tag = ET.SubElement(xml, f"{pivot_type.name}Initiate")
+    if 'pivot_filename' in extra_options:
+      read_tag = ET.SubElement(pivot_init_tag, "ReadPivotFromFile")
+      ET.SubElement(read_tag, "PivotFileName").text = extra_options['pivot_filename']
+      if 'pivot_name' in extra_options:
+        ET.SubElement(pivot_init_tag, "AssignName").text = extra_options['pivot_name']
+
+    elif 'pivot_name' in extra_options:
+      memory_tag = ET.SubElement(pivot_init_tag, "GetFromMemory")
+      ET.SubElement(memory_tag, "IDName").text = extra_options['pivot_name']
+    else:
+      logging.warning("No pivot given, task can not be added")
+      return
+
+    if 'plot_stub' in extra_options:
+      # plot_tag = ET.SubElement(xml, "DoPlots")
+      ET.SubElement(xml, "PlotFileStub").text = extra_options['plot_stub']
+      # if 'bar_color' in extra_options:
+      #   ET.SubElement(plot_tag, "BarColor").text = extra_options['bar_color'].value
+
+      # for operator in extra_options.get('operators', []):
+      #   zmag_tag = ET.SubElement(plot_tag, "ZMagSqPlot")
+      #   zmag_tag.append(operator.xml())
+      #   if 'obsname' in extra_options:
+      #     ET.SubElement(zmag_tag, "ObsName").text = extra_options['obsname']
+      #   ET.SubElement(zmag_tag, "FileSuffix").text = \
+      #       util.str_to_file(operator.op_str())
 
     self._addTask(xml)
 
@@ -1277,7 +1424,7 @@ class SigmondInput:
     self._addTask(xml)
 
   def writeToFile(self, file_name, observables,
-                  file_type=sigmond_info.sigmond_info.DataFormat.samplings, 
+                  file_type=sigmond_info.DataFormat.samplings, 
                   file_mode=sigmond.WriteMode.Overwrite, hdf5 = False):
     """Adds a 'WriteToFile' task to the SigmondInput object
 
@@ -1306,7 +1453,7 @@ class SigmondInput:
     self._addTask(xml)
 
   def writeCorrMatToFile(self, file_name, corrs,
-                  file_type=sigmond_info.sigmond_info.DataFormat.samplings, 
+                  file_type=sigmond_info.DataFormat.samplings, 
                   file_mode=sigmond.WriteMode.Overwrite, tmin=None, tmax=None):
     """Adds a 'WriteToFile' task to the SigmondInput object
 

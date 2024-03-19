@@ -11,10 +11,11 @@ import xml.etree.ElementTree as ET
 import xml.dom.minidom as minidom
 import uncertainties
 import yaml
+import h5py
 from sortedcontainers import SortedSet
 from aenum import MultiValueEnum
 
-import operator_info.operator
+import sigmond_scripts.analysis.operator_info.operator as operator_lib
 import sigmond
 
 
@@ -32,6 +33,9 @@ class Singleton(type):
       cls._instances[cls] = super(Singleton, cls).__call__(*args, **kwargs)
     return cls._instances[cls]
 
+  @classmethod
+  def __del__(cls):
+    cls._instances = {}
 #########################################################################################
 # For creating nice looking errors on results
 
@@ -272,6 +276,7 @@ def create_doc(title, with_tikz=False):
   doc.packages.append(pylatex.Package('amssymb'))
   doc.packages.append(pylatex.Package('amsmath'))
   doc.packages.append(pylatex.Package('float'))
+  doc.packages.append(pylatex.Package('xcolor'))
   doc.packages.append(pylatex.Package('caption', {'labelformat': 'empty', 'justification': 'centering'}))
 #   doc.packages.append(pylatex.Package('todonotes'))
   doc.packages.append(pylatex.NoEscape(r"\usepackage{longtable}[=v4.13]"))
@@ -307,7 +312,8 @@ def create_tikz_doc():
 
 def add_correlator(doc, task_handler, correlator, name, obs_handler):
 
-  operator_src = operator_info.operator.Operator(correlator.getSource())
+  operator_src = operator_lib.Operator(correlator.getSource())
+  #operator_src = operator_info.operator.Operator(correlator.getSource())
   subtractvev = task_handler.subtractvev and operator_src.channel.vev
   if correlator.isSinkSourceSame():
     left_pdf_file = task_handler.correlator_plotfile(correlator, name, extension=PlotExtension.pdf)
@@ -724,3 +730,117 @@ def _countHadronsInIDName( IDName, hadron_list ):
     else:
         return 0, []
             
+def write_gevp_check(logfiles, filename):
+    doc = create_doc("GEVP Check")
+    for logfile in logfiles:
+      with doc.create(pylatex.Section(logfile)):
+        gevp_check_xml = logfiles[logfile]
+        if gevp_check_xml:
+          final_fits_xml = gevp_check_xml.find("FinalFits")
+          with doc.create(pylatex.Center()) as centered:
+            with centered.create(pylatex.LongTabu("c "*7, to=r"\linewidth")) as data_table:
+              header_row = ["Level","Amplitude","Err","Relative Err", pylatex.NoEscape("Best Fit $\chi^2$"), pylatex.NoEscape("Level Insert $\chi^2$"), pylatex.NoEscape("Best Fit $\chi^2$/dof")]
+              data_table.add_row(header_row, mapper=[pylatex.utils.bold])
+              data_table.end_table_header()
+              if final_fits_xml!=None:
+                for fit_xml in final_fits_xml.iter("Fit"):
+                  data_row = []
+                  for item in fit_xml.itertext():
+                    if item.strip():
+                      data_row.append(item.strip())
+                  
+                  if float(data_row[3])>0.5:
+                    data_row[3] = pylatex.Command("textcolor",['red',data_row[3]])
+                  elif float(data_row[3])<=0.05:
+                    data_row[3] = pylatex.Command("textcolor",['blue',data_row[3]])
+                  if float(data_row[5])>1.25*float(data_row[4]):
+                    data_row[5] = pylatex.Command("textcolor",['red',data_row[5]])
+                  if float(data_row[6])>1.5:
+                    data_row[6] = pylatex.Command("textcolor",['red',data_row[6]])
+
+                  data_table.add_row(data_row)
+          for check in gevp_check_xml.iter("GEVPCheck"):
+            with doc.create(pylatex.Subsection(check.find("TemporalCorrelatorFit/GIOperatorString").text)):
+              with doc.create(pylatex.LongTabu("X X", to=r"\linewidth")) as data_table:
+                data_table.add_row(["GEVP Reconstruction","GEVP Reconstruction w/ higher state fit"], mapper=[pylatex.utils.bold])
+                data_table.end_table_header()
+                if check.find('BestFitChiSqrDOF')!=None:
+                  data_table.add_row(["",pylatex.NoEscape(rf"$\chi^2/\textup{{d.o.f}}=${check.find('BestFitChiSqrDOF').text}")])
+                  data_table.add_row(["",pylatex.NoEscape(f"$\chi^2=${check.find('BestFitChiSqr').text}")])
+                  data_table.add_row(["",f"Tmin: {check.find('BestFitTmin').text}"])
+                  data_table.add_row(["",f"Tmax: {check.find('BestFitTmax').text}"])
+              with doc.create(pylatex.Figure(position='H')):
+                with doc.create(pylatex.SubFigure(  
+                    position='b', width=pylatex.NoEscape(r'0.5\linewidth'))) as left_fig:
+                  left_fig.add_image(pylatex.NoEscape(check.find("CorrPlotFile").text.replace(".agr",".pdf")))
+                  # add_image(left_fig, task_handler.results_dir, left_pdf_file, width="1.0")
+                if check.find('BestFitChiSqrDOF')!=None:
+                  with doc.create(pylatex.SubFigure(
+                      position='b', width=pylatex.NoEscape(r'0.5\linewidth'))) as right_fig:
+                    right_fig.add_image(pylatex.NoEscape(check.find("CorrPlotFile2").text.replace(".agr",".pdf")))
+                    # add_image(right_fig, task_handler.results_dir, right_pdf_file, width="1.0")
+              with doc.create(pylatex.Figure(position='H')):
+                with doc.create(pylatex.SubFigure(
+                    position='b', width=pylatex.NoEscape(r'0.5\linewidth'))) as left_fig:
+                  left_fig.add_image(pylatex.NoEscape(check.find("EffPlotFile").text.replace(".agr",".pdf")))
+                  # add_image(left_fig, task_handler.results_dir, left_pdf_file, width="1.0")
+                if check.find('BestFitChiSqrDOF')!=None:
+                  with doc.create(pylatex.SubFigure(
+                      position='b', width=pylatex.NoEscape(r'0.5\linewidth'))) as right_fig:
+                    right_fig.add_image(pylatex.NoEscape(check.find("EffPlotFile2").text.replace(".agr",".pdf")))
+                    # add_image(right_fig, task_handler.results_dir, right_pdf_file, width="1.0")
+              for new_state_fit in check.iter("NewStateFit"):
+                with doc.create(pylatex.Subsubsection("Level "+new_state_fit.find("Level").text)):
+                  doc.append("Fit Info")
+                  with doc.create(pylatex.LongTabu("X X", to=r"0.5\linewidth")) as data_table:
+                    data_table.add_row(["Item","Info"], mapper=[pylatex.utils.bold])
+                    data_table.end_table_header()
+                    for item in new_state_fit.iter():
+                      if item.text.strip() and "File" not in item.tag and "Level" not in item.tag:
+                        data_table.add_row(item.tag,item.text.strip())
+                  if new_state_fit.find("CorrPlotFile")!=None:
+                    with doc.create(pylatex.Figure(position='H')):
+                      with doc.create(pylatex.SubFigure(
+                          position='b', width=pylatex.NoEscape(r'0.5\linewidth'))) as left_fig:
+                        left_fig.add_image(pylatex.NoEscape(new_state_fit.find("CorrPlotFile").text.replace(".agr",".pdf")))
+                      with doc.create(pylatex.SubFigure(
+                          position='b', width=pylatex.NoEscape(r'0.5\linewidth'))) as right_fig:
+                        right_fig.add_image(pylatex.NoEscape(new_state_fit.find("EffPlotFile").text.replace(".agr",".pdf")))
+    compile_pdf(doc,filename)
+
+def combine_hdf5_files(file_name_func, tags):
+    if os.path.exists(file_name_func()):
+        os.remove(file_name_func())
+        
+    outfile = h5py.File(file_name_func(), "a")
+    for tag in tags:
+      if os.path.exists(file_name_func(tag)):
+          hdf5_h = h5py.File(file_name_func(tag),"r+")
+          
+          if 'Info' not in outfile.keys():
+            outfile.create_group('Info')
+          for info in hdf5_h['Info'].keys():
+              data=hdf5_h['Info'][info][()]
+              if info not in outfile['Info'].keys():
+                outfile['Info'].create_dataset(info,data.shape,data=data )
+              
+          #this will not be params for other files, change to "Values"
+          values_key = "Values"
+          if values_key not in outfile.keys():
+              outfile.create_group(values_key)
+          for irrep in hdf5_h[values_key].keys():
+              if type(hdf5_h[values_key][irrep])==h5py._hl.dataset.Dataset:
+                  if irrep not in outfile[values_key].keys():
+                      data=hdf5_h[values_key][irrep][()]
+                      outfile[values_key].create_dataset(irrep,data.shape,data=data)
+              else:
+                  if irrep not in outfile[values_key].keys():
+                      outfile[values_key].create_group(irrep)
+                  for value in hdf5_h[values_key][irrep].keys():
+                      data=hdf5_h[values_key][irrep][value][()]
+                      outfile[values_key][irrep].create_dataset(value,data.shape,data=data)
+              
+          hdf5_h.close()
+          os.remove(file_name_func(tag))
+
+    outfile.close()

@@ -3,9 +3,9 @@ import copy
 import itertools
 import logging
 
-from data_handling.data_files import DataFiles, FileInfo
-from operator_info.operator_set import OperatorSet
-from operator_info.operator import Operator
+from sigmond_scripts.analysis.data_handling.data_files import DataFiles, FileInfo
+from sigmond_scripts.analysis.operator_info.operator_set import OperatorSet
+from sigmond_scripts.analysis.operator_info.operator import Operator
 
 import sigmond
 
