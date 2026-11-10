@@ -13,15 +13,15 @@ import defs
 
 FORCE_HERM = True
 
-base_data_dir = "/disk4/research/data/dibaryon_correlators/"
-output_dir = "data"
+base_data_dir = "/disk5/research/data/dibaryon_correlators"
+output_dir = "/disk1/research/projects/mainz_dibaryon/data.boundary_test"
 
-#ensembles_to_do = ["A653", "B450", "B451", "B452", "H101", "H200", "J500", "N200", "N202", "N300", "U102", "U103", "E1", "E5"]
-#ensembles_to_do = ["a064_m400_mL6.4_trMc"]
-#ensembles_to_do = ["N451"]
-#ensembles_to_do = ["a064_m400_mL6.4_trMc", "a094_m400_mL6.0_trMc", "a12_m400_mL6.0_trMc"]
-#ensembles_to_do = ["A653", "B450", "B451", "B452", "H101", "H102", "H107", "H200", "J500", "N200", "N202", "N300", "N451", "U102", "U103", "E1", "E5"]
-ensembles_to_do = ["mdwf_cls_H200"]
+#ensembles_to_do = ["cls_A653", "cls_B450", "cls_H101", "cls_H200", "cls_N202", "cls_N300", "cls_U103", "cls_J500", "cls_J500_sm2"]
+ensembles_to_do = ["cls_N300", "cls_J500_sm2"]
+#ensembles_to_do = ["clover_T1.0_cls_A653", "clover_T1.0_cls_B450", "clover_T0.125_cls_A653"]
+#ensembles_to_do = ["mdwf_T1.0_cls_A653", "mdwf_T1.0_cls_B450", "mdwf_T1.0_cls_H101", "mdwf_T1.0_cls_H200", "mdwf_T0.4_cls_A653"]
+#ensembles_to_do = ["mdwf_T1.0_hisq_a15m400trMc_a", "mdwf_T1.0_hisq_a12m400trMc_a", "mdwf_T1.0_hisq_a09m400trMc_a", "mdwf_T1.0_hisq_a06m400trMc_a"]
+
 
 particle_map = {
     'Σ': 'S',
@@ -31,7 +31,7 @@ particle_map = {
 
 def main():
 
-  dibaryon_ops = read_op_files()
+  #dibaryon_ops = read_op_files()
 
   '''
   import json
@@ -43,21 +43,73 @@ def main():
     if ensemble.name not in ensembles_to_do:
       continue
 
-    print(f"Processing ensemble {ensemble.name}")
     try:
-      '''
-      convert_dibaryons(ensemble, dibaryon_ops)
-      convert_baryons(ensemble)
-      if ensemble.name in defs.decuplet_ensembles:
-        convert_decuplet(ensemble)
-      '''
+      dibaryon_ops = read_ops_from_hdf5(ensemble)
+    except:
+      dibaryon_ops = read_op_files()
 
-      convert_pseudoscalar(ensemble)
+    print(f"Processing ensemble {ensemble.name}")
+    #try:
+    convert_dibaryons(ensemble, dibaryon_ops)
+    convert_baryons(ensemble)
+    if ensemble.name in defs.decuplet_ensembles:
+      convert_decuplet(ensemble)
 
+    convert_pseudoscalar(ensemble)
+
+    '''
     except Exception as e:
       print("Exception:")
       print("\tEnsemble: {}".format(ensemble.name))
       print("\tMessage: {}".format(e))
+    '''
+
+def read_ops_from_hdf5(ensemble):
+  if ensemble.type == "exp":
+    raw_data_dir = os.path.join(base_data_dir, "expClover", f"{ensemble.dir_name}")
+  elif ensemble.type == "mdwf_hisq":
+    raw_data_dir = os.path.join(base_data_dir, "mdwf_hisq", f"{ensemble.dir_name}")
+  elif ensemble.type == "mdwf_T1.0_cls":
+    raw_data_dir = os.path.join(base_data_dir, "mdwf_cls/flow_t1.0", f"{ensemble.dir_name}")
+  elif ensemble.type == "mdwf_T0.4_cls":
+    raw_data_dir = os.path.join(base_data_dir, "mdwf_cls/flow_t0.4", f"{ensemble.dir_name}")
+  elif ensemble.type == "clover_T1.0_cls":
+    raw_data_dir = os.path.join(base_data_dir, "clover_T1.0_cls", f"{ensemble.dir_name}")
+  elif ensemble.type == "clover_T0.125_cls":
+    raw_data_dir = os.path.join(base_data_dir, "clover_T0.125_cls", f"{ensemble.dir_name}")
+  else:
+    raw_data_dir = os.path.join(base_data_dir, f"{ensemble.dir_name}")
+  
+  flavors = defs.SU3_flavors if ensemble.su3 else defs.SU2_flavors
+
+  operators = dict()
+  for flavor in flavors:
+    replica = ensemble.replica[0]
+    if ensemble.type == "exp":
+      data_filename = f"{ensemble.dir_name.replace('_sm2','')}{replica}_{ensemble.flow}{ensemble.modes}modes_dibaryon.hdf5"
+    elif ensemble.su3:
+      data_filename = f"{ensemble.dir_name.replace('_sm2','')}{replica}_{ensemble.flow}{ensemble.modes}modes.hdf5"
+    else:
+      isospin, strangeness = flavor.split('_')
+      data_filename = f"{ensemble.dir_name.replace('_sm2','')}{replica}_{ensemble.flow}{ensemble.modes}modes_{strangeness}.hdf5"
+
+    data_file = os.path.join(raw_data_dir, data_filename)
+    if not os.path.isfile(data_file):
+      data_filename = f"{ensemble.dir_name.replace('_sm2','')}{replica}_SU3_{ensemble.flow}{ensemble.modes}modes.hdf5"
+      data_file = os.path.join(raw_data_dir, data_filename)
+
+    operators[flavor] = dict()
+    fh = h5py.File(data_file, 'r')
+    for pref in fh['/c2_dibaryon'].keys():
+      operators[flavor][pref] = dict()
+      for irrep in fh[f'/c2_dibaryon/{pref}'].keys():
+        if flavor in fh[f'/c2_dibaryon/{pref}/{irrep}'].keys():
+          ops = list(fh[f'/c2_dibaryon/{pref}/{irrep}/{flavor}'].attrs['operators'])
+          ops = [op.replace(' ', '_') for op in ops]
+          operators[flavor][pref][irrep] = ops
+
+    fh.close()
+  return operators
 
 def read_op_files():
   op_data = dict()
@@ -146,13 +198,17 @@ def convert_dibaryons(ensemble, ops):
   obs_handler = sig.MCObsHandler(obs_get_handler, False)
 
   if ensemble.type == "exp":
-    raw_data_dir = os.path.join(base_data_dir, "expClover", ensemble.flow, f"{ensemble.dir_name}")
+    raw_data_dir = os.path.join(base_data_dir, "expClover", f"{ensemble.dir_name}")
   elif ensemble.type == "mdwf_hisq":
-    raw_data_dir = os.path.join(base_data_dir, "mdwf_hisq", ensemble.flow, f"{ensemble.dir_name}")
-  elif ensemble.type == "mdwf_cls":
-    raw_data_dir = os.path.join(base_data_dir, "mdwf_cls", ensemble.flow, f"{ensemble.dir_name}")
-  elif ensemble.type == "Scls_cls":
-    raw_data_dir = os.path.join(base_data_dir, "Scls_cls", ensemble.flow, f"{ensemble.dir_name}")
+    raw_data_dir = os.path.join(base_data_dir, "mdwf_hisq", f"{ensemble.dir_name}")
+  elif ensemble.type == "mdwf_T1.0_cls":
+    raw_data_dir = os.path.join(base_data_dir, "mdwf_cls/flow_t1.0", f"{ensemble.dir_name}")
+  elif ensemble.type == "mdwf_T0.4_cls":
+    raw_data_dir = os.path.join(base_data_dir, "mdwf_cls/flow_t0.4", f"{ensemble.dir_name}")
+  elif ensemble.type == "clover_T1.0_cls":
+    raw_data_dir = os.path.join(base_data_dir, "clover_T1.0_cls", f"{ensemble.dir_name}")
+  elif ensemble.type == "clover_T0.125_cls":
+    raw_data_dir = os.path.join(base_data_dir, "clover_T0.125_cls", f"{ensemble.dir_name}")
   else:
     raw_data_dir = os.path.join(base_data_dir, f"{ensemble.dir_name}")
   
@@ -162,16 +218,16 @@ def convert_dibaryons(ensemble, ops):
     data_handlers = list()
     for replica in ensemble.replica:
       if ensemble.type == "exp":
-        data_filename = f"{ensemble.dir_name}{replica}_{ensemble.modes}modes_dibaryon.hdf5"
+        data_filename = f"{ensemble.dir_name.replace('_sm2','')}{replica}_{ensemble.flow}{ensemble.modes}modes_dibaryon.hdf5"
       elif ensemble.su3:
-        data_filename = f"{ensemble.dir_name}{replica}_{ensemble.modes}modes.hdf5"
+        data_filename = f"{ensemble.dir_name.replace('_sm2','')}{replica}_{ensemble.flow}{ensemble.modes}modes.hdf5"
       else:
         isospin, strangeness = flavor.split('_')
-        data_filename = f"{ensemble.dir_name}{replica}_{ensemble.modes}modes_{strangeness}.hdf5"
+        data_filename = f"{ensemble.dir_name.replace('_sm2','')}{replica}_{ensemble.flow}{ensemble.modes}modes_{strangeness}.hdf5"
 
       data_file = os.path.join(raw_data_dir, data_filename)
       if not os.path.isfile(data_file):
-        data_filename = f"{ensemble.dir_name}{replica}_SU3_{ensemble.modes}modes.hdf5"
+        data_filename = f"{ensemble.dir_name.replace('_sm2','')}{replica}_SU3_{ensemble.flow}{ensemble.modes}modes.hdf5"
         data_file = os.path.join(raw_data_dir, data_filename)
 
       data_handler = h5py.File(data_file, 'r')
@@ -214,7 +270,7 @@ def convert_dibaryons(ensemble, ops):
             opsnk_str = defs.get_opstr(ensemble.su3, pref, irrep, flavor, opsnk_str)
             for t in range(ensemble.t0, ensemble.t0+ensemble.ts):
               bin_datas = list()
-              for dataset in datasets:
+              for dataset, replica_fwd in zip(datasets, ensemble.replica_fwd):
                 bin_data = np.zeros(dataset.shape[0], dtype=np.complex128)
                 for tsrc in range(ensemble.srcs):
                   for par in range(2):
@@ -226,6 +282,8 @@ def convert_dibaryons(ensemble, ops):
                     else:
                       bin_data += dataset[:,tsrc,par,opsnk_i,opsrc_i,t-ensemble.t0]
 
+                if not replica_fwd:
+                  bin_data = np.flip(bin_data)
                 bin_datas.append(bin_data)
 
               opsrc = sig.OperatorInfo(opsrc_str, sig.OpKind.GenIrrep)
@@ -253,31 +311,35 @@ def convert_dibaryons(ensemble, ops):
 
 def convert_baryons(ensemble):
   if ensemble.type == "exp":
-    data_dir = os.path.join(base_data_dir, "expClover", ensemble.flow, f"{ensemble.dir_name}")
+    data_dir = os.path.join(base_data_dir, "expClover", f"{ensemble.dir_name}")
   elif ensemble.type == "mdwf_hisq":
-    data_dir = os.path.join(base_data_dir, "mdwf_hisq", ensemble.flow, f"{ensemble.dir_name}")
-  elif ensemble.type == "mdwf_cls":
-    data_dir = os.path.join(base_data_dir, "mdwf_cls", ensemble.flow, f"{ensemble.dir_name}")
-  elif ensemble.type == "Scls_cls":
-    data_dir = os.path.join(base_data_dir, "Scls_cls", ensemble.flow, f"{ensemble.dir_name}")
+    data_dir = os.path.join(base_data_dir, "mdwf_hisq", f"{ensemble.dir_name}")
+  elif ensemble.type == "mdwf_T1.0_cls":
+    data_dir = os.path.join(base_data_dir, "mdwf_cls/flow_t1.0", f"{ensemble.dir_name}")
+  elif ensemble.type == "mdwf_T0.4_cls":
+    data_dir = os.path.join(base_data_dir, "mdwf_cls/flow_t0.4", f"{ensemble.dir_name}")
+  elif ensemble.type == "clover_T1.0_cls":
+    data_dir = os.path.join(base_data_dir, "clover_T1.0_cls", f"{ensemble.dir_name}")
+  elif ensemble.type == "clover_T0.125_cls":
+    data_dir = os.path.join(base_data_dir, "clover_T0.125_cls", f"{ensemble.dir_name}")
   else:
     data_dir = os.path.join(base_data_dir, f"{ensemble.dir_name}")
 
   data_handlers = list()
   datasets = list()
   for replica in ensemble.replica:
-    data_filename = f"{ensemble.dir_name}{replica}_{ensemble.modes}modes_baryon.hdf5"
+    data_filename = f"{ensemble.dir_name.replace('_sm2','')}{replica}_{ensemble.flow}{ensemble.modes}modes_baryon.hdf5"
     data_file = os.path.join(data_dir, data_filename)
     if not os.path.isfile(data_file):
       if ensemble.type == "exp":
-        data_filename = f"{ensemble.dir_name}{replica}_{ensemble.modes}modes_dibaryon.hdf5"
+        data_filename = f"{ensemble.dir_name.replace('_sm2','')}{replica}_{ensemble.flow}{ensemble.modes}modes_dibaryon.hdf5"
         data_file = os.path.join(data_dir, data_filename)
       elif ensemble.su3:
-        #data_filename = f"{ensemble.dir_name}{replica}_{ensemble.modes}modes_baryon.hdf5"
-        data_filename = f"{ensemble.dir_name}{replica}_{ensemble.modes}modes.hdf5"
+        #data_filename = f"{ensemble.dir_name}{replica}_{ensemble.flow}{ensemble.modes}modes_baryon.hdf5"
+        data_filename = f"{ensemble.dir_name.replace('_sm2','')}{replica}_{ensemble.flow}{ensemble.modes}modes.hdf5"
         data_file = os.path.join(data_dir, data_filename)
       else:
-        data_filename = f"{ensemble.dir_name}{replica}_{ensemble.modes}modes_S-2.hdf5"
+        data_filename = f"{ensemble.dir_name.replace('_sm2','')}{replica}_{ensemble.flow}{ensemble.modes}modes_S0.hdf5"
         data_file = os.path.join(data_dir, data_filename)
 
     f_handler = h5py.File(data_file, 'r')
@@ -311,7 +373,7 @@ def convert_baryons(ensemble):
 
       for t in range(ensemble.t0, ensemble.t0+ensemble.ts):
         bin_datas = list()
-        for dataset in datasets:
+        for dataset, replica_fwd in zip(datasets, ensemble.replica_fwd):
           bin_data = np.zeros(dataset.shape[0], dtype=np.complex128)
           for tsrc in range(ensemble.srcs):
             for par in range(2):
@@ -319,6 +381,9 @@ def convert_baryons(ensemble):
                 continue
 
               bin_data += dataset[:,tsrc,par,psq,flavor_i,t-ensemble.t0]
+
+          if not replica_fwd:
+            bin_data = np.flip(bin_data)
           bin_datas.append(bin_data)
 
         corr = sig.CorrelatorAtTimeInfo(op, op, t, FORCE_HERM, False)
@@ -344,20 +409,24 @@ def convert_baryons(ensemble):
 
 def convert_decuplet(ensemble):
   if ensemble.type == "exp":
-    data_dir = os.path.join(base_data_dir, "expClover", ensemble.flow, f"{ensemble.dir_name}")
+    data_dir = os.path.join(base_data_dir, "expClover", f"{ensemble.dir_name}")
   elif ensemble.type == "mdwf_hisq":
-    data_dir = os.path.join(base_data_dir, "mdwf_hisq", ensemble.flow, f"{ensemble.dir_name}")
-  elif ensemble.type == "mdwf_cls":
-    data_dir = os.path.join(base_data_dir, "mdwf_cls", ensemble.flow, f"{ensemble.dir_name}")
-  elif ensemble.type == "Scls_cls":
-    data_dir = os.path.join(base_data_dir, "Scls_cls", ensemble.flow, f"{ensemble.dir_name}")
+    data_dir = os.path.join(base_data_dir, "mdwf_hisq", f"{ensemble.dir_name}")
+  elif ensemble.type == "mdwf_T1.0_cls":
+    data_dir = os.path.join(base_data_dir, "mdwf_cls/flow_t1.0", f"{ensemble.dir_name}")
+  elif ensemble.type == "mdwf_T0.4_cls":
+    data_dir = os.path.join(base_data_dir, "mdwf_cls/flow_t0.4", f"{ensemble.dir_name}")
+  elif ensemble.type == "clover_T1.0_cls":
+    data_dir = os.path.join(base_data_dir, "clover_T1.0_cls", f"{ensemble.dir_name}")
+  elif ensemble.type == "clover_T0.125_cls":
+    data_dir = os.path.join(base_data_dir, "clover_T0.125_cls", f"{ensemble.dir_name}")
   else:
     data_dir = os.path.join(base_data_dir, f"{ensemble.dir_name}")
 
   data_handlers = list()
   datasets = list()
   for replica in ensemble.replica:
-    data_filename = f"{ensemble.dir_name}{replica}_{ensemble.modes}modes_decuplet.hdf5"
+    data_filename = f"{ensemble.dir_name.replace('_sm2','')}{replica}_{ensemble.flow}{ensemble.modes}modes_decuplet.hdf5"
     data_file = os.path.join(data_dir, data_filename)
     f_handler = h5py.File(data_file, 'r')
     data_handlers.append(f_handler)
@@ -388,7 +457,7 @@ def convert_decuplet(ensemble):
 
       for t in range(ensemble.t0, ensemble.t0+ensemble.ts):
         bin_datas = list()
-        for dataset in datasets:
+        for dataset, replica_fwd in zip(datasets, ensemble.replica_fwd):
           bin_data = np.zeros(dataset.shape[0], dtype=np.complex128)
           for tsrc in range(ensemble.srcs):
             for par in range(2):
@@ -396,6 +465,9 @@ def convert_decuplet(ensemble):
                 continue
 
               bin_data += dataset[:,tsrc,par,psq,flavor_i,t-ensemble.t0]
+
+          if not replica_fwd:
+            bin_data = np.flip(bin_data)
           bin_datas.append(bin_data)
 
         corr = sig.CorrelatorAtTimeInfo(op, op, t, FORCE_HERM, False)
@@ -421,13 +493,17 @@ def convert_decuplet(ensemble):
 
 def convert_pseudoscalar(ensemble):
   if ensemble.type == "exp":
-    data_dir = os.path.join(base_data_dir, "expClover", ensemble.flow, f"{ensemble.dir_name}")
+    data_dir = os.path.join(base_data_dir, "expClover", f"{ensemble.dir_name}")
   elif ensemble.type == "mdwf_hisq":
-    data_dir = os.path.join(base_data_dir, "mdwf_hisq", ensemble.flow, f"{ensemble.dir_name}")
-  elif ensemble.type == "mdwf_cls":
-    data_dir = os.path.join(base_data_dir, "mdwf_cls", ensemble.flow, f"{ensemble.dir_name}")
-  elif ensemble.type == "Scls_cls":
-    data_dir = os.path.join(base_data_dir, "Scls_cls", ensemble.flow, f"{ensemble.dir_name}")
+    data_dir = os.path.join(base_data_dir, "mdwf_hisq", f"{ensemble.dir_name}")
+  elif ensemble.type == "mdwf_T1.0_cls":
+    data_dir = os.path.join(base_data_dir, "mdwf_cls/flow_t1.0", f"{ensemble.dir_name}")
+  elif ensemble.type == "mdwf_T0.4_cls":
+    data_dir = os.path.join(base_data_dir, "mdwf_cls/flow_t0.4", f"{ensemble.dir_name}")
+  elif ensemble.type == "clover_T1.0_cls":
+    data_dir = os.path.join(base_data_dir, "clover_T1.0_cls", f"{ensemble.dir_name}")
+  elif ensemble.type == "clover_T0.125_cls":
+    data_dir = os.path.join(base_data_dir, "clover_T0.125_cls", f"{ensemble.dir_name}")
   else:
     data_dir = os.path.join(base_data_dir, f"{ensemble.dir_name}")
 
@@ -438,10 +514,10 @@ def convert_pseudoscalar(ensemble):
     datasets[ps_name] = list()
 
   for rep_num, replica in enumerate(ensemble.replica):
-    data_filename = f"{ensemble.dir_name}{replica}_{defs.pseudoscalar_modes[ensemble.name]}modes_pseudoscalar.hdf5"
+    data_filename = f"{ensemble.dir_name.replace('_sm2','')}{replica}_{ensemble.flow}{defs.pseudoscalar_modes[ensemble.name]}modes_pseudoscalar.hdf5"
     data_file = os.path.join(data_dir, data_filename)
     if not os.path.isfile(data_file) and ensemble.su3:
-      data_filename = f"{ensemble.dir_name}{replica}_{defs.pseudoscalar_modes[ensemble.name]}modes_pseudoscalar.hdf5"
+      data_filename = f"{ensemble.dir_name.replace('_sm2','')}{replica}_{ensemble.flow}{defs.pseudoscalar_modes[ensemble.name]}modes_pseudoscalar.hdf5"
       data_file = os.path.join(data_dir, data_filename)
 
     f_handler = h5py.File(data_file, 'r')
@@ -472,7 +548,7 @@ def convert_pseudoscalar(ensemble):
   for ps_name in defs.pseudoscalar_names[ensemble.name]:
     for t in range(ensemble.Nt):
       bin_datas = list()
-      for rep_num, dataset in enumerate(datasets[ps_name]):
+      for (rep_num, dataset), replica_fwd in zip(enumerate(datasets[ps_name]), ensemble.replica_fwd):
         bin_data = np.zeros(dataset.shape[0], dtype=np.complex128)
         for tsrc in range(ensemble.srcs):
 
@@ -507,6 +583,8 @@ def convert_pseudoscalar(ensemble):
             elif use_backward_pseudoscalar(ensemble.name, tsrc):
               bin_data += dataset[:,tsrc,ts_reverse]
 
+        if not replica_fwd:
+          bin_data = np.flip(bin_data)
         bin_datas.append(bin_data)
 
       op_str = defs.pseudoscalar_op_strs[ensemble.name][ps_name]
